@@ -75,77 +75,75 @@
 
 ## 快速开始
 
-### 本地开发启动
+### 前置依赖
 
-#### 后端
+| 工具 | 版本要求 |
+|------|---------|
+| Python | >= 3.12 |
+| Node.js | >= 20 |
+| npm | >= 10 |
+
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/chenjunda0901/api-pilot.git
+cd api-pilot
+```
+
+### 2. 启动后端
 
 ```bash
 cd backend
+
+# 安装依赖
 pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --log-level debug
+
+# 启动开发服务器（首次启动会自动执行数据库迁移并创建演示数据）
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 5000
 ```
 
-后端默认运行在 **`http://localhost:5000`**，API 文档地址 **`http://localhost:5000/docs`**
+后端默认运行在 **`http://localhost:5000`**，API 文档地址 **`http://localhost:5000/docs`**。
 
-#### 前端
+> **注意**：首次启动时系统会自动创建 SQLite 数据库文件（`data/api_pilot.db`）并执行 Alembic 数据库迁移。如手动需要执行迁移：
+>
+> ```bash
+> cd backend
+> alembic upgrade head
+> ```
+
+### 3. 启动前端
+
+另开一个终端窗口：
 
 ```bash
 cd frontend
+
+# 安装依赖
 npm install
+
+# 启动开发服务器
 npm run dev
 ```
 
 前端默认运行在 **`http://localhost:8080`**，开发模式下 `/api` 请求自动代理到后端 5000 端口。
 
-#### 种子数据
+### 4. 访问系统
 
-系统启动时会自动创建演示账号和数据：
+打开浏览器访问 **`http://localhost:8080`**，使用以下演示账号登录：
 
 | 角色 | 用户名 | 密码 |
 |------|--------|------|
 | 管理员 | admin | admin123 |
 | 演示用户 | demo | demo123 |
 
-### Docker 一键启动
+系统会在首次启动时自动填充演示项目和 API 数据。
 
-> 前提条件：已安装 Docker Engine 和 Docker Compose。
+### (可选) Docker 部署
+
+项目也支持 Docker 一键部署（详见 Dockerfile），但非必需：
 
 ```bash
-# 克隆项目
-git clone http://gitee.com/Lucifer701/api-pilot.git
-cd api-pilot
-
-# 一键启动（后端 + 前端）
 docker compose up -d
-
-# 查看运行状态
-docker compose ps
-
-# 查看日志
-docker compose logs -f
-```
-
-启动后访问：
-
-| 服务 | 地址 |
-|------|------|
-| 前端页面 | http://localhost:8080 |
-| API 文档 | http://localhost:5000/docs |
-| 健康检查 | http://localhost:5000/api/health |
-
-**Docker 架构说明：**
-
-- **backend** — Python 3.12-slim，多阶段构建（builder 阶段预装依赖，运行阶段仅复制 site-packages 和代码），SQLite 数据通过命名卷 `api_pilot_data` 持久化
-- **frontend** — Node 23-alpine 构建 + Nginx alpine 运行，SPA history 路由 fallback，`/api/` 反向代理到 backend 容器
-- **启动顺序** — frontend 通过 `depends_on` + `condition: service_healthy` 确保 backend 就绪后再启动
-- **健康检查** — backend 每 30 秒通过 `/api/health` 自检
-
-```bash
-# 停止服务
-docker compose down
-
-# 停止并删除数据卷
-docker compose down -v
 ```
 
 ## 目录结构
@@ -165,7 +163,7 @@ api-pilot/
 │   │   │   └── executor/   # 执行引擎（线性/图/断言/变量渲染）
 │   │   └── utils/          # 工具函数
 │   ├── alembic/            # 数据库迁移
-│   ├── data/               # SQLite 数据文件
+│   ├── data/               # SQLite 数据文件（首次启动自动创建）
 │   └── tests/              # 后端测试（18+ 测试用例）
 ├── frontend/
 │   ├── src/
@@ -184,9 +182,9 @@ api-pilot/
 ├── .github/workflows/
 │   ├── backend-ci.yml      # 后端 CI：Ruff lint → pytest + coverage
 │   └── frontend-ci.yml     # 前端 CI：vue-tsc → build → E2E
-├── Dockerfile.backend      # 后端 Docker 多阶段构建
-├── Dockerfile.frontend     # 前端 Docker 多阶段构建
-├── docker-compose.yml      # Docker Compose 编排
+├── Dockerfile.backend      # 后端 Docker 多阶段构建（可选）
+├── Dockerfile.frontend     # 前端 Docker 多阶段构建（可选）
+├── docker-compose.yml      # Docker Compose 编排（可选）
 ├── .dockerignore           # Docker 构建忽略规则
 └── docs/                   # 设计文档
 ```
@@ -351,11 +349,7 @@ E2E 测试覆盖范围：
 
 ## 设计文档
 
-更多详细设计和实现计划见 `docs/` 目录：
-
-- `docs/superpowers/specs/` — 设计规格说明
-- `docs/superpowers/plans/` — 实现计划
-- `docs/testing/` — 测试清单
+项目设计文档和实现计划在项目演进过程中持续迭代。相关设计细节可参考 Git 历史记录或项目 Issues。
 
 ## License
 
