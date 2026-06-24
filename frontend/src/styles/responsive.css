@@ -1,0 +1,1016 @@
+/* ==========================================
+ * 响应式设计优化 - API Pilot v14.0
+ *
+ * 断点体系（5 档统一断点）：
+ *   Mobile:        < 768px        — 手机 / 小屏：单栏 + 底部 Tab 栏
+ *   Tablet:        768px - 992px  — 平板：单栏 + 顶部抽屉式侧边栏
+ *   Small Desktop: 992px - 1200px — 小桌面：双栏压缩
+ *   Desktop:       1200px - 1440px — 桌面：双栏 + 侧边栏 220px
+ *   Large Desktop: >= 1440px      — 大屏：双栏 + 侧边栏 240px
+ *
+ * 扩展断点（可选增强）：
+ *   X-Large Screen: >= 1920px
+ *
+ * 设计原则：
+ *   1. Mobile First — 基础样式面向移动端，通过 min-width 逐步增强
+ *   2. 向后兼容 — 保留原有 class 名与行为语义
+ *   3. 触摸友好 — 移动端可点击区域 >= 44x44px（WCAG 2.5.5）
+ *   4. 内容优先 — 小屏隐藏装饰元素，保证核心功能可用
+ * ========================================== */
+
+
+/* ============================================================
+   一、移动端优化（< 768px）
+   - 侧边栏隐藏（通过 .sidebar.open 手动展开）
+   - 单列布局
+   - 触摸友好的按钮大小
+   - 紧凑间距与排版
+   ============================================================ */
+
+/* ---- 1.1 全局调整 ---- */
+@media (max-width: 767px) {
+  /* 隐藏桌面端 / 平板端专有元素 */
+  .desktop-only,
+  .tablet-only {
+    display: none !important;
+  }
+
+  /* 页面内容区：缩小内边距，取消最大宽度限制 */
+  .page-content {
+    padding: var(--space-5) var(--space-4) var(--space-8) !important;
+    max-width: none !important;
+  }
+
+  /* 内容内边距适配 — 底部留出 Tab 栏空间 */
+  .content-inner {
+    padding: var(--space-5) var(--space-4) calc(var(--space-8) + 48px);
+  }
+
+  /* 主内容区底部留出 Tab 栏空间 */
+  .main-area .content {
+    padding-bottom: 48px;
+  }
+
+  /* 排版响应式：缩小标题字号 */
+  .page-title,
+  .page-content > h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .section-title,
+  .page-content > h2 {
+    font-size: var(--font-size-md);
+  }
+
+  /* 隐藏右侧辅助区域 */
+  .right-section {
+    display: none;
+  }
+
+  .left-section {
+    width: 100%;
+  }
+}
+
+/* ---- 1.2 侧边栏：移动端默认隐藏，通过 .open 类展开 ---- */
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--z-fixed, 1000);
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: var(--shadow-sidebar);
+    width: var(--width-sidebar, 240px) !important;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* 遮罩层 */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--color-sidebar-overlay);
+    backdrop-filter: blur(2px);
+    z-index: var(--z-modal-backdrop, 999);
+  }
+
+  /* 侧边栏树面板同样隐藏 */
+  .sidebar-tree-panel {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--z-fixed, 1000);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+    box-shadow: var(--shadow-sidebar);
+  }
+
+  .sidebar-tree-panel.open {
+    transform: translateX(0);
+  }
+}
+
+/* ---- 1.3 TopBar 移动端适配 ---- */
+@media (max-width: 767px) {
+  .topbar {
+    padding-inline: 12px;
+    gap: 8px;
+  }
+
+  .topbar-center {
+    display: none;
+  }
+
+  .topbar-left {
+    flex: 1;
+  }
+
+  .search-btn {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .project-dropdown-trigger {
+    max-width: 140px;
+  }
+
+  .project-trigger-name {
+    max-width: 120px;
+  }
+}
+
+/* ---- 1.4 仪表盘 / 统计卡片：单列布局 ---- */
+@media (max-width: 767px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    margin-bottom: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .stat-num-wrap {
+    font-size: var(--font-size-2xl);
+  }
+
+  .content-split {
+    flex-direction: column;
+  }
+
+  .left-section,
+  .right-section {
+    width: 100%;
+  }
+}
+
+/* ---- 1.5 卡片网格：单列 ---- */
+@media (max-width: 767px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+/* ---- 1.6 表格：横向滚动 ---- */
+@media (max-width: 767px) {
+  .el-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: var(--font-size-xs);
+  }
+
+  .el-table .cell {
+    padding: 8px 4px;
+  }
+
+  .el-table__header-wrapper,
+  .el-table__body-wrapper {
+    min-width: 600px;
+  }
+
+  /* 自定义数据表格同样支持横向滚动 */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive .data-table {
+    min-width: 600px;
+  }
+}
+
+/* ---- 1.7 表单：全宽输入 ---- */
+@media (max-width: 767px) {
+  .el-form-item {
+    margin-bottom: var(--space-4);
+  }
+
+  .el-input,
+  .el-select,
+  .el-textarea {
+    width: 100%;
+  }
+
+  /* 表单按钮全宽，但保留操作按钮组的原始宽度 */
+  .el-form .el-button:not(.el-button--text) {
+    width: 100%;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ---- 1.8 对话框 / 弹窗：接近全屏宽度 ---- */
+@media (max-width: 767px) {
+  .el-dialog {
+    width: 95% !important;
+    margin: var(--space-4) auto;
+  }
+
+  .el-dialog__body {
+    padding: var(--space-4);
+  }
+
+  .el-drawer {
+    width: 100% !important;
+  }
+}
+
+/* ---- 1.9 分页：简化显示 ---- */
+@media (max-width: 767px) {
+  .el-pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* 隐藏移动端不常用的分页控件 */
+  .el-pagination__sizes {
+    display: none;
+  }
+
+  .el-pagination__jump {
+    display: none;
+  }
+}
+
+/* ---- 1.10 标签页 / 菜单 ---- */
+@media (max-width: 767px) {
+  .el-menu {
+    border-right: none;
+  }
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    height: 48px;
+    line-height: 48px;
+  }
+
+  .el-tabs__item {
+    padding: 0 12px;
+    font-size: var(--font-size-md);
+  }
+
+  .el-tabs__nav-wrap::after {
+    height: 1px;
+  }
+}
+
+/* ---- 1.11 卡片组件 ---- */
+@media (max-width: 767px) {
+  .el-card {
+    border-radius: var(--radius-md, 8px);
+  }
+
+  .el-card__header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .el-card__body {
+    padding: var(--space-4);
+  }
+
+  .card-standard {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg, 12px);
+  }
+}
+
+/* ---- 1.12 通知 / 加载 / 空状态 ---- */
+@media (max-width: 767px) {
+  .el-notification {
+    width: calc(100% - 32px);
+    max-width: none;
+  }
+
+  .el-loading-spinner {
+    width: 40px;
+    height: 40px;
+  }
+
+  .el-loading-text {
+    font-size: var(--font-size-xs);
+  }
+
+  .empty-state {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .empty-state-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .empty-state-title {
+    font-size: var(--font-size-lg2);
+  }
+
+  .empty-state-desc,
+  .empty-state-description {
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ---- 1.13 错误页面 ---- */
+@media (max-width: 767px) {
+  .error-boundary-card {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .error-icon-wrap svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .error-title {
+    font-size: var(--font-size-lg2);
+  }
+
+  .error-desc {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* ---- 1.14 命令面板 ---- */
+@media (max-width: 767px) {
+  .cmd-palette {
+    width: 95%;
+    max-width: none;
+  }
+
+  .cmd-palette-header {
+    padding: var(--space-3);
+  }
+
+  .cmd-search-input {
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ---- 1.15 搜索框 ---- */
+@media (max-width: 767px) {
+  .search-input {
+    width: 100%;
+  }
+
+  .search-input .el-input__inner {
+    padding-left: 32px;
+  }
+}
+
+/* ---- 1.16 报告列表 ---- */
+@media (max-width: 767px) {
+  .report-item {
+    padding: var(--space-2) var(--space-3);
+    min-height: auto;
+  }
+
+  .report-rerun-btn {
+    opacity: 1;
+  }
+}
+
+/* ---- 1.18 触摸优化：确保所有可点击区域 >= 44x44px ---- */
+@media (max-width: 767px) and (hover: none) and (pointer: coarse) {
+  /* 按钮最小高度 44px */
+  .el-button,
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .el-button--small {
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: var(--font-size-xs);
+  }
+
+  .el-button--medium {
+    min-height: 40px;
+    padding: 10px 16px;
+  }
+
+  /* 菜单项最小高度 44px */
+  .el-menu-item,
+  .nav-item {
+    min-height: 44px;
+  }
+
+  /* Tab 项最小高度 44px */
+  .el-tabs__item {
+    min-height: 44px;
+  }
+
+  /* 状态栏按钮 */
+  .status-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 8px;
+  }
+
+  /* 触摸反馈增强 */
+  .el-button:active,
+  .btn:active {
+    transform: scale(0.97);
+    transition-duration: 80ms;
+  }
+
+  .el-menu-item:active,
+  .nav-item:active {
+    background-color: var(--primary-50);
+  }
+
+  /* 移除点击高亮 */
+  .btn, .nav-item, .card, .el-button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ---- 1.19 小屏手机额外优化（< 480px）---- */
+@media (max-width: 480px) {
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .card-standard {
+    padding: var(--space-3);
+    border-radius: var(--radius-md, 8px);
+  }
+
+  .card-base {
+    padding: var(--space-3);
+  }
+
+  .empty-state {
+    padding: var(--space-6) var(--space-3);
+  }
+
+  /* 单列布局强制 */
+  .stats-row,
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .content-split {
+    flex-direction: column;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* 更大的触摸目标 */
+  .el-button--small,
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+}
+
+/* ---- 1.20 移动端触摸目标最小尺寸（所有移动设备，确保 >= 44x44px）---- */
+@media (max-width: 767px) {
+  .el-button,
+  .btn,
+  .nav-item,
+  .el-menu-item,
+  .status-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .el-button--small {
+    min-height: 44px;
+  }
+}
+
+
+/* ============================================================
+   二、平板端优化（768px - 992px）
+   - 单栏 + 顶部抽屉式侧边栏
+   - 适度间距
+   ============================================================ */
+
+/* ---- 2.1 全局调整 ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  /* 隐藏桌面端专有元素 */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* 页面内容区 */
+  .page-content {
+    padding: var(--space-5) var(--space-5) var(--space-6);
+  }
+
+  .content-inner {
+    padding: var(--space-5) var(--space-5) var(--space-6);
+  }
+
+  /* 标题字号适配 */
+  .page-title,
+  .page-content > h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .section-title,
+  .page-content > h2 {
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* ---- 2.2 侧边栏：平板端顶部抽屉式（默认隐藏，.open 时滑出） ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--z-fixed, 1000);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+    box-shadow: var(--shadow-sidebar);
+    width: var(--width-sidebar, 240px) !important;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--color-sidebar-overlay-tablet);
+    backdrop-filter: blur(2px);
+    z-index: var(--z-modal-backdrop, 999);
+  }
+
+  .sidebar-tree-panel {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--z-fixed, 1000);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+    box-shadow: var(--shadow-sidebar);
+    width: 240px;
+  }
+
+  .sidebar-tree-panel.open {
+    transform: translateX(0);
+  }
+}
+
+/* ---- 2.3 TopBar 平板适配 ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  .topbar {
+    padding-inline: 16px;
+    gap: 12px;
+  }
+
+  .project-dropdown-trigger {
+    max-width: 200px;
+  }
+}
+
+/* ---- 2.4 仪表盘 / 统计卡片：双列布局 ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .content-split {
+    flex-direction: column;
+  }
+
+  .left-section,
+  .right-section {
+    width: 100%;
+  }
+}
+
+/* ---- 2.5 卡片网格：双列 ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+/* ---- 2.6 表格：正常显示，无需横向滚动 ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  .el-table {
+    font-size: var(--font-size-sm);
+  }
+
+  .el-table .cell {
+    padding: 10px 6px;
+  }
+}
+
+/* ---- 2.7 对话框 ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  .el-dialog {
+    width: 80% !important;
+    max-width: 600px;
+  }
+}
+
+/* ---- 2.8 筛选栏：允许换行 ---- */
+@media (min-width: 768px) and (max-width: 991px) {
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+}
+
+
+/* ============================================================
+   三、小桌面端优化（992px - 1200px）
+   - 双栏压缩
+   - 适度紧凑的间距
+   ============================================================ */
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .page-content {
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+
+  .content-inner {
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+
+  /* 侧边栏在 992-1200px 区间显示为标准 220px */
+  .sidebar:not(.collapsed) {
+    width: 220px !important;
+  }
+
+  /* 统计卡片在 992-1200 区间采用 2x2 双列布局 */
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+
+  /* 内容区分栏保持双栏，但 gap 略小 */
+  .content-split {
+    gap: var(--space-5);
+  }
+}
+
+
+/* ============================================================
+   四、桌面端优化（1200px - 1440px）
+   - 双栏 + 侧边栏 220px
+   ============================================================ */
+
+@media (min-width: 1200px) and (max-width: 1439px) {
+  .page-content {
+    padding: var(--space-5) var(--space-6) var(--space-6);
+  }
+
+  .content-inner {
+    padding: var(--space-5) var(--space-6) var(--space-6);
+  }
+
+  /* 1200-1440 区间：侧边栏 220px */
+  .sidebar:not(.collapsed) {
+    width: 220px !important;
+  }
+
+  .sidebar-tree-panel {
+    width: 240px;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+
+  .content-split {
+    gap: var(--space-6);
+  }
+}
+
+
+/* ============================================================
+   五、大屏桌面端（>= 1440px）
+   - 双栏 + 侧边栏 240px
+   - 内容区最大宽度限制
+   - 更宽松的间距
+   ============================================================ */
+
+@media (min-width: 1440px) {
+  .sidebar:not(.collapsed) {
+    width: 240px !important;
+  }
+
+  .page-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .content-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-5);
+  }
+
+  .content-split {
+    gap: var(--space-8);
+  }
+}
+
+
+/* ============================================================
+   六、超大屏幕优化（>= 1920px）
+   - 更宽的内容区
+   - 增加阅读舒适度
+   ============================================================ */
+
+@media (min-width: 1920px) {
+  .page-content {
+    max-width: 1600px;
+    padding: var(--space-6) var(--space-10);
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-5);
+  }
+
+  /* 增加阅读舒适度：放宽最大行长 */
+  .page-content > p,
+  .page-content .page-paragraph {
+    max-width: 85ch;
+  }
+}
+
+
+/* ============================================================
+   七、登录页面响应式
+   ============================================================ */
+
+/* 移动端：全屏登录 */
+@media (max-width: 767px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-left {
+    display: none;
+  }
+
+  .login-right {
+    width: 100%;
+    max-width: 100%;
+    padding: var(--space-6);
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    min-height: 100vh;
+  }
+}
+
+/* 平板端：居中登录卡片 */
+@media (min-width: 768px) and (max-width: 991px) {
+  .login-page {
+    flex-direction: row;
+  }
+
+  .login-left {
+    display: none;
+  }
+
+  .login-right {
+    width: 100%;
+    padding: var(--space-8);
+  }
+
+  .login-card {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
+/* 横屏优化 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .login-page {
+    flex-direction: row;
+  }
+
+  .login-left {
+    display: flex;
+  }
+
+  .login-right {
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+
+/* ============================================================
+   八、无障碍与特殊模式
+   ============================================================ */
+
+/* ---- 8.1 触摸设备优化（不依赖断点）---- */
+@media (hover: none) and (pointer: coarse) {
+  /* 增加触摸目标大小 */
+  .el-button {
+    min-height: 44px;
+  }
+
+  .el-menu-item {
+    min-height: 44px;
+  }
+
+  .el-tabs__item {
+    min-height: 44px;
+  }
+
+  /* 增加触摸反馈 */
+  .el-button:active {
+    transform: scale(0.98);
+  }
+
+  .el-menu-item:active {
+    background-color: var(--primary-50);
+  }
+}
+
+/* ---- 8.2 高对比度模式 ---- */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: var(--slate-900);
+    --text-secondary: var(--slate-700);
+    --border-default: var(--slate-800);
+    --border-strong: var(--slate-600);
+  }
+
+  .el-button--primary {
+    background-color: var(--primary-700);
+    border-color: var(--primary-700);
+    color: var(--text-inverse);
+  }
+
+  .el-button--primary:hover {
+    background-color: var(--primary-800);
+  }
+}
+
+
+/* ============================================================
+   九、打印优化
+   ============================================================ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* 隐藏侧边栏和顶栏 */
+  .sidebar,
+  .sidebar-tree-panel,
+  .topbar,
+  .app-tabs,
+  .status-bar {
+    display: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  .page-content {
+    padding: 0;
+    max-width: none;
+  }
+
+  .content-inner {
+    padding: 0;
+    max-width: none;
+  }
+
+  .el-card {
+    border: 1px solid var(--border-subtle);
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .data-table {
+    border-collapse: collapse !important;
+  }
+
+  .data-table tr {
+    page-break-inside: avoid;
+  }
+}
+
+
+/* ============================================================
+   十、辅助工具类
+   ============================================================ */
+
+/* 响应式显示/隐藏工具类 */
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  .show-mobile {
+    display: block !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .hide-tablet {
+    display: none !important;
+  }
+  .show-tablet {
+    display: block !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .hide-desktop {
+    display: none !important;
+  }
+  .show-desktop {
+    display: block !important;
+  }
+}
+
+
+/* ============================================
+ * Mobile Fine-Tune (375 / 768) — 2026-06-20
+ * ============================================ */
+
+/* iPhone SE 专项：超窄屏 */
+@media (max-width: 375px) {
+  .page-hero { padding: 12px 16px; }
+  .page-title { font-size: var(--font-size-lg2); }
+  .page-subtitle { font-size: var(--font-size-xs); }
+  .stat-card { padding: 12px; }
+  .el-button--small { padding: 6px 10px; font-size: var(--font-size-xs); }
+  .data-table th, .data-table td { padding: 6px 8px; font-size: var(--font-size-xs); }
+}
+
+/* 平板竖屏 768：双列网格 */
+@media (min-width: 376px) and (max-width: 768px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .page-hero { padding: 14px 20px; }
+  .el-dialog { width: 90vw !important; max-width: 600px; }
+}
+
+/* 抽屉化侧边栏：<= 768 */
+@media (max-width: 768px) {
+  .app-sidebar { position: fixed; transform: translateX(-100%); transition: transform 0.2s ease; z-index: 1000; }
+  .app-sidebar.is-open { transform: translateX(0); }
+  .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
+  .sidebar-backdrop.is-open { display: block; }
+}
+
+/* Dialog 高度限制：避免溢出 */
+@media (max-width: 768px) {
+  .el-dialog { max-height: 90vh; margin: 5vh auto !important; }
+  .el-dialog__body { max-height: calc(90vh - 120px); overflow-y: auto; }
+}
+
+/* 表格横向滚动 */
+@media (max-width: 768px) {
+  .data-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}

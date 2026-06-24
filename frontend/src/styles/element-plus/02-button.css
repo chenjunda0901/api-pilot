@@ -1,0 +1,526 @@
+/* ==========================================
+   Module: Button
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   三、按钮组件覆盖 — 柔和精致 + press 缩放反馈
+   主按钮使用渐变背景 + 主色光晕阴影
+   hover 上浮 1px + active 按压缩放 0.97
+   ================================================================ */
+.el-button {
+  border-radius: var(--radius-md);
+  height: var(--height-input);
+  font-weight: var(--weight-medium);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 非文本/链接/轮廓按钮使用默认边框色 */
+.el-button:not(.is-text):not(.is-link):not(.is-outline) {
+  border-color: var(--border-default);
+}
+
+/* 主按钮：渐变 + 微阴影 + hover 上浮 + active 按压 */
+.el-button--primary:not(.is-link):not(.is-text) {
+  border-radius: var(--radius-md);
+  background: var(--grad-primary);
+  border-color: transparent;
+  color: var(--text-on-primary);
+  box-shadow:
+    0 1px 2px rgba(99, 102, 241, 0.15),
+    0 2px 6px rgba(99, 102, 241, 0.12),
+    0 0 0 1px rgba(99, 102, 241, 0.08);
+}
+.el-button--primary:not(.is-link):not(.is-text):hover {
+  background: var(--grad-primary-hover);
+  transform: var(--lift-btn-hover);
+  box-shadow:
+    0 2px 4px rgba(99, 102, 241, 0.18),
+    0 4px 12px rgba(99, 102, 241, 0.15),
+    0 0 0 1px rgba(99, 102, 241, 0.10);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+.el-button--primary:not(.is-link):not(.is-text):active {
+  transform: scale(var(--press-scale)) translateY(0);
+  box-shadow:
+    0 1px 2px rgba(99, 102, 241, 0.12),
+    0 0 0 1px rgba(99, 102, 241, 0.08);
+  transition: transform var(--duration-instant) var(--ease-soft), box-shadow var(--duration-instant) var(--ease-smooth);
+}
+
+/* Link/Text 类型的 primary 按钮：纯文字，无背景 */
+.el-button--primary.is-link,
+.el-button--primary.is-text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--primary-600);
+  box-shadow: none;
+}
+.el-button--primary.is-link:hover,
+.el-button--primary.is-text:hover {
+  background: transparent;
+  color: var(--primary-500);
+  transform: none;
+  box-shadow: none;
+}
+html.dark .el-button--primary.is-link,
+html.dark .el-button--primary.is-text {
+  color: var(--primary-400);
+}
+html.dark .el-button--primary.is-link:hover,
+html.dark .el-button--primary.is-text:hover {
+  color: var(--primary-300);
+}
+
+/* 默认按钮 hover：边框加深 + 主色文字 + 极淡主色背景 + 微上浮 */
+.el-button--default:hover {
+  border-color: var(--border-strong);
+  color: var(--primary-600);
+  background-color: var(--color-primary-alpha-06);
+  transform: var(--lift-btn-hover);
+  box-shadow: 0 0 0 1px var(--color-primary-alpha-06), var(--shadow-xs);
+}
+
+/* 统一 active 态：快速按压反馈 */
+.el-button:active {
+  transform: scale(var(--press-scale));
+  transition: transform var(--duration-instant) var(--ease-spring);
+}
+
+/* 默认按钮 active：边框加深 + 背景微变 */
+.el-button--default:active {
+  border-color: var(--border-strong);
+  background-color: var(--color-primary-alpha-08);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+html.dark .el-button--default:active {
+  background-color: var(--color-primary-alpha-10);
+}
+
+/* 焦点环：focus-visible（统一使用 --focus-ring-width token 2.5px） */
+.el-button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-400);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-primary-alpha-12);
+}
+html.dark .el-button:focus-visible {
+  outline-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha-16);
+}
+
+/* 禁用态 */
+.el-button.is-disabled,
+.el-button.is-disabled:hover,
+.el-button.is-disabled:active {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* 尺寸变体 — 统一高度：small=32px, default=36px, large=44px */
+.el-button--small {
+  border-radius: var(--radius-sm);
+  height: var(--height-row-compact);
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+}
+.el-button--large {
+  border-radius: var(--radius-md);
+  height: var(--height-input-lg);
+  padding: 0 var(--space-6);
+}
+
+/* 暗色主按钮：渐变方向保持一致，阴影使用暗色 alpha */
+html.dark .el-button--primary {
+  background: var(--grad-primary);
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-sm);
+}
+html.dark .el-button--primary:hover {
+  background: var(--grad-primary-hover);
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-sm);
+}
+html.dark .el-button--primary:active {
+  transform: scale(var(--press-scale)) translateY(0);
+  box-shadow: 0 1px 3px var(--color-primary-alpha-08);
+}
+
+/* 暗色默认按钮 hover */
+html.dark .el-button--default:hover {
+  border-color: var(--border-strong);
+  color: var(--primary-400);
+  background: var(--color-primary-alpha-06);
+}
+
+/* 成功/警告/危险/信息按钮：统一 hover 上浮效果 */
+.el-button--success:not(.is-link):not(.is-text) {
+  background: var(--color-success-500);
+  border-color: var(--color-success-500);
+  color: var(--text-on-primary);
+}
+.el-button--success:not(.is-link):not(.is-text):hover {
+  background: var(--color-success-600);
+  border-color: var(--color-success-600);
+  transform: var(--lift-btn-hover);
+  box-shadow: var(--shadow-sm);
+}
+.el-button--success:not(.is-link):not(.is-text):active {
+  background: var(--color-success-700);
+  border-color: var(--color-success-700);
+  transform: scale(var(--press-scale));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+html.dark .el-button--success:not(.is-link):not(.is-text) {
+  background: var(--color-success-500);
+  border-color: var(--color-success-500);
+}
+html.dark .el-button--success:not(.is-link):not(.is-text):hover {
+  background: var(--color-success-600);
+  border-color: var(--color-success-600);
+}
+
+/* Link/Text 类型的 success 按钮 */
+.el-button--success.is-link,
+.el-button--success.is-text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-success-600);
+  box-shadow: none;
+}
+.el-button--success.is-link:hover,
+.el-button--success.is-text:hover {
+  background: transparent;
+  color: var(--color-success-500);
+  transform: none;
+  box-shadow: none;
+}
+html.dark .el-button--success.is-link,
+html.dark .el-button--success.is-text {
+  color: var(--color-success-400);
+}
+html.dark .el-button--success.is-link:hover,
+html.dark .el-button--success.is-text:hover {
+  color: var(--color-success-300);
+}
+
+.el-button--warning:not(.is-link):not(.is-text) {
+  background: var(--color-warning-500);
+  border-color: var(--color-warning-500);
+  color: var(--text-on-primary);
+}
+.el-button--warning:not(.is-link):not(.is-text):hover {
+  background: var(--color-warning-600);
+  border-color: var(--color-warning-600);
+  transform: var(--lift-btn-hover);
+  box-shadow: var(--shadow-sm);
+}
+.el-button--warning:not(.is-link):not(.is-text):active {
+  background: var(--color-warning-700);
+  border-color: var(--color-warning-700);
+  transform: scale(var(--press-scale));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+html.dark .el-button--warning:not(.is-link):not(.is-text) {
+  background: var(--color-warning-500);
+  border-color: var(--color-warning-500);
+}
+html.dark .el-button--warning:not(.is-link):not(.is-text):hover {
+  background: var(--color-warning-600);
+  border-color: var(--color-warning-600);
+}
+
+/* Link/Text 类型的 warning 按钮 */
+.el-button--warning.is-link,
+.el-button--warning.is-text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-warning-600);
+  box-shadow: none;
+}
+.el-button--warning.is-link:hover,
+.el-button--warning.is-text:hover {
+  background: transparent;
+  color: var(--color-warning-500);
+  transform: none;
+  box-shadow: none;
+}
+html.dark .el-button--warning.is-link,
+html.dark .el-button--warning.is-text {
+  color: var(--color-warning-400);
+}
+html.dark .el-button--warning.is-link:hover,
+html.dark .el-button--warning.is-text:hover {
+  color: var(--color-warning-300);
+}
+
+.el-button--danger:not(.is-link):not(.is-text) {
+  background: var(--color-error-500);
+  border-color: var(--color-error-500);
+  color: var(--text-on-primary);
+}
+.el-button--danger:not(.is-link):not(.is-text):hover {
+  background: var(--color-error-600);
+  border-color: var(--color-error-600);
+  transform: var(--lift-btn-hover);
+  box-shadow: var(--shadow-sm);
+}
+.el-button--danger:not(.is-link):not(.is-text):active {
+  background: var(--color-error-700);
+  border-color: var(--color-error-700);
+  transform: scale(var(--press-scale));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+html.dark .el-button--danger:not(.is-link):not(.is-text) {
+  background: var(--color-error-500);
+  border-color: var(--color-error-500);
+}
+html.dark .el-button--danger:not(.is-link):not(.is-text):hover {
+  background: var(--color-error-600);
+  border-color: var(--color-error-600);
+}
+
+/* Link/Text 类型的 danger 按钮 */
+.el-button--danger.is-link,
+.el-button--danger.is-text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-error-600);
+  box-shadow: none;
+}
+.el-button--danger.is-link:hover,
+.el-button--danger.is-text:hover {
+  background: transparent;
+  color: var(--color-error-500);
+  transform: none;
+  box-shadow: none;
+}
+html.dark .el-button--danger.is-link,
+html.dark .el-button--danger.is-text {
+  color: var(--color-error-400);
+}
+html.dark .el-button--danger.is-link:hover,
+html.dark .el-button--danger.is-text:hover {
+  color: var(--color-error-300);
+}
+
+.el-button--info:not(.is-link):not(.is-text) {
+  background: var(--color-info-500);
+  border-color: var(--color-info-500);
+  color: var(--text-on-primary);
+}
+.el-button--info:not(.is-link):not(.is-text):hover {
+  background: var(--color-info-600);
+  border-color: var(--color-info-600);
+  transform: var(--lift-btn-hover);
+  box-shadow: var(--shadow-sm);
+}
+.el-button--info:not(.is-link):not(.is-text):active {
+  background: var(--color-info-700);
+  border-color: var(--color-info-700);
+  transform: scale(var(--press-scale));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+html.dark .el-button--info:not(.is-link):not(.is-text) {
+  background: var(--color-info-500);
+  border-color: var(--color-info-500);
+}
+html.dark .el-button--info:not(.is-link):not(.is-text):hover {
+  background: var(--color-info-600);
+  border-color: var(--color-info-600);
+}
+
+/* Link/Text 类型的 info 按钮 */
+.el-button--info.is-link,
+.el-button--info.is-text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-info-600);
+  box-shadow: none;
+}
+.el-button--info.is-link:hover,
+.el-button--info.is-text:hover {
+  background: transparent;
+  color: var(--color-info-500);
+  transform: none;
+  box-shadow: none;
+}
+html.dark .el-button--info.is-link,
+html.dark .el-button--info.is-text {
+  color: var(--color-info-400);
+}
+html.dark .el-button--info.is-link:hover,
+html.dark .el-button--info.is-text:hover {
+  color: var(--color-info-300);
+}
+
+/* 文字/链接按钮 hover：下划线 + 主色 */
+.el-button.is-text:hover,
+.el-button.is-link:hover {
+  text-decoration: underline;
+  color: var(--primary-600);
+}
+html.dark .el-button.is-text:hover,
+html.dark .el-button.is-link:hover {
+  color: var(--primary-400);
+}
+
+/* 危险按钮（非主按钮类型）：淡红背景底色 */
+.el-button--danger:not(.el-button--primary) {
+  background-color: var(--color-error-alpha-08);
+}
+
+/* ================================================================
+   按钮组件增强 — 加载态 / 按钮组 / 圆形按钮 / 文本按钮
+   ================================================================ */
+
+/* 加载中按钮：防止点击抖动，图标平滑旋转 */
+.el-button.is-loading {
+  opacity: 0.7;
+  pointer-events: none;
+  cursor: default;
+}
+.el-button.is-loading .el-icon-loading {
+  animation: btn-spin 0.9s linear infinite;
+}
+@keyframes btn-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* 禁用态（非 text/link）：柔和灰显 */
+.el-button.is-disabled {
+  filter: saturate(0.3) brightness(1.05);
+  opacity: 0.55;
+}
+
+/* 禁用态文字/链接按钮 */
+.el-button.is-disabled.is-text,
+.el-button.is-disabled.is-link {
+  text-decoration: none !important;
+  opacity: 0.4;
+  filter: none;
+}
+
+/* 文本按钮 / 链接按钮：hover 不产生上浮，仅主色文本 */
+.el-button.is-text:hover {
+  background: transparent;
+  color: var(--primary-500);
+  transform: none;
+  box-shadow: none;
+}
+.el-button.is-text:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+
+/* Link/Text 类型按钮的 active 状态增强 */
+.el-button.is-link:active,
+.el-button.is-text:active {
+  opacity: 0.8;
+  transform: scale(0.97);
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+
+/* 轮廓按钮（outline）：激活态主色，按压回弹 */
+.el-button.is-outline {
+  background: transparent;
+  border-width: 1.5px;
+  transition: all var(--duration-micro) var(--ease-smooth);
+}
+.el-button.is-outline:hover {
+  background: var(--color-primary-alpha-06);
+  border-color: var(--primary-500);
+  color: var(--primary-500);
+}
+.el-button.is-outline:active {
+  background: var(--color-primary-alpha-12);
+  border-color: var(--primary-600);
+  color: var(--primary-600);
+  transform: scale(var(--press-scale));
+  transition: all var(--duration-instant) var(--ease-soft);
+}
+html.dark .el-button.is-outline:hover {
+  background: var(--color-primary-alpha-08);
+  border-color: var(--primary-400);
+  color: var(--primary-400);
+}
+
+/* 圆形按钮（round）：两端平滑圆角，轻阴影 */
+.el-button--round {
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-5);
+}
+
+/* 按钮组：内部按钮去圆角，分割线为主色淡边线 */
+.el-button-group .el-button {
+  border-radius: 0;
+}
+.el-button-group .el-button:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+.el-button-group .el-button:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.el-button-group .el-button + .el-button {
+  margin-left: -1px;
+  box-shadow: inset 1px 0 0 var(--border-subtle);
+}
+
+/* ================================================================
+   键盘可达：focus-visible 统一焦点环（亮色 / 暗色）
+   ================================================================ */
+
+.el-button:focus-visible,
+.el-button.is-focus {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-primary-500),
+    0 0 0 5px var(--color-primary-alpha-25),
+    var(--shadow-xs);
+  transform: translateY(-0.5px);
+}
+html.dark .el-button:focus-visible,
+html.dark .el-button.is-focus {
+  box-shadow:
+    0 0 0 2px var(--color-primary-400),
+    0 0 0 5px var(--color-primary-alpha-30),
+    var(--shadow-xs);
+}
+
+/* Danger/Success/Warning/Info 的 focus 环保持语义色 */
+.el-button--danger:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--error-500),
+    0 0 0 5px var(--color-error-alpha-25),
+    var(--shadow-xs);
+}
+.el-button--success:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--success-500),
+    0 0 0 5px var(--color-success-alpha-25),
+    var(--shadow-xs);
+}
+.el-button--warning:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--warning-500),
+    0 0 0 5px var(--color-warning-alpha-25),
+    var(--shadow-xs);
+}
+
+/* 暗色模式按钮语义色按钮基础修正 — 保证文字对比度 */
+html.dark .el-button--primary,
+html.dark .el-button--success,
+html.dark .el-button--warning,
+html.dark .el-button--danger,
+html.dark .el-button--info {
+  color: var(--text-on-primary);
+}

@@ -1,0 +1,271 @@
+/* ==========================================
+   Module: Misc
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   五十、Menu 菜单覆盖
+   活动项使用主色 alpha 背景 + 主色文字
+   ================================================================ */
+.el-menu {
+  border-right: 1px solid var(--border-subtle);
+}
+.el-menu-item:hover,
+.el-sub-menu__title:hover {
+  background: var(--surface-hover);
+  color: var(--primary-600);
+}
+.el-menu-item.is-active {
+  color: var(--primary-600);
+  background: var(--color-primary-alpha-06);
+}
+
+/* 暗色菜单 */
+html.dark .el-menu {
+  border-right-color: var(--border-subtle);
+}
+html.dark .el-menu-item:hover,
+html.dark .el-sub-menu__title:hover {
+  color: var(--primary-400);
+}
+html.dark .el-menu-item.is-active {
+  color: var(--primary-400);
+  background: var(--color-primary-alpha-08);
+}
+
+/* ================================================================
+   五一、Breadcrumb 面包屑覆盖
+   ================================================================ */
+.el-breadcrumb__inner {
+  font-weight: var(--weight-medium);
+}
+.el-breadcrumb__item a:hover {
+  color: var(--primary-600);
+}
+.el-breadcrumb__item:last-child .el-breadcrumb__inner {
+  color: var(--text-primary);
+}
+
+/* 暗色面包屑 */
+html.dark .el-breadcrumb__item a:hover {
+  color: var(--primary-400);
+}
+
+/* ================================================================
+   五二、PageHeader 页头覆盖
+   ================================================================ */
+.el-page-header__content {
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.el-page-header__breadcrumb {
+  font-size: var(--text-sm);
+}
+
+/* 暗色页头 */
+html.dark .el-page-header__content {
+  color: var(--text-primary);
+}
+
+/* ================================================================
+   五三、Descriptions 描述列表覆盖
+   ================================================================ */
+.el-descriptions {
+  --el-descriptions-item-bordered-label-background: var(--surface-muted);
+}
+.el-descriptions__label {
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+.el-descriptions__content {
+  color: var(--text-primary);
+}
+
+/* 暗色描述列表 */
+html.dark .el-descriptions__label {
+  color: var(--text-secondary);
+}
+html.dark .el-descriptions__content {
+  color: var(--text-primary);
+}
+
+/* ================================================================
+   五四、Result 结果覆盖
+   ================================================================ */
+.el-result__title {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+}
+.el-result__sub-title {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* 暗色结果 */
+html.dark .el-result__title {
+  color: var(--text-primary);
+}
+html.dark .el-result__sub-title {
+  color: var(--text-secondary);
+}
+
+/* ================================================================
+   五五、Watermark 水印覆盖
+   ================================================================ */
+.el-watermark {
+  --el-watermark-z-index: var(--z-base);
+}
+
+/* ================================================================
+   五六、Tree 树形覆盖 — 节点主色 hover / focus / 选中
+   ================================================================ */
+
+.el-tree-node__content:hover {
+  background: var(--color-primary-alpha-06);
+}
+.el-tree-node.is-current > .el-tree-node__content {
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-700);
+  font-weight: var(--weight-medium);
+}
+.el-tree-node__content:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: -2px;
+}
+.el-tree-node__expand-icon {
+  transition: transform var(--duration-micro) var(--ease-spring),
+              color var(--duration-micro) var(--ease-smooth);
+}
+.el-tree-node__expand-icon.is-leaf {
+  color: var(--text-disabled);
+}
+.el-tree-node__expand-icon.expanded {
+  transform: rotate(90deg);
+}
+
+html.dark .el-tree-node__content:hover { background: var(--color-primary-alpha-10); }
+html.dark .el-tree-node.is-current > .el-tree-node__content {
+  background: var(--color-primary-alpha-14);
+  color: var(--primary-400);
+}
+
+/* ================================================================
+   五七、Avatar 头像覆盖 — 圆形 / 占位色 / 渐变首字母
+   ================================================================ */
+
+.el-avatar {
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-weight: var(--weight-semibold);
+  border: 1px solid var(--border-subtle);
+}
+.el-avatar--circle { border-radius: var(--radius-full); }
+.el-avatar.is-text {
+  background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+  color: var(--text-on-primary);
+  border: none;
+}
+
+html.dark .el-avatar {
+  background: var(--surface-muted);
+  border-color: var(--color-white-alpha-08);
+  color: var(--text-secondary);
+}
+html.dark .el-avatar.is-text {
+  background: linear-gradient(135deg, var(--primary-400), var(--primary-500));
+  color: var(--text-on-primary);
+}
+
+/* ================================================================
+   五八、Progress 进度条覆盖 — 语义色 / 条纹 / 内外色一致
+   ================================================================ */
+
+.el-progress-bar__outer {
+  background: var(--surface-muted);
+  border-radius: var(--radius-full);
+}
+.el-progress-bar__inner {
+  background: var(--primary-500);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-interaction) var(--ease-smooth);
+}
+.el-progress--success .el-progress-bar__inner { background: var(--success-500); }
+.el-progress--warning .el-progress-bar__inner { background: var(--warning-500); }
+.el-progress--danger  .el-progress-bar__inner { background: var(--error-500); }
+.el-progress__text {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+}
+html.dark .el-progress-bar__outer { background: var(--surface-muted); }
+
+/* 条纹填充动画 */
+.el-progress-bar__inner-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255,255,255,0.18) 25%, transparent 25%,
+    transparent 50%, rgba(255,255,255,0.18) 50%,
+    rgba(255,255,255,0.18) 75%, transparent 75%, transparent
+  );
+  background-size: 20px 20px;
+  animation: progress-stripe 1.2s linear infinite;
+}
+@keyframes progress-stripe {
+  from { background-position: 0 0; }
+  to   { background-position: 40px 0; }
+}
+
+/* ================================================================
+   五九、Empty 空状态覆盖 — 柔和色 + 居中
+   ================================================================ */
+
+.el-empty {
+  padding: var(--space-16) var(--space-8);
+  color: var(--text-secondary);
+}
+.el-empty__description {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-top: var(--space-3);
+}
+.el-empty__image {
+  opacity: 0.85;
+}
+
+/* ================================================================
+   六十、Rate 评分覆盖 — 主色 / 过渡顺滑
+   ================================================================ */
+
+.el-rate__icon {
+  transition: color var(--duration-micro) var(--ease-smooth),
+              transform var(--duration-micro) var(--ease-spring);
+  color: var(--surface-muted);
+}
+.el-rate__icon.is-active { color: var(--warning-500); }
+.el-rate__icon:hover { transform: scale(1.08); }
+.el-rate__text { color: var(--text-primary); font-weight: var(--weight-medium); }
+
+/* ================================================================
+   六一、Menu 菜单 focus-visible — 键盘可达
+   ================================================================ */
+
+.el-menu-item:focus-visible,
+.el-sub-menu__title:focus-visible {
+  outline: none;
+  box-shadow: inset 2px 0 0 var(--primary-500);
+  background: var(--surface-hover);
+}
+html.dark .el-menu-item:focus-visible,
+html.dark .el-sub-menu__title:focus-visible {
+  box-shadow: inset 2px 0 0 var(--primary-400);
+}
+
+/* ================================================================
+   六二、Breadcrumb focus-visible — 键盘可达
+   ================================================================ */
+
+.el-breadcrumb__inner a:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

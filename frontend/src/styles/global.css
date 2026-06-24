@@ -1,0 +1,1324 @@
+/* ==========================================
+ * API Pilot Global Styles (v14.2 — 组件样式库 "Tranquil")
+ * ==========================================
+ *
+ * 设计风格：清澈专业 · 不艳丽 · 对比度舒适 · 现代灵动
+ *
+ * v14.2 变更要点：
+ *   - 暗色模式全面补全：侧边栏分隔线、面包屑提亮、空状态提亮、代码块、分割线、下拉菜单
+ *   - 微交互灵动化：按钮 hover/active 微动效、骨架屏主色渐变 shimmer、弹窗缓动曲线
+ *
+ * v14 变更要点：
+ *   - 主按钮新增"光斑扫过"动效（--gradient-shine）
+ *   - 卡片 hover 新增 1px 主色光边
+ *   - 表格行 hover 左色带 200ms 渐入
+ *   - 输入框 focus 新增 1px 主色边 + 3px 软光晕
+ *   - 焦点环统一为 2px 主色 outline + 3px alpha-12 软光晕
+ *
+ * 内容：
+ *   1. 卡片系统 (.card)
+ *   2. 数据表格 (.data-table)
+ *   3. 空状态 (.empty-state)
+ *   4. HTTP Method 徽章（保留）
+ *   5. 页面排版规范（保留）
+ *   6. 打印样式（保留）
+ *   7. 暗色通用覆盖（保留）
+ *   8. 紧凑模式（保留）
+ *   9. 响应式断点（保留）
+ *  10. 全局暗色模式补全（保留）
+ *  11. v14 新增：按钮光斑、卡片光边、输入框 focus、表格行 hover 增强
+ *  12. v14 新增：统一焦点环
+ *  13. v14 新增：丝滑交互增强（按钮/卡片/可点击元素）
+ *  14. v14 新增：滚动条渐入渐出
+ *
+ * 依赖系统:
+ * - tokens.css → Design Token v14.0 "Soft Azure Tranquil"
+ * - base.css → 全局重置/基础
+ * - utilities.css → 工具类
+ * - animations.css → 动画关键帧与工具类
+ * - element-plus-override.css → Element Plus 品牌化
+ * - page-layout.css → 页面布局与页面级视觉
+ * - responsive.css → 响应式
+ * ========================================== */
+
+/* ============================================================
+   一、标准化卡片系统 (.card-standard)
+   统一规范：padding: 24px, border-radius: 8px, shadow: md, border: 1px solid
+   ============================================================ */
+.card-standard {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-card);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-smooth),
+    background-color var(--duration-fast) var(--ease-smooth);
+}
+
+.card-standard:hover {
+  border-color: var(--color-primary-alpha-20);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.card-standard:active {
+  transform: translateY(0) scale(0.995);
+  transition: transform var(--duration-instant) var(--ease-soft);
+}
+
+.card-standard.selected,
+.card-standard.is-selected {
+  border-color: var(--primary-500);
+  background: var(--color-primary-alpha-04);
+}
+
+/* 卡片头部 */
+.card-standard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.card-standard-title {
+  font-size: var(--font-size-lg); /* 18px */
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.card-standard-body {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base); /* 16px */
+  line-height: var(--leading-relaxed);
+}
+
+/* 暗色模式适配 */
+html.dark .card-standard {
+  background: var(--surface-card);
+  border: 1px solid var(--color-white-alpha-06);
+  box-shadow: var(--shadow-md);
+}
+
+html.dark .card-standard:hover {
+  border-color: var(--primary-400);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ============================================================
+   二、数据表格 (.data-table) — 优化版
+   规范：表头背景、行高 48px、边框、悬停效果
+   ============================================================ */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-sm); /* 14px */
+  background: var(--surface-card);
+}
+
+/* 表头：统一背景，渐变效果 */
+.data-table thead th {
+  height: 48px;
+  padding: 0 var(--space-4);
+  background: linear-gradient(180deg, var(--surface-muted) 0%, var(--surface-card) 100%);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-secondary);
+  text-align: left;
+  font-size: var(--font-size-sm); /* 14px */
+  white-space: nowrap;
+  user-select: none;
+  border-bottom: 2px solid var(--border-strong);
+}
+
+/* 表格单元格：行高 48px，200ms 背景过渡 */
+.data-table tbody td {
+  height: 48px;
+  padding: 0 var(--space-4);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-default);
+  transition: background-color var(--duration-fast) var(--ease-soft);
+}
+
+/* 行定位（左色带锚点） */
+.data-table tbody tr {
+  position: relative;
+}
+
+/* 行悬停效果：200ms 浅色背景 */
+.data-table tbody tr:hover td {
+  background: var(--surface-hover);
+}
+
+/* 斑马纹 — 极淡 */
+.data-table tbody tr:nth-child(even) td {
+  background: var(--color-neutral-alpha-02);
+}
+
+.data-table tbody tr:nth-child(even):hover td {
+  background: var(--surface-hover);
+}
+
+/* 最后一行去掉底部边框 */
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 表格选中行 glow 效果 */
+.data-table tbody tr.selected td,
+.data-table tbody tr.is-selected td {
+  background: var(--surface-selected);
+  box-shadow: inset 3px 0 0 var(--primary-500), inset 0 0 0 1px var(--color-primary-alpha-12);
+}
+
+/* 表格操作列 */
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 表格排序指示 */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+.sortable:hover {
+  color: var(--primary-500);
+}
+
+/* ============================================================
+   三、空状态 (.empty-state) — 优化版
+   规范：图标大小、文字排版、间距
+   ============================================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: var(--space-14) var(--space-6);
+  text-align: center;
+  animation: fadeInUp 0.5s var(--ease-spring) backwards;
+}
+
+.empty-state:nth-child(1) { animation-delay: 0.1s; }
+.empty-state:nth-child(2) { animation-delay: 0.2s; }
+.empty-state:nth-child(3) { animation-delay: 0.3s; }
+
+.empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--grad-primary-subtle);
+  color: var(--primary-400);
+  font-size: var(--font-size-3xl);
+  box-shadow: var(--shadow-sm);
+  animation: drift 5s ease-in-out infinite;
+}
+
+.empty-state-icon svg {
+  width: var(--space-8);
+  height: var(--space-8);
+  stroke-width: 1.5;
+}
+
+.empty-state-title {
+  font-size: var(--font-size-lg); /* 18px */
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+.empty-state-description {
+  font-size: var(--font-size-sm); /* 14px */
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-6);
+  max-width: 320px;
+}
+
+.empty-state-action {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* 暗色模式空状态适配 */
+html.dark .empty-state-icon {
+  background: linear-gradient(145deg, var(--color-primary-alpha-12), var(--color-primary-alpha-08));
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================
+   三点五、代码块样式 — 圆角柔和、内边距舒适、行高适宜
+   ============================================================ */
+.surface-code,
+pre,
+code[class*="language-"] {
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   四、HTTP Method Badge 通用样式 — 统一规范
+   使用 tokens.css 中定义的变量，确保亮/暗主题一致
+   ============================================================ */
+.method,
+.method-badge,
+.api-method-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs); /* 12px */
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-mono);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+  line-height: var(--leading-normal);
+  text-transform: uppercase;
+  min-width: 48px;
+  transition: background-color var(--duration-fast) var(--ease-soft),
+              border-color var(--duration-fast) var(--ease-soft),
+              transform var(--duration-fast) var(--ease-soft),
+              filter var(--duration-fast) var(--ease-soft);
+}
+
+/* GET 方法：成功色（绿色系） */
+.method-get {
+  background: var(--method-get-bg);
+  color: var(--method-get-text);
+  border: 1px solid var(--method-get-border);
+}
+
+/* POST 方法：主色（蓝色系） */
+.method-post {
+  background: var(--method-post-bg);
+  color: var(--method-post-text);
+  border: 1px solid var(--method-post-border);
+}
+
+/* PUT 方法：警告色（琥珀色系） */
+.method-put {
+  background: var(--method-put-bg);
+  color: var(--method-put-text);
+  border: 1px solid var(--method-put-border);
+}
+
+/* PATCH 方法：紫色系 */
+.method-patch {
+  background: var(--method-patch-bg);
+  color: var(--method-patch-text);
+  border: 1px solid var(--method-patch-border);
+}
+
+/* DELETE 方法：危险色（红色系） */
+.method-delete {
+  background: var(--method-delete-bg);
+  color: var(--method-delete-text);
+  border: 1px solid var(--method-delete-border);
+}
+
+/* HEAD 方法：中性灰色 */
+.method-head {
+  background: var(--method-head-bg);
+  color: var(--method-head-text);
+  border: 1px solid var(--method-head-border);
+}
+
+/* OPTIONS 方法：中性灰色 */
+.method-options {
+  background: var(--method-options-bg);
+  color: var(--method-options-text);
+  border: 1px solid var(--method-options-border);
+}
+
+/* 悬停效果增强 */
+.method:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+/* 暗色模式方法徽章（tokens 已在 html.dark 中定义，此处确保覆盖） */
+html.dark .method-get {
+  background: var(--method-get-bg);
+  color: var(--method-get-text);
+  border-color: var(--method-get-border);
+}
+html.dark .method-post {
+  background: var(--method-post-bg);
+  color: var(--method-post-text);
+  border-color: var(--method-post-border);
+}
+html.dark .method-put {
+  background: var(--method-put-bg);
+  color: var(--method-put-text);
+  border-color: var(--method-put-border);
+}
+html.dark .method-patch {
+  background: var(--method-patch-bg);
+  color: var(--method-patch-text);
+  border-color: var(--method-patch-border);
+}
+html.dark .method-delete {
+  background: var(--method-delete-bg);
+  color: var(--method-delete-text);
+  border-color: var(--method-delete-border);
+}
+html.dark .method-head {
+  background: var(--method-head-bg);
+  color: var(--method-head-text);
+  border-color: var(--method-head-border);
+}
+html.dark .method-options {
+  background: var(--method-options-bg);
+  color: var(--method-options-text);
+  border-color: var(--method-options-border);
+}
+
+/* ============================================================
+   四点五、状态徽章 — 统一边框规范
+   ============================================================ */
+.status-badge,
+.api-status-badge,
+.status-tag {
+  border: 1px solid currentColor;
+  border-color: var(--color-black-alpha-15);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--weight-semibold);
+}
+
+html.dark .status-badge,
+html.dark .api-status-badge,
+html.dark .status-tag {
+  border-color: var(--color-white-alpha-15);
+}
+
+/* ============================================================
+   八点五、页面排版规范 (.page-content)
+   
+   设计原则：
+   - 每页仅一个 h1（页面主标题）
+   - h2 用于主要分区，h3 用于子分区，h4 用于细节标题
+   - 正文段落行长限制在 75ch 以内（最佳阅读体验）
+   - 统一使用 space token 控制垂直间距节奏
+   ============================================================ */
+
+/* 页面容器 — 所有页面视图的根容器 */
+.page-content {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-page);
+}
+
+/* 页面/路由切换 — 平滑淡入 */
+.page-content, .router-view > * {
+  animation: pageEnter var(--duration-fast) var(--ease-smooth);
+}
+
+/* ---- 标题层级系统 ---- */
+
+/* h1: 页面唯一主标题（每个页面只应出现一次）— 基础定义在 page-layout.css */
+.page-content > h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+/* 页面副标题/描述文字 */
+.page-content > .page-subtitle,
+.page-content .page-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-6);
+  max-width: 720px;
+}
+
+/* h2: 主要分区标题（如"最近执行"、"快捷操作"、"执行趋势"） */
+.page-content > h2,
+.page-content .section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* h3: 子分区 / 卡片内标题 */
+.page-content > h3,
+.page-content .subsection-title {
+  font-size: var(--font-size-lg); /* 18px */
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+  margin: 0 0 var(--space-3);
+}
+
+/* h4: 细节 / 标签级标题 */
+.page-content > h4,
+.page-content .detail-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin: 0 0 var(--space-2);
+}
+
+/* ---- 正文段落 ---- */
+.page-content > p,
+.page-content .page-paragraph {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  max-width: 75ch; /* 最佳阅读行长（约 60-80 个拉丁字符） */
+  margin-bottom: var(--space-4);
+}
+
+/* ---- 分区间距节奏 ---- */
+.page-content > section,
+.page-content > .page-section {
+  margin-bottom: var(--space-section);
+}
+
+.page-content > section:last-child,
+.page-content > .page-section:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- 页面级 Kicker 标签（如"项目总览"、"场景编排工作台"）---- */
+.page-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary-600);
+}
+
+/* ============================================================
+   九、打印样式
+   ============================================================ */
+@media print {
+  .no-print { display: none !important; }
+  .btn, .card { box-shadow: none !important; break-inside: avoid; }
+  .data-table { border-collapse: collapse !important; }
+  .data-table tr { page-break-inside: avoid; }
+}
+
+/* ============================================================
+   十、暗色模式通用背景覆盖
+   ============================================================ */
+html.dark {
+  background: var(--surface-bg) !important;
+}
+
+/* ============================================================
+   十一、紧凑模式 v4 (html.compact)
+   用户启用紧凑模式时，所有组件缩小尺寸
+   ============================================================ */
+html.compact {
+  --height-topbar: 40px;
+  --height-tabs: 26px;
+  --height-statusbar: 22px;
+  --height-input: 28px;
+  --space-page: 12px;
+  --space-card: 10px;
+  --font-size-base: 13px;
+  --text-sm: 12px;
+  --text-xs: 11px;
+  --radius-md: 6px;
+}
+
+html.compact .sidebar { width: var(--width-sidebar-compact, 200px); }
+html.compact .sidebar .nav-item { height: var(--space-8); font-size: var(--text-sm); }
+html.compact .sidebar .nav-group-label { font-size: var(--text-xs); padding-bottom: var(--space-1); }
+html.compact .topbar { height: var(--height-topbar); }
+html.compact .topbar-center { font-size: var(--text-sm); }
+html.compact .app-tabs { height: var(--height-tabs); }
+html.compact .app-tabs .tab-item { height: var(--height-tabs); font-size: var(--text-sm); padding: 0 var(--space-2-5); }
+html.compact .tab-close { width: 14px; height: 14px; font-size: var(--text-2xs); }
+html.compact .content { padding: var(--space-page); }
+html.compact .page-title { font-size: var(--text-lg); margin-bottom: var(--space-3); }
+html.compact .status-bar { height: var(--height-statusbar); font-size: var(--text-2xs); padding: 0 var(--space-2); }
+html.compact .status-btn { height: 16px; font-size: var(--text-2xs); padding: 0 var(--space-1); }
+html.compact .status-item { gap: 3px; }
+html.compact .card { padding: var(--space-card); }
+html.compact .card-header { padding-bottom: var(--space-2); margin-bottom: var(--space-2); }
+html.compact .btn { height: var(--height-input); padding: 0 var(--space-3); font-size: var(--text-sm); }
+html.compact .btn-primary { height: var(--height-input); }
+html.compact .input,
+html.compact .el-input__wrapper { height: var(--height-input); }
+html.compact .form-label { font-size: var(--text-sm); margin-bottom: var(--space-1); }
+html.compact .form-hint { font-size: var(--text-xs); margin-top: 3px; }
+html.compact .el-table .cell { padding: var(--space-1) var(--space-2); }
+html.compact .el-table th { padding: var(--space-1-5) var(--space-2); }
+html.compact .data-table th,
+html.compact .data-table td { padding: 5px var(--space-2-5); }
+html.compact .section-title { font-size: var(--text-sm); margin-bottom: var(--space-2); }
+html.compact .tree-search .el-input__inner { height: var(--height-row-compact); font-size: var(--text-sm); }
+html.compact .tree-node-content { height: var(--height-row-compact); }
+html.compact .sidebar-project-info { padding: var(--space-1-5) var(--space-2); }
+html.compact .sidebar-project-name { font-size: var(--text-sm); }
+
+/* ============================================================
+   十二、响应式断点（已迁移至 responsive.css）
+   ============================================================ */
+
+/* ============================================================
+   十三、全局暗色模式补全 — 覆盖未单独处理暗色的组件
+   53 个组件缺失 html.dark 定义，此处统一覆盖通用模式
+   ============================================================ */
+html.dark {
+  /* 表格/表单类组件 */
+  --el-fill-color-blank: var(--surface-input) !important;
+  --el-bg-color: var(--surface-bg);
+
+  /* 表格通用 */
+  .el-table__body tr.el-table__row--striped td {
+    background: var(--color-primary-alpha-03);
+  }
+  .el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+    background: var(--color-primary-alpha-03);
+  }
+  .el-table__body tr:hover > td {
+    background: var(--surface-hover) !important;
+  }
+
+  /* 代码/JSON 编辑器通用 */
+  .json-viewer,
+  .code-block,
+  pre.code-block,
+  .json-tree,
+  .response-body {
+    background: var(--surface-code) !important;
+    color: var(--text-primary);
+  }
+
+  /* 表单 hint 通用 */
+  .form-hint,
+  .hint-text,
+  .field-hint {
+    color: var(--text-muted);
+  }
+
+  /* 分割线通用 */
+  .divider,
+  .el-divider,
+  .section-divider {
+    background: var(--border-subtle);
+    border-color: var(--border-subtle);
+  }
+
+  /* 变量相关组件通用 */
+  .var-token,
+  .variable-tag,
+  .variable-chip {
+    background: var(--color-primary-alpha-08);
+    color: var(--primary-400);
+  }
+
+  /* 高亮文本通用 */
+  .highlight-text,
+  .hl {
+    background: var(--color-primary-alpha-12);
+    color: var(--warning-light);
+  }
+
+  /* 性能监控覆盖 */
+  .perf-monitor,
+  .performance-panel {
+    background: var(--surface-card);
+    border-color: var(--border-subtle);
+    color: var(--text-primary);
+  }
+
+  /* 骨架屏覆盖 — 主色渐变 shimmer */
+  .skeleton-box,
+  .skeleton-block,
+  .el-skeleton__item {
+    background: linear-gradient(90deg, var(--surface-hover) 25%, var(--color-primary-alpha-08) 50%, var(--surface-hover) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Toast/通知内的文本 */
+  .msg-error-text,
+  .msg-undo-text {
+    color: var(--text-primary);
+  }
+
+  /* 自动保存指示器通用 */
+  .auto-save-indicator {
+    background: var(--surface-hover);
+    color: var(--text-secondary);
+  }
+
+  /* 加载条通用 */
+  .loading-bar,
+  .progress-bar {
+    background: var(--surface-hover);
+  }
+
+  /* SVG icon 通用颜色 */
+  .icon-muted {
+    color: var(--text-muted);
+  }
+  .icon-secondary {
+    color: var(--text-secondary);
+  }
+
+  /* StepDetailDialog 内代码块 */
+  .code-snippet,
+  .snippet-block {
+    background: var(--surface-code);
+    color: var(--text-primary);
+    border-color: var(--border-subtle);
+  }
+
+  /* 空状态图标容器（暗色适配）*/
+  .empty-icon-wrapper {
+    background: linear-gradient(145deg, var(--color-primary-alpha-12), var(--color-primary-alpha-08));
+    box-shadow: var(--shadow-pop), inset 0 1px 0 var(--color-white-alpha-06);
+  }
+
+  /* 导入弹窗预览统计卡片 */
+  .stat-card {
+    background: var(--surface-card);
+    border-color: var(--border-subtle);
+  }
+
+  /* 环境卡片通用 */
+  .env-card,
+  .env-service-row {
+    background: var(--surface-nested);
+    border-color: var(--border-subtle);
+  }
+
+  /* 自定义组件暗色适配 */
+  .btn-secondary {
+    border-color: var(--border-strong);
+  }
+  .btn-ghost:hover {
+    background: var(--surface-hover);
+  }
+  .input {
+    background: var(--surface-input);
+    border-color: var(--border-default);
+  }
+  .data-table {
+    background: var(--surface-card);
+    border-color: var(--border-default);
+  }
+  .empty-state-icon {
+    background: linear-gradient(145deg, var(--color-primary-alpha-08), var(--color-primary-alpha-04));
+  }
+
+  /* Element Plus 弹出层暗色覆盖 */
+  .el-select-dropdown {
+    background: var(--surface-overlay);
+    border: 1px solid var(--border-default);
+  }
+  .el-popper {
+    background: var(--surface-overlay);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-pop);
+  }
+  .el-autocomplete-suggestion {
+    background: var(--surface-overlay);
+    border: 1px solid var(--border-default);
+  }
+  .el-cascader-menu {
+    background: var(--surface-overlay);
+  }
+  .el-color-picker__panel {
+    background: var(--surface-overlay);
+  }
+
+  /* 输入框边框暗色 */
+  .el-input__wrapper {
+    border-color: var(--border-default);
+  }
+
+  /* 7.1 侧边栏暗色分隔线 */
+  .api-sidebar,
+  .sidebar-tree {
+    border-right: 1px solid var(--color-white-alpha-06);
+  }
+
+  /* 7.2 面包屑暗色提亮 */
+  .breadcrumb-nav .breadcrumb-item {
+    color: var(--text-secondary);
+  }
+  .breadcrumb-nav .breadcrumb-item:hover {
+    color: var(--primary-400);
+  }
+
+  /* 7.3 空状态暗色图标和文字提亮 */
+  .empty-state-icon {
+    color: var(--text-secondary);
+  }
+  .empty-state-description,
+  .empty-desc {
+    color: var(--text-secondary);
+  }
+
+  /* 7.4 代码块暗色样式 */
+  pre,
+  code,
+  .code-block {
+    background: var(--surface-code);
+    border: 1px solid var(--border-subtle);
+  }
+
+  /* 7.5 分割线暗色可见性（补充 el-divider 独立规则） */
+  .el-divider {
+    border-color: var(--border-subtle);
+  }
+}
+
+/* ============================================================
+   十六、v14 新增 — 按钮光斑（Shine）、卡片光边、表格增强
+   ============================================================ */
+
+/* ---- 主按钮光斑扫过（仅主按钮类型）---- */
+.el-button--primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--grad-primary) !important;
+  border: 1px solid var(--primary-600) !important;
+  box-shadow:
+    0 1px 0 var(--color-white-alpha-18) inset,
+    0 1px 2px var(--color-neutral-alpha-10),
+    0 0 0 1px var(--color-primary-alpha-04);
+  transition: transform var(--duration-fast) var(--ease-soft),
+              box-shadow var(--duration-fast) var(--ease-soft),
+              background-color var(--duration-fast) var(--ease-soft),
+              filter var(--duration-fast) var(--ease-soft);
+}
+
+.el-button--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-shine);
+  transform: translateX(-110%);
+  transition: transform 0s;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.el-button--primary:hover {
+  transform: var(--lift-btn-hover);
+  background: var(--grad-primary-hover) !important;
+  box-shadow:
+    0 1px 0 var(--color-white-alpha-22) inset,
+    0 4px 12px var(--color-primary-alpha-20),
+    0 2px 4px var(--color-neutral-alpha-08);
+  transition: transform 150ms var(--ease-soft), background 150ms var(--ease-soft);
+}
+
+.el-button--primary:hover::after {
+  transform: translateX(110%);
+  transition: transform var(--duration-slow) var(--ease-soft);
+}
+
+.el-button--primary:active {
+  transform: scale(var(--press-scale));
+  transition: transform 80ms var(--ease-soft);
+}
+
+/* 暗色主按钮微光晕（更亮） */
+html.dark .el-button--primary {
+  box-shadow:
+    0 1px 0 var(--color-white-alpha-12) inset,
+    0 1px 2px var(--color-black-alpha-20),
+    0 0 0 1px var(--color-primary-alpha-08);
+}
+html.dark .el-button--primary:hover {
+  box-shadow:
+    0 1px 0 var(--color-white-alpha-18) inset,
+    0 4px 16px var(--color-primary-alpha-30),
+    0 2px 4px var(--color-black-alpha-16);
+}
+
+/* ---- 卡片 v14 hover：1px 主色光边 + 卡片渐变背景（200ms 统一规范）---- */
+.card,
+.card-standard,
+.el-card,
+.report-card,
+.summary-item,
+.api-card,
+.case-card,
+.scenario-card {
+  position: relative;
+  transition:
+    transform var(--duration-fast) var(--ease-soft),
+    box-shadow var(--duration-fast) var(--ease-soft),
+    border-color var(--duration-fast) var(--ease-soft);
+}
+
+.card::after,
+.card-standard::after,
+.el-card::after,
+.report-card::after,
+.summary-item::after,
+.api-card::after,
+.case-card::after,
+.scenario-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 0 transparent;
+  transition: box-shadow var(--duration-fast) var(--ease-soft);
+}
+
+.card:hover::after,
+.card-standard:hover::after,
+.el-card:hover::after,
+.report-card:hover::after,
+.summary-item:hover::after,
+.api-card:hover::after,
+.case-card:hover::after,
+.scenario-card:hover::after {
+  box-shadow: 0 0 0 1px var(--color-primary-alpha-20);
+}
+
+/* ---- 输入框 v14 focus：背景渐变 + 1px 主色边 + 3px 软光晕（200ms 统一规范）---- */
+.el-input__wrapper {
+  background: var(--surface-input);
+  transition: background-color var(--duration-fast) var(--ease-soft),
+              box-shadow var(--duration-fast) var(--ease-soft),
+              border-color var(--duration-fast) var(--ease-soft) !important;
+  box-shadow: 0 0 0 1px var(--border-default) inset !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--border-strong) inset !important;
+}
+
+.el-input__wrapper.is-focus {
+  background: linear-gradient(180deg, var(--surface-input) 0%, var(--color-primary-alpha-04) 100%) !important;
+  box-shadow:
+    0 0 0 1px var(--primary-500),
+    0 0 0 3px var(--color-primary-alpha-12),
+    0 0 8px var(--color-primary-alpha-08) !important;
+}
+
+.el-textarea__inner {
+  background: var(--surface-input) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-md) !important;
+  transition: background-color var(--duration-fast) var(--ease-soft),
+              box-shadow var(--duration-fast) var(--ease-soft),
+              border-color var(--duration-fast) var(--ease-smooth) !important;
+}
+
+.el-textarea__inner:hover {
+  border-color: var(--border-strong) !important;
+}
+
+.el-textarea__inner:focus {
+  background: linear-gradient(180deg, var(--surface-input) 0%, var(--color-primary-alpha-04) 100%) !important;
+  border-color: var(--primary-500) !important;
+  box-shadow:
+    0 0 0 1px var(--primary-500),
+    0 0 0 3px var(--color-primary-alpha-12),
+    0 0 8px var(--color-primary-alpha-10) !important;
+  outline: none;
+}
+
+/* ---- 搜索框 focus 图标主色化 ---- */
+.search-box:focus-within .search-icon,
+.search-box:focus-within svg {
+  color: var(--primary-500);
+  transition: color var(--duration-fast) var(--ease-soft);
+}
+
+/* ============================================================
+   十七、v14 新增 — 滚动条渐入渐出（呼吸感）
+   ============================================================ */
+.scrollbar-fade-in {
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--duration-fast) var(--ease-soft);
+}
+.scrollbar-fade-in:hover,
+.scrollbar-fade-in:focus-within,
+.scrollbar-fade-in.is-scrolling {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+html.dark .scrollbar-fade-in:hover,
+html.dark .scrollbar-fade-in:focus-within,
+html.dark .scrollbar-fade-in.is-scrolling {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* ============================================================
+   十八、v14 新增 — 弹窗 / Drawer 遮罩与动画
+   ============================================================ */
+.el-overlay {
+  background: var(--color-neutral-alpha-12) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  transition: opacity var(--duration-interaction) var(--ease-soft) !important;
+}
+
+html.dark .el-overlay {
+  background-color: var(--color-neutral-alpha-70) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.el-dialog {
+  animation: dialog-fade-up var(--duration-interaction) var(--ease-bounce-soft) both !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-float) !important;
+  transition:
+    transform var(--duration-base) var(--ease-soft),
+    opacity var(--duration-base) var(--ease-soft) !important;
+}
+
+.el-drawer {
+  animation-duration: var(--duration-interaction) !important;
+  animation-timing-function: var(--ease-soft) !important;
+  box-shadow: var(--shadow-float) !important;
+  transition:
+    transform var(--duration-base) var(--ease-soft),
+    opacity var(--duration-base) var(--ease-soft) !important;
+}
+
+.el-message,
+.el-notification {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-pop) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ---- 按钮通用交互链路（统一规范 v14.2）---- */
+.btn,
+.el-button:not(.is-text):not(.is-link):not(.is-circle),
+[role="button"] {
+  transition: transform var(--duration-fast) var(--ease-soft),
+              box-shadow var(--duration-fast) var(--ease-soft),
+              background-color var(--duration-fast) var(--ease-soft),
+              border-color var(--duration-fast) var(--ease-soft),
+              color var(--duration-fast) var(--ease-soft),
+              filter var(--duration-fast) var(--ease-soft);
+}
+
+/* hover：200ms 内上浮 1px、阴影升档、背景变亮 */
+.btn:hover,
+.el-button:hover,
+[role="button"]:hover {
+  transform: var(--lift-btn-hover);
+  box-shadow: var(--shadow-sm);
+  filter: brightness(1.04);
+}
+
+/* active：80ms 内缩放 0.97，松开后 200ms 弹回 */
+.btn:active,
+.el-button:active,
+[role="button"]:active {
+  transform: scale(var(--press-scale));
+  transition: transform var(--duration-instant) var(--ease-soft);
+}
+
+/* 兜底：自定义按钮（非 .btn / .el-button / [role="button"]）active 反馈 */
+button:active:not(:disabled):not(.btn):not(.el-button):not([role="button"]) {
+  opacity: 0.85;
+  transform: scale(0.98);
+  transition: opacity var(--duration-fast) var(--ease-soft),
+              transform var(--duration-fast) var(--ease-soft);
+}
+
+/* focus：2.5px 主色 outline + 3px 软光晕（统一使用 --focus-ring-width token） */
+.btn:focus-visible,
+.el-button:focus-visible,
+[role="button"]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary-500);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px var(--color-primary-alpha-12);
+}
+
+/* 暗色主按钮 focus：focus 环在深底上更醒目 */
+html.dark .btn:focus-visible,
+html.dark .el-button:focus-visible,
+html.dark [role="button"]:focus-visible {
+  outline-color: var(--primary-400);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha-16);
+}
+
+/* ============================================================
+   十九、v14.1 新增 — Element Plus 关键组件增强
+   - el-tabs 切换 200ms（旧淡出 + 新上移淡入）
+   - el-tag 圆角 6px、字号 12px、padding 2px 8px
+   - el-empty 与全局 .empty-state 视觉一致
+   - el-skeleton 底色/高光/1.4s 循环
+   - el-message / el-notification 右侧滑入 240ms spring
+   - el-dialog / el-drawer 进入 240ms + 遮罩 12% 黑色 + 4px blur
+   - el-menu / el-dropdown 展开 200ms spring
+   ============================================================ */
+
+/* ---- el-tabs 切换：旧淡出 + 新上移淡入（200ms）---- */
+.el-tabs__active-bar {
+  transition: all var(--duration-base) var(--ease-soft) !important;
+}
+
+.el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
+  transition: color var(--duration-base) var(--ease-soft),
+              background-color var(--duration-base) var(--ease-soft);
+}
+
+/* el-tab-pane 切换：旧淡出 + 新上移淡入 */
+.el-tab-pane {
+  animation: tab-fade-in var(--duration-fast) var(--ease-soft) both;
+}
+
+@keyframes tab-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- el-tag 圆角 6px、字号 12px、padding 2px 8px ---- */
+.el-tag {
+  border-radius: var(--radius-sm) !important;
+  font-size: var(--font-size-xs) !important;
+  padding: 2px 8px !important;
+  height: auto !important;
+  line-height: var(--leading-normal) !important;
+  transition: background-color var(--duration-fast) var(--ease-smooth),
+              border-color var(--duration-fast) var(--ease-smooth),
+              color var(--duration-fast) var(--ease-smooth);
+}
+
+.el-tag.el-tag--small {
+  padding: 1px 6px !important;
+  font-size: var(--font-size-2xs) !important;
+}
+
+.el-tag.el-tag--large {
+  padding: 4px 10px !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+/* ---- el-empty 与全局 .empty-state 视觉一致 ---- */
+.el-empty {
+  padding: var(--space-10) var(--space-6) !important;
+}
+
+.el-empty__image {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.el-empty__image img,
+.el-empty__image svg {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.el-empty__description p {
+  color: var(--text-secondary) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+/* ---- el-skeleton 1.5s 循环 + 主色渐变 shimmer ---- */
+.el-skeleton {
+  --el-skeleton-bg-color: var(--surface-muted) !important;
+  --el-skeleton-circle-color: var(--surface-muted) !important;
+  --el-skeleton-item-color: var(--surface-muted) !important;
+}
+
+.el-skeleton__item,
+.el-skeleton__circle,
+.el-skeleton__rect,
+.el-skeleton__h1,
+.el-skeleton__h3,
+.el-skeleton__text,
+.el-skeleton__caption,
+.el-skeleton__button,
+.el-skeleton__image,
+.skeleton-block {
+  background: linear-gradient(
+    90deg,
+    var(--surface-hover) 25%,
+    var(--color-primary-alpha-08) 50%,
+    var(--surface-hover) 75%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: shimmer 1.5s ease-in-out infinite !important;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---- el-message / el-notification 右侧滑入 240ms spring ---- */
+.el-message {
+  animation: message-slide-in var(--duration-interaction) var(--ease-bounce-soft) both !important;
+  transition: opacity var(--duration-fast) var(--ease-soft) !important;
+}
+
+.el-message.fade-out {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-soft) !important;
+}
+
+@keyframes message-slide-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.el-notification {
+  animation: notification-slide-in var(--duration-interaction) var(--ease-bounce-soft) both !important;
+  transition: opacity var(--duration-fast) var(--ease-soft) !important;
+}
+
+.el-notification.fade-out {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-soft) !important;
+}
+
+@keyframes notification-slide-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes dialog-fade-up {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.el-drawer.rtl {
+  animation-name: drawer-slide-rtl;
+}
+
+.el-drawer.ltr {
+  animation-name: drawer-slide-ltr;
+}
+
+.el-drawer.ttb,
+.el-drawer.btt {
+  animation-name: drawer-slide-ttb;
+}
+
+@keyframes drawer-slide-rtl {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes drawer-slide-ltr {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes drawer-slide-ttb {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ---- el-menu / el-dropdown 展开 200ms spring ---- */
+.el-menu {
+  transition: background-color var(--duration-base) var(--ease-smooth),
+              border-color var(--duration-base) var(--ease-smooth);
+}
+
+.el-sub-menu .el-menu {
+  transition: max-height var(--duration-fast) var(--ease-bounce-soft),
+              opacity var(--duration-fast) var(--ease-soft);
+}
+
+.el-popper,
+.el-select-dropdown,
+.el-dropdown-menu,
+.el-dropdown__popper,
+.el-autocomplete-suggestion,
+.el-cascader__dropdown,
+.el-cascader-menu,
+.el-color-picker__panel,
+.el-context-menu,
+.el-tooltip__popper,
+.el-message-box {
+  animation: popper-pop-in var(--duration-fast) var(--ease-bounce-soft) both !important;
+  transform-origin: var(--el-popper-anchor-gravity, center top);
+}
+
+@keyframes popper-pop-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-3px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ---- 进度条填充 200ms + 完成闪烁 ---- */
+.el-progress-bar__inner {
+  transition: width var(--duration-fast) var(--ease-out) !important;
+}
+
+.el-progress.is-success .el-progress-bar__inner {
+  animation: progress-glow 600ms var(--ease-soft);
+}
+
+@keyframes progress-glow {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50%      { box-shadow: 0 0 8px var(--color-primary-alpha-30); }
+}
+
+/* ============================================================
+   二十、可访问性 — 减少动画偏好下禁用动画并确保可见性
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .el-dialog,
+  .el-tab-pane,
+  .el-message,
+  .el-notification,
+  .el-drawer,
+  .el-popper,
+  .el-select-dropdown,
+  .el-dropdown-menu,
+  .el-dropdown__popper,
+  .el-autocomplete-suggestion,
+  .el-cascader__dropdown,
+  .el-cascader-menu,
+  .el-color-picker__panel,
+  .el-context-menu,
+  .el-tooltip__popper,
+  .el-message-box {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

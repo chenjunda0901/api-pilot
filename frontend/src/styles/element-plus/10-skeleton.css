@@ -1,0 +1,29 @@
+/* ==========================================
+   Module: Skeleton
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   二三、骨架屏组件覆盖 — 主色渐变 shimmer 效果
+   与 global.css 和 animations.css 保持一致
+   使用 surface-hover + 主色 alpha 做渐变 + shimmer 动画
+   ================================================================ */
+.el-skeleton__item {
+  background: linear-gradient(
+    90deg,
+    var(--surface-hover) 25%,
+    var(--color-primary-alpha-08) 50%,
+    var(--surface-hover) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* 暗色骨架屏 */
+html.dark .el-skeleton__item {
+  background: linear-gradient(
+    90deg,
+    var(--surface-hover) 25%,
+    var(--color-primary-alpha-12) 50%,
+    var(--surface-hover) 75%
+  );
+}

@@ -1,0 +1,163 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+.secret_key
+*.db
+*.sqlite
+*.sqlite3
+data/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Debug scripts
+scripts/debug/
+scripts/*.py
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# Temp & generated files
+*.stackdump
+*.err
+*.d.ts
+build_output.txt
+vite_log.txt
+vite-build-log.txt
+screenshot-*.png
+start_frontend.bat
+start_vite.bat
+all_used_vars.txt
+defined_vars.txt
+test.apifox.full.json
+
+# Reports
+AGENTS.md
+FINAL_OPTIMIZATION_REPORT.md
+FRONTEND_STYLING_SUMMARY.md
+OPTIMIZATION_COMPLETE.md
+OPTIMIZATION_SUMMARY.md
+
+# Reasonix tool
+.reasonix/
+
+# AI tool caches
+.pi-lens/
+.omo/
+
+# Test results
+test-results/
+
+# Database backups
+*.db.backup
+
+# Misc temp files
+out.txt
+
+# Debug scripts
+var_extract.ps1
+var_extract.py
+
+# Root-level debug/temp scripts
+/*.js
+/*.py
+/*.txt
+/screenshots/
+/frontend/e2e/.e2e-users.json
+
+# T15 smoke test artifacts (acceptance verification, not production code)
+.smoke-*
+smoke_anon.py
+smoke-screenshots/
+backend/smoke_anon.py
+frontend/smoke-screenshots/
+
+# Bug hunt artifacts (browser screenshots + openapi dumps for analysis)
+bug-hunt-*.png
+openapi.json
+test-pinia.js
+test-auth.js
+
+# QA walkthrough temp files (acceptance artifacts, not production code)
+.acceptance-*.png
+acceptance-*.png
+admin_login.json
+register.json
+update.json
+.smoke-*
+
+# AI tool caches
+.trae/
+.playwright-mcp/
+.lucifer/
+
+# HAR recording files
+*.har
+
+# Binary tools
+bin/
+uv.exe
+uvw.exe
+uvx.exe
+
+# IDE workspace config
+.workbuddy/
+
+# E2E test scripts & reports
+frontend/e2e_*.spec.mjs
+frontend/har_*.json
+/e2e_test_report.json
+/test_export.json
+/e2e_final_report.md
+/landing-page.md

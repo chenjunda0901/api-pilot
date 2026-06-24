@@ -1,0 +1,79 @@
+# ============================================================
+# .dockerignore — 生产构建优化
+# ============================================================
+
+# Version control
+.git
+.gitignore
+.gitattributes
+.gitmodules
+
+# Node / frontend build
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+frontend/node_modules
+frontend/dist
+frontend/tsc_out.txt
+frontend/tsc_output.txt
+frontend/build_output.txt
+frontend/vite_log.txt
+frontend/vite-build-log.txt
+frontend/auto-imports.d.ts
+frontend/components.d.ts
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+.egg
+dist
+build
+.venv
+venv
+env
+
+# IDE & OS
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.stackdump
+
+# Runtime data (excluded for build image)
+backend/data/
+backend/.secret_key
+
+# Logs
+*.log
+logs/
+
+# Docker itself
+Dockerfile.*
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# Temp files
+*.err
+screenshot-*.png
+all_used_vars.txt
+defined_vars.txt
+test.apifox.full.json
+
+# Reasonix tool
+.reasonix/
+
+# Docs & reports
+docs/
+*.md
+AGENTS.md
+FINAL_OPTIMIZATION_REPORT.md
+OPTIMIZATION_SUMMARY.md

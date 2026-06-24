@@ -1,0 +1,81 @@
+/**
+ * API Pilot — Element Plus 主题覆盖 v13.0
+ *
+ * 基于 Design Token v13.0 "Soft Azure" 系统
+ * 设计风格：清澈专业 · 柔和灵动 · 对比度舒适
+ *
+ * 覆盖范围：品牌色变量 / 暗色模式 / 按钮 / 输入框 / 选择器 / 表单 /
+ * 表格 / 对话框 / 消息通知 / 下拉菜单 / 标签页 / Tab 标签 / 卡片 /
+ * 折叠面板 / 分页 / 骨架屏 / Loading / 滚动条 / 穿梭框 / 级联选择器 /
+ * 日期选择器 / 色彩选择器 / 上传 / 滑块 / 进度条 / 锚点 / 菜单 /
+ * 面包屑 / Descriptions / Result / Watermark / 等 55 个组件分类
+ *
+ * -------------------------------------------
+ * 本文件现已拆分为按组件分类的子模块。
+ * 直接编辑子模块文件，保留本文档头的导入顺序。
+ * -------------------------------------------
+ *
+ * 设计原则：
+ * - 所有数值均引用 design tokens（CSS 变量），杜绝硬编码
+ * - 亮/暗双模式完整适配，暗色使用 "Deep Azure" 色板
+ * - 间距遵循 4pt 基准体系（--space-*）
+ * - 动画使用 spring-based 缓动（--ease-*）+ 标准时长（--duration-*）
+ * - 阴影使用多层漫反射体系（--shadow-*）
+ */
+
+/* 一、CSS 变量体系 */
+@import './element-plus/01-variables.css';
+
+/* 二、按钮组件 */
+@import './element-plus/02-button.css';
+
+/* 三、表单组件（输入框/选择器/单选/复选/开关） */
+@import './element-plus/03-form.css';
+
+/* 四、表格组件 */
+@import './element-plus/04-table.css';
+
+/* 五、对话框组件 */
+@import './element-plus/05-dialog.css';
+
+/* 六、消息通知组件 */
+@import './element-plus/06-message.css';
+
+/* 七、下拉菜单 / 标签页 / Tag 标签 */
+@import './element-plus/07-dropdown-tab.css';
+
+/* 八、卡片 / 折叠面板 / 走马灯 */
+@import './element-plus/08-card.css';
+
+/* 九、分页组件 */
+@import './element-plus/09-pagination.css';
+
+/* 十、骨架屏 / 头像 / 空状态 */
+@import './element-plus/10-skeleton.css';
+
+/* 十一、步骤条组件 */
+@import './element-plus/11-steps.css';
+
+/* 十二、加载中组件 */
+@import './element-plus/12-loading.css';
+
+/* 十三、滚动条 / 分割线 */
+@import './element-plus/13-scrollbar.css';
+
+/* 十四、穿梭框 / 评分 / 日历 */
+@import './element-plus/14-transfer.css';
+
+/* 十五、级联选择 / 日期选择 / 色彩选择 */
+@import './element-plus/15-cascader-date.css';
+
+/* 十六、上传 / 滑块 / 进度条 / 时间线 */
+@import './element-plus/16-upload.css';
+
+/* 十七、锚点 / 信息提示 */
+@import './element-plus/17-anchor.css';
+
+/* 十八、导航（菜单 / 面包屑 / 页头） */
+@import './element-plus/18-nav.css';
+
+/* 十九、其他（Result / Watermark / Popconfirm / Tree） */
+@import './element-plus/19-misc.css';

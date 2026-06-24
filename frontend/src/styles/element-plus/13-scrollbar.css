@@ -1,0 +1,58 @@
+/* ==========================================
+   Module: Scrollbar
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   二二、弹出框组件覆盖
+   大圆角 + pop 阴影 + 默认边框
+   ================================================================ */
+.el-popover.el-popper {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-pop);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-3);
+}
+/* 健康检查弹出框：去除默认样式（内容由组件自行控制） */
+.el-popover.el-popper[name="健康检查"] {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 暗色弹出框 */
+html.dark .el-popover.el-popper {
+  background: var(--surface-overlay);
+  border-color: var(--color-white-alpha-08);
+  box-shadow: var(--shadow-pop);
+}
+html.dark .el-popover.el-popper[name="健康检查"] {
+  background: transparent;
+  border: none;
+}
+
+/* ================================================================
+   二三、骨架屏组件覆盖 — 主色渐变 shimmer 效果
+   与 global.css 和 animations.css 保持一致
+   使用 surface-hover + 主色 alpha 做渐变 + shimmer 动画
+   ================================================================ */
+.el-skeleton__item {
+  background: linear-gradient(
+    90deg,
+    var(--surface-hover) 25%,
+    var(--color-primary-alpha-08) 50%,
+    var(--surface-hover) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* 暗色骨架屏 */
+html.dark .el-skeleton__item {
+  background: linear-gradient(
+    90deg,
+    var(--surface-hover) 25%,
+    var(--color-primary-alpha-12) 50%,
+    var(--surface-hover) 75%
+  );
+}

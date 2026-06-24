@@ -1,0 +1,27 @@
+/* ==========================================
+   Module: Loading
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   二一、工具提示组件覆盖
+   中等圆角 + pop 阴影，暗色背景使用 slate-800
+   ================================================================ */
+.el-tooltip__popper {
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: var(--shadow-pop);
+}
+.el-tooltip__popper.is-dark {
+  background: var(--slate-800);
+}
+
+/* 暗色工具提示 */
+html.dark .el-tooltip__popper {
+  background: var(--surface-overlay);
+  border: 1px solid var(--color-white-alpha-08);
+  box-shadow: var(--shadow-pop);
+}
+html.dark .el-tooltip__popper.is-dark {
+  background: var(--surface-card);
+}

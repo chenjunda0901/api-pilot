@@ -1,0 +1,232 @@
+/**
+ * API Pilot — Element Plus 主题覆盖 v13.0
+ *
+ * 基于 Design Token v13.0 "Soft Azure" 系统
+ * 主色：#627ec2（柔和蔚蓝，替代旧版 #5878c4）
+ * 设计风格：清澈专业 · 柔和灵动 · 对比度舒适
+ *
+ * 覆盖范围（50 个组件分类）：
+ * - 品牌色变量（亮/暗双模式）
+ * - 按钮组件（含 press 缩放反馈 + hover 上浮增强）
+ * - 输入框 / 选择器 / 表单
+ * - 表格（悬停使用 surface-selected + 左侧指示条动画）
+ * - 对话框（fadeInBlur 入场动画）
+ * - 下拉菜单（menu-in 动画增强）
+ * - 标签页（expo-out 过渡曲线）
+ * - 骨架屏（shimmer 效果）
+ * - Loading spinner（loading-rotate 动画）
+ * - 全部 Element Plus 组件精细化覆盖
+ *
+ * 设计原则：
+ * - 所有数值均引用 design tokens（CSS 变量），杜绝硬编码
+ * - 亮/暗双模式完整适配，暗色使用 "Deep Azure" 色板
+ * - 间距遵循 4pt 基准体系（--space-*）
+ * - 动画使用 spring-based 缓动（--ease-*）+ 标准时长（--duration-*）
+ * - 阴影使用多层漫反射体系（--shadow-*）
+ */
+
+/* ==========================================
+   Module: Variables
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   一、品牌色变量覆盖 — Design Token v13.0 "Soft Azure"
+   将 Element Plus 内置色板映射到应用 design tokens
+   主色从 #6388ca → #627ec2
+   ================================================================ */
+:root {
+  color-scheme: light;
+
+  /* ---- 主色：Soft Azure #627ec2 ---- */
+  --el-color-primary: var(--color-primary-500);
+  --el-color-primary-light-3: var(--color-primary-300);
+  --el-color-primary-light-5: var(--color-primary-200);
+  --el-color-primary-light-7: var(--color-primary-100);
+  --el-color-primary-light-8: var(--color-primary-50);
+  --el-color-primary-light-9: var(--color-primary-50);
+  --el-color-primary-dark-2: var(--color-primary-700);
+
+  /* ---- 成功色 ---- */
+  --el-color-success: var(--color-success-500);
+  --el-color-success-light-3: var(--color-success-300);
+  --el-color-success-light-5: var(--color-success-200);
+  --el-color-success-light-7: var(--color-success-100);
+  --el-color-success-light-8: var(--color-success-50);
+  --el-color-success-light-9: var(--color-success-50);
+  --el-color-success-dark-2: var(--color-success-600);
+
+  /* ---- 警告色 ---- */
+  --el-color-warning: var(--color-warning-500);
+  --el-color-warning-light-3: var(--color-warning-300);
+  --el-color-warning-light-5: var(--color-warning-200);
+  --el-color-warning-light-7: var(--color-warning-100);
+  --el-color-warning-light-8: var(--color-warning-50);
+  --el-color-warning-light-9: var(--color-warning-50);
+  --el-color-warning-dark-2: var(--color-warning-600);
+
+  /* ---- 危险色 ---- */
+  --el-color-danger: var(--color-error-500);
+  --el-color-danger-light-3: var(--color-error-300);
+  --el-color-danger-light-5: var(--color-error-200);
+  --el-color-danger-light-7: var(--color-error-100);
+  --el-color-danger-light-8: var(--color-error-50);
+  --el-color-danger-light-9: var(--color-error-50);
+  --el-color-danger-dark-2: var(--color-error-600);
+
+  /* ---- 信息色 ---- */
+  --el-color-info: var(--color-info-500);
+  --el-color-info-light-3: var(--color-info-300);
+  --el-color-info-light-5: var(--color-info-200);
+  --el-color-info-light-7: var(--color-info-100);
+  --el-color-info-light-8: var(--color-info-50);
+  --el-color-info-light-9: var(--color-info-50);
+  --el-color-info-dark-2: var(--color-info-600);
+
+  /* ---- 文字色：暖灰调 ---- */
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-secondary);
+  --el-text-color-secondary: var(--text-muted);
+  --el-text-color-placeholder: var(--text-placeholder);
+  --el-text-color-disabled: var(--text-disabled);
+
+  /* ---- 边框色：极淡暖灰 ---- */
+  --el-border-color: var(--border-subtle);
+  --el-border-color-light: var(--color-neutral-alpha-06);
+  --el-border-color-lighter: var(--color-neutral-alpha-03);
+  --el-border-color-extra-light: var(--color-neutral-alpha-02);
+  --el-border-color-dark: var(--border-strong);
+  --el-border-color-darker: var(--color-neutral-alpha-25);
+
+  /* ---- 填充色 ---- */
+  --el-fill-color: var(--surface-bg);
+  --el-fill-color-light: var(--surface-nested);
+  --el-fill-color-lighter: var(--slate-50);
+  --el-fill-color-extra-light: var(--slate-50);
+  --el-fill-color-dark: var(--slate-200);
+  --el-fill-color-darker: var(--slate-300);
+  --el-fill-color-blank: var(--white);
+
+  /* ---- 背景色 ---- */
+  --el-bg-color: var(--surface-bg);
+  --el-bg-color-page: var(--surface-bg);
+  --el-bg-color-overlay: var(--surface-overlay);
+
+  /* ---- 阴影：多层漫反射 ---- */
+  --el-box-shadow: var(--shadow-sm);
+  --el-box-shadow-light: var(--shadow-card);
+  --el-box-shadow-lighter: var(--shadow-pop);
+  --el-box-shadow-dark: var(--shadow-float);
+
+  /* ---- 圆角 ---- */
+  --el-border-radius-base: var(--radius-md);
+  --el-border-radius-small: var(--radius-sm);
+  --el-border-radius-round: var(--radius-full);
+  --el-border-radius-circle: 50%;
+
+  /* ---- 字体 ---- */
+  --el-font-family: var(--font-sans);
+  --el-font-size-extra-large: var(--text-lg);
+  --el-font-size-large: var(--text-base);
+  --el-font-size-medium: var(--text-sm);
+  --el-font-size-base: var(--text-sm);
+  --el-font-size-small: var(--text-xs);
+  --el-font-size-extra-small: var(--text-2xs);
+
+  /* ---- 组件尺寸 ---- */
+  --el-component-size-large: var(--height-input-lg);
+  --el-component-size: var(--height-input);
+  --el-component-size-small: var(--height-row-compact);
+
+  /* ---- 过渡 ---- */
+  --el-transition-duration: var(--duration-base);
+  --el-transition-duration-fast: var(--duration-fast);
+}
+
+/* ================================================================
+   二、暗色模式主题变量 — "Soft Azure Dark"
+   与 tokens.css html.dark 保持一致
+   暗色策略：主色提亮、边框淡化、阴影微发光、表面深蓝灰
+   ================================================================ */
+html.dark {
+  color-scheme: dark;
+
+  /* ---- 主色：暗色下提亮（感知一致性） ---- */
+  --el-color-primary: var(--color-primary-500);
+  --el-color-primary-light-3: var(--color-primary-300);
+  --el-color-primary-light-5: var(--color-primary-200);
+  --el-color-primary-light-7: var(--color-primary-100);
+  --el-color-primary-light-8: var(--color-primary-50);
+  --el-color-primary-light-9: var(--color-primary-50);
+  --el-color-primary-dark-2: var(--color-primary-700);
+
+  /* ---- 文字色：冷白（避免纯白刺眼） ---- */
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-secondary);
+  --el-text-color-secondary: var(--text-muted);
+  --el-text-color-placeholder: var(--text-placeholder);
+  --el-text-color-disabled: var(--text-disabled);
+
+  /* ---- 边框色：暗色微冷调 ---- */
+  --el-border-color: var(--border-subtle);
+  --el-border-color-light: var(--color-neutral-alpha-05);
+  --el-border-color-lighter: var(--color-neutral-alpha-03);
+  --el-border-color-extra-light: var(--color-neutral-alpha-02);
+  --el-border-color-dark: var(--border-strong);
+  --el-border-color-darker: var(--color-neutral-alpha-22);
+
+  /* ---- 填充色：深蓝灰层次 ---- */
+  --el-fill-color: var(--surface-bg);
+  --el-fill-color-light: var(--surface-nested);
+  --el-fill-color-lighter: var(--surface-muted);
+  --el-fill-color-extra-light: var(--surface-card);
+  --el-fill-color-dark: var(--slate-200);
+  --el-fill-color-darker: var(--slate-300);
+  --el-fill-color-blank: var(--surface-card);
+
+  /* ---- 背景色：暗色 ---- */
+  --el-bg-color: var(--surface-bg);
+  --el-bg-color-page: var(--surface-bg);
+  --el-bg-color-overlay: var(--surface-overlay);
+
+  /* ---- 阴影：暗色微发光（替代纯黑投影） ---- */
+  --el-box-shadow: var(--shadow-sm);
+  --el-box-shadow-light: var(--shadow-card);
+  --el-box-shadow-lighter: var(--shadow-pop);
+  --el-box-shadow-dark: var(--shadow-float);
+
+  /* ---- 功能色：暗色完整色阶 ---- */
+  --el-color-success: var(--color-success-500);
+  --el-color-success-light-3: var(--color-success-300);
+  --el-color-success-light-5: var(--color-success-200);
+  --el-color-success-light-7: var(--color-success-100);
+  --el-color-success-light-8: var(--color-success-50);
+  --el-color-success-light-9: var(--color-success-50);
+  --el-color-success-dark-2: var(--color-success-600);
+
+  --el-color-warning: var(--color-warning-500);
+  --el-color-warning-light-3: var(--color-warning-300);
+  --el-color-warning-light-5: var(--color-warning-200);
+  --el-color-warning-light-7: var(--color-warning-100);
+  --el-color-warning-light-8: var(--color-warning-50);
+  --el-color-warning-light-9: var(--color-warning-50);
+  --el-color-warning-dark-2: var(--color-warning-600);
+
+  --el-color-danger: var(--color-error-500);
+  --el-color-danger-light-3: var(--color-error-300);
+  --el-color-danger-light-5: var(--color-error-200);
+  --el-color-danger-light-7: var(--color-error-100);
+  --el-color-danger-light-8: var(--color-error-50);
+  --el-color-danger-light-9: var(--color-error-50);
+  --el-color-danger-dark-2: var(--color-error-600);
+
+  --el-color-info: var(--color-info-500);
+  --el-color-info-light-3: var(--color-info-300);
+  --el-color-info-light-5: var(--color-info-200);
+  --el-color-info-light-7: var(--color-info-100);
+  --el-color-info-light-8: var(--color-info-50);
+  --el-color-info-light-9: var(--color-info-50);
+  --el-color-info-dark-2: var(--color-info-600);
+
+  /* 错误色别名 */
+  --el-color-error: var(--color-error-500);
+}

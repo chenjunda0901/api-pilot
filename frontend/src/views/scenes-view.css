@@ -1,0 +1,3441 @@
+/* ===== 整体三栏布局 - 固定宽度, border 分隔 ===== */
+
+.scenes-workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 280px;
+  gap: 0;
+  align-items: stretch;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-bg);
+}
+
+/* 左侧场景树 - 固定宽度 240px */
+.scenes-workspace > :first-child {
+  width: 240px;
+  min-width: 240px;
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* 中间步骤面板 - flex: 1 */
+.steps-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-bg);
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* 步骤区域容器 - 填充 steps-panel 剩余空间 */
+.steps-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 右侧配置面板 - 固定宽度 280px */
+.right-panel {
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-card);
+  overflow-y: auto;
+  box-shadow: none;
+}
+
+/* 响应式：1400px 以下隐藏右侧面板 */
+@media (max-width: 1400px) {
+  .scenes-workspace {
+    grid-template-columns: 240px minmax(0, 1fr) 0;
+  }
+
+  .steps-panel {
+    border-right: none;
+  }
+
+  .right-panel {
+    display: none;
+  }
+
+  /* 可选：右侧面板变为抽屉时使用 */
+  .right-panel.drawer-visible {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 1000;
+    display: flex;
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+/* v14.1 响应式：< 1200px 时左侧树折叠为单栏（仅主步骤面板） */
+@media (max-width: 1200px) {
+  .scenes-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scenes-workspace > :first-child {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+}
+
+/* ===== 窄屏响应式：< 768px ===== */
+@media (max-width: 767px) {
+  .scenes-hero-status {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .scenes-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scenes-workspace > :first-child {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .steps-toolbar {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .steps-actions .el-button {
+    padding: 0 var(--space-1);
+    font-size: var(--text-2xs);
+  }
+
+  .step-row {
+    padding: var(--space-1) var(--space-2);
+    min-height: 32px;
+  }
+
+  .step-badges {
+    display: none;
+  }
+
+  .cfg-row-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scene-meta-row {
+    flex-direction: column;
+  }
+
+  .scene-priority-row {
+    min-width: 0;
+  }
+}
+
+/* ===== 精简 Hero - 由 PageLayout 统一提供 ===== */
+
+.scenes-hero-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  font-size: var(--text-sm);
+}
+
+.hero-status-label {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.hero-status-value {
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-status-meta {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.hero-status-progress {
+  color: var(--color-success);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  animation: progress-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* 步骤区工具栏 - 紧凑分组布局 */
+
+.steps-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  min-height: 40px;
+  max-height: 40px;
+  box-sizing: border-box;
+}
+
+/* 左侧：标签 + 主要操作 */
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.steps-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  white-space: nowrap;
+}
+
+.steps-hint {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  font-weight: var(--weight-normal);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+.steps-hint kbd {
+  display: inline-block;
+  padding: var(--space-0-5) var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.5;
+  color: var(--text-muted);
+  background: var(--surface-nested);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+}
+
+/* 主要操作按钮组 */
+.steps-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.steps-actions .el-button {
+  height: var(--height-row-compact);
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-sm);
+}
+
+/* 右侧：次要操作 + 批量操作 */
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.steps-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* 步骤视图容器 - 让 step-list 的 flex:1 和 overflow-y:auto 生效 */
+.steps-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 批量操作工具栏 - 紧凑内联 */
+.batch-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 0 var(--space-2);
+  background: var(--color-primary-alpha-08);
+  border: 1px solid var(--color-primary-alpha-15);
+  border-radius: var(--radius-sm);
+  height: var(--height-row-compact);
+  box-sizing: border-box;
+}
+
+.batch-count {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--primary-700);
+  margin-right: var(--space-1);
+}
+.batch-toolbar .el-button {
+  height: var(--height-row-compact);
+  padding: 0 var(--space-1-5);
+  font-size: var(--text-xs);
+}
+
+/* 步骤空状态 - 简洁居中 */
+
+.steps-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  padding: var(--space-12) var(--space-6);
+}
+
+.steps-empty-icon {
+  width: var(--space-12);
+  height: var(--space-12);
+  opacity: 0.4;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.steps-empty-icon svg {
+  width: var(--space-8);
+  height: var(--space-8);
+}
+
+.steps-empty-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* 单步骤行 */
+.step-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-1) var(--space-1);
+  background: var(--surface-card);
+  background-image: radial-gradient(circle, var(--border-subtle) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  position: relative;
+}
+/* 步骤之间连接线 */
+.step-list::before {
+  content: '';
+  position: absolute;
+  left: 27px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-subtle);
+  z-index: 0;
+}
+
+/* 单步骤行 - 紧凑对齐 */
+.step-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  background: var(--surface-card);
+  border-left: 2px solid transparent;
+  border-right: none;
+  border-top: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  box-shadow: none;
+  transition:
+    background-color var(--duration-fast),
+    border-color var(--duration-fast),
+    box-shadow var(--duration-fast);
+  min-height: 36px;
+  margin-bottom: 0;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+.step-row:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.step-row:hover {
+  background: var(--surface-hover);
+  box-shadow: none;
+  border-color: transparent;
+  transform: none;
+  border-left-color: var(--color-primary-alpha-15);
+}
+.step-row:active {
+  transform: none;
+}
+
+.step-row:hover .drag-handle {
+  color: var(--text-secondary);
+}
+
+.step-row:hover .step-index {
+  background: var(--primary-100);
+  color: var(--primary-600);
+}
+
+/* 选中态：左侧 2px 主色边框 */
+.step-row.selected {
+  background: var(--surface-selected);
+  border-left-color: var(--primary-500);
+  border-bottom-color: var(--border-subtle);
+  box-shadow: none;
+}
+
+.step-row.selected .step-name {
+  color: var(--primary-700);
+  font-weight: var(--weight-semibold);
+}
+
+.step-row.selected .step-method {
+  box-shadow: none;
+}
+
+/* 激活态：当前执行步骤 */
+.step-row.is-active {
+  background: var(--primary-50);
+  border-left: 3px solid var(--primary-500);
+}
+.step-row.is-active .step-index {
+  background: var(--primary-500);
+  color: var(--text-inverse);
+}
+
+/* 禁用态 */
+.step-row.disabled {
+  opacity: 0.5;
+}
+.step-row.disabled .step-name,
+.step-row.disabled .step-method,
+.step-row.disabled .step-index {
+  color: var(--text-disabled);
+}
+
+/* 步骤行状态色条 — 默认灰色 */
+.step-row:not(.selected):not(.is-active):not(.running):not(.success):not(.failed) {
+  border-left-color: var(--border-subtle);
+}
+
+/* 成功态：2px 绿色条 */
+.step-row.passed {
+  border-left: 2px solid var(--success);
+}
+
+/* 失败态：2px 红色条 */
+.step-row.error {
+  border-left: 2px solid var(--error);
+}
+
+/* 跳过态：2px 灰色条 */
+.step-row.skipped,
+.step-row.pending {
+  border-left: 2px solid var(--border-subtle);
+}
+
+/* 拖拽手柄 */
+
+.drag-handle {
+  width: 20px;
+  margin-right: var(--space-2);
+  cursor: grab;
+  color: var(--text-disabled);
+  display: inline-flex;
+  align-items: center;
+  transition: color var(--duration-fast);
+}
+
+.drag-handle:hover {
+  color: var(--text-secondary);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* 批量选择框 — 默认隐藏，悬浮或已选时显示，不与启用/禁用复选框冲突 */
+.step-row .batch-cb {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+  pointer-events: none;
+}
+
+.step-row:hover .batch-cb,
+.step-row.batch-selected .batch-cb {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 步骤序号 - 固定宽度 28px, 居中 */
+.step-index {
+  width: 28px;
+  height: 24px;
+  min-width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  background: var(--surface-nested);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--duration-fast),
+    color var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.step-row.selected .step-index {
+  background: var(--primary-100);
+  color: var(--primary-700);
+}
+
+/* HTTP 方法标签 - 固定宽度 52px, 居中 */
+
+.step-method {
+  width: 52px;
+  min-width: 52px;
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.step-method.get {
+  background: var(--method-get-bg);
+  color: var(--method-get-text);
+}
+
+.step-method.post {
+  background: var(--method-post-bg);
+  color: var(--method-post-text);
+}
+
+.step-method.put {
+  background: var(--method-put-bg);
+  color: var(--method-put-text);
+}
+
+.step-method.delete {
+  background: var(--method-delete-bg);
+  color: var(--method-delete-text);
+}
+
+.step-method.patch {
+  background: var(--method-patch-bg);
+  color: var(--method-patch-text);
+}
+
+.step-method.head {
+  background: var(--surface-nested);
+  color: var(--text-secondary);
+}
+
+.step-method.options {
+  background: var(--surface-nested);
+  color: var(--text-secondary);
+}
+
+/* 步骤名称 - flex: 1, 截断省略号 */
+
+.step-name {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* 步骤标签组 - 最大宽度限制, 超出显示 +N */
+
+.step-badges {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  margin-right: auto;
+  max-width: 200px;
+  overflow: hidden;
+}
+
+.step-badges :deep(.el-tag),
+.badge-item {
+  border-radius: var(--radius-xs) !important;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  border: none;
+  padding: 0 var(--space-1-5);
+  height: 20px;
+  line-height: 18px;
+}
+
+.more-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  background: var(--surface-nested);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-1-5);
+  height: 20px;
+  line-height: 18px;
+}
+
+/* 提取变量 Badge */
+
+:deep(.extract-count-badge) {
+  background: var(--color-primary-alpha-08);
+  color: var(--primary-600);
+  border: 1px solid var(--color-primary-alpha-15);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  padding: var(--space-0-5) var(--space-2);
+  height: 22px;
+  line-height: 18px;
+}
+
+/* ===== 中间空状态 - 简洁居中, 图标 48px ===== */
+
+.center-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+  background: var(--surface-page);
+}
+
+.center-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-10) var(--space-8) var(--space-8);
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  box-shadow: none;
+  max-width: 360px;
+}
+
+.center-empty-visual {
+  position: relative;
+  margin-bottom: var(--space-6);
+}
+
+.center-empty-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-nested);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  margin: 0 auto;
+}
+
+.center-empty-icon-wrap svg {
+  width: 24px;
+  height: 24px;
+}
+
+.center-empty-dots {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+.center-empty-dots .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--primary-400);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+.center-empty-dots .dot-1 {
+  animation-delay: 0ms;
+}
+
+.center-empty-dots .dot-2 {
+  animation-delay: 300ms;
+}
+
+.center-empty-dots .dot-3 {
+  animation-delay: 600ms;
+}
+
+.center-empty-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  letter-spacing: var(--tracking-tight);
+}
+
+.center-empty-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 260px;
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-6);
+}
+
+/* 空状态操作按钮 - 主色, md 尺寸 */
+.center-empty-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2-5) var(--space-6);
+  height: 36px;
+  background: var(--primary-500);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast),
+    box-shadow var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.center-empty-action:hover {
+  background: var(--primary-600);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.center-empty-action:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ===== 右侧面板 ===== */
+
+/* 右侧区块 */
+
+.right-section {
+  padding: var(--space-3) var(--space-4);
+}
+
+.step-hint-bar {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  padding: var(--space-3) 0;
+  user-select: none;
+}
+
+.right-section + .right-section {
+  padding-top: var(--space-2);
+}
+
+/* 运行配置表单 - 统一紧凑风格 */
+
+.cfg-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.cfg-form > .cfg-item-check {
+  margin-top: calc(-1 * var(--space-0-5));
+}
+
+.cfg-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: 0;
+}
+
+.cfg-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+/* label 统一: width 80px, xs 字号 */
+.cfg-label {
+  display: block;
+  width: 100%;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-1);
+}
+
+.cfg-sub-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-top: var(--space-0-5);
+}
+
+.cfg-sub-check input[type="checkbox"] {
+  accent-color: var(--primary-500);
+}
+
+/* checkbox 样式统一 - Element Plus 风格 + token 颜色 */
+.cfg-item-check :deep(.el-checkbox__label) {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+
+.cfg-form :deep(.el-checkbox__inner) {
+  border-color: var(--border-default);
+}
+
+.cfg-form :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: var(--primary-500);
+  border-color: var(--primary-500);
+}
+
+/* 统一控件样式 - height 32px */
+
+.cfg-form :deep(.el-select),
+.cfg-form :deep(.el-input) {
+  width: 100%;
+}
+
+.cfg-row-grid :deep(.el-select),
+.cfg-row-grid :deep(.el-input),
+.cfg-row-grid :deep(.el-input-number) {
+  height: 32px;
+  width: 100%;
+}
+
+.cfg-row-grid :deep(.el-input__wrapper) {
+  height: 32px;
+  min-width: var(--min-w-input-sm);
+}
+
+.cfg-form :deep(.el-select .el-input__wrapper),
+.cfg-form :deep(.el-input__wrapper) {
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px var(--border-default) inset;
+  transition:
+    border-color var(--duration-fast),
+    background-color var(--duration-fast);
+}
+
+.cfg-form :deep(.el-select .el-input__wrapper:hover),
+.cfg-form :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--slate-400) inset;
+  background: var(--surface-hover);
+}
+
+.cfg-form :deep(.el-select .el-input__wrapper.is-focus),
+.cfg-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 2px var(--primary-400);
+  border-color: transparent;
+}
+
+/* InputNumber 按钮优化 */
+
+.cfg-form :deep(.el-input-number) {
+  width: 100%;
+}
+
+.cfg-form :deep(.el-input-number .el-input__wrapper) {
+  border-radius: var(--radius-sm);
+  padding-left: var(--space-2);
+  padding-right: var(--space-8);
+}
+
+/* ===== 步骤详情弹窗（参考接口管理交互） ===== */
+
+.step-detail-dialog :deep(.el-dialog) {
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: visible;
+}
+
+.step-detail-dialog :deep(.el-dialog__header) {
+  padding: var(--space-3) var(--space-5) var(--space-2);
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.step-detail-dialog :deep(.el-dialog__title) {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.step-detail-dialog :deep(.el-dialog__body) {
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  min-height: 0;
+}
+
+.step-detail-dialog :deep(.el-dialog__footer) {
+  padding: var(--space-2) var(--space-5) var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* 弹窗主体：垂直布局 */
+
+.step-detail-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ── RequestLine 风格：method + path ── */
+
+.detail-request-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5) var(--space-2);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-page);
+}
+
+.detail-domain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  min-height: 34px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  background: var(--surface-nested);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition:
+    color var(--duration-base),
+    opacity var(--duration-base),
+    box-shadow var(--duration-base),
+    background-color var(--duration-base),
+    border-color var(--duration-base),
+    transform var(--duration-base);
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.detail-domain-badge:hover {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.detail-domain-dropdown {
+  flex-shrink: 0;
+}
+
+:deep(.domain-active) {
+  color: var(--primary-600);
+}
+
+/* URL 显示/编辑 — 与 RequestLine 完全一致 */
+
+.detail-path-wrapper {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  padding: var(--space-1) var(--space-3);
+  background: var(--surface-nested);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: text;
+  transition: border-color var(--duration-base);
+  overflow: visible;
+}
+
+.detail-path-wrapper:hover {
+  border-color: var(--primary-300);
+}
+
+.detail-path-wrapper:focus-within {
+  border-color: var(--primary-400);
+  box-shadow: 0 0 0 2px var(--color-primary-alpha-10);
+}
+
+.detail-url-display {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.detail-url-text {
+  white-space: pre;
+}
+
+.detail-url-editor :deep(.el-input__wrapper) {
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  box-shadow: none;
+}
+
+:deep(.detail-url-variable-tag) {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  border-radius: var(--radius-xs);
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-600);
+  border: 1px solid var(--color-primary-alpha-20);
+}
+
+.detail-request-bar :deep(.el-dropdown) {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.detail-request-bar :deep(.el-dropdown .el-dropdown__trigger) {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* method badge — 与 RequestLine 完全一致 */
+
+.detail-method-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  min-height: 34px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition:
+    color var(--duration-base),
+    opacity var(--duration-base),
+    box-shadow var(--duration-base),
+    background-color var(--duration-base),
+    border-color var(--duration-base),
+    transform var(--duration-base);
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.detail-method-badge.get {
+  background: var(--method-get-bg);
+  color: var(--method-get-text);
+}
+
+.detail-method-badge.post {
+  background: var(--method-post-bg);
+  color: var(--method-post-text);
+}
+
+.detail-method-badge.put {
+  background: var(--method-put-bg);
+  color: var(--method-put-text);
+}
+
+.detail-method-badge.patch {
+  background: var(--method-patch-bg);
+  color: var(--method-patch-text);
+}
+
+.detail-method-badge.delete {
+  background: var(--method-delete-bg);
+  color: var(--method-delete-text);
+}
+
+.detail-method-badge.head {
+  background: var(--surface-nested);
+  color: var(--text-secondary);
+}
+
+.detail-method-badge.options {
+  background: var(--surface-nested);
+  color: var(--text-secondary);
+}
+
+.detail-method-badge:hover {
+  filter: brightness(1.1);
+}
+
+.method-option {
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-xs);
+}
+
+/* ── ParamTabs 风格：tab 导航栏 ── */
+
+.detail-tabs-bar {
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-1) var(--space-5);
+  flex-shrink: 0;
+  overflow-x: auto;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-subtle);
+  scrollbar-width: none;
+}
+
+.detail-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.detail-tab {
+  padding: 0 var(--space-3);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  border-bottom: 0px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast),
+    opacity var(--duration-fast),
+    box-shadow var(--duration-fast),
+    background-color var(--duration-fast),
+    border-color var(--duration-fast),
+    transform var(--duration-fast);
+  white-space: nowrap;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.detail-tab:hover:not(.active) {
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.detail-tab.active {
+  color: var(--primary-700);
+  font-weight: var(--weight-bold);
+  background: var(--color-primary-alpha-06);
+  border-bottom: 2px solid var(--primary-500);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.detail-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-alpha-12);
+  color: var(--primary-600);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+/* ── Tab 内容区域 ── */
+
+.detail-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+  min-height: 0;
+}
+
+/* Body tab */
+
+.body-tab {
+  display: flex;
+  flex-direction: column;
+}
+
+.body-textarea :deep(.el-textarea__inner) {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  line-height: var(--leading-relaxed);
+  resize: vertical;
+  min-height: 200px;
+}
+
+/* Assertions tab: 传递给 AssertionTab 留白 */
+
+.assertions-tab {
+  min-height: 100px;
+}
+
+/* Extract tab */
+
+.extract-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.extract-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.extract-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-nested);
+  transition: background var(--duration-fast);
+}
+
+.extract-row:hover {
+  background: var(--surface-hover);
+}
+
+.extract-index {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-600);
+}
+
+.extract-input {
+  flex: 1;
+}
+
+.extract-input :deep(.el-input__wrapper) {
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  box-shadow: 0 0 0 1px var(--border-default) inset;
+}
+
+.extract-input :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--primary-300) inset;
+}
+
+.extract-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow:
+    0 0 0 1px var(--primary-400) inset,
+    0 0 0 3px var(--color-primary-alpha-08);
+}
+
+.extract-input :deep(.el-input__inner) {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.extract-eq {
+  color: var(--text-secondary);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+}
+
+.extract-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-disabled);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast),
+    opacity var(--duration-fast),
+    box-shadow var(--duration-fast),
+    background-color var(--duration-fast),
+    border-color var(--duration-fast),
+    transform var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.extract-del:hover {
+  background: var(--color-error-alpha-08);
+  color: var(--color-error-text);
+}
+
+/* Extract tab 增强样式 */
+
+.extract-source-select {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.extract-source-select :deep(.el-input__wrapper) {
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  box-shadow: 0 0 0 1px var(--border-default) inset;
+}
+
+.extract-input.is-error :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--error) inset;
+  border-color: var(--error);
+}
+
+.extract-dup-warning {
+  position: absolute;
+  right: 36px;
+  font-size: var(--text-2xs);
+  color: var(--error);
+  white-space: nowrap;
+}
+
+.extract-row {
+  position: relative;
+}
+
+.extract-warning {
+  padding: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-error-alpha-06);
+  color: var(--color-error-text);
+  font-size: var(--text-xs);
+}
+
+/* More tab */
+
+.more-tab {
+  max-width: 500px;
+}
+
+.more-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.more-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.more-row label {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.more-row .full-width {
+  width: 100%;
+}
+
+/* 通用 add 按钮 */
+
+.tab-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-2) 0;
+  margin-top: var(--space-1-5);
+  background: none;
+  border: 1.5px dashed var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast),
+    opacity var(--duration-fast),
+    box-shadow var(--duration-fast),
+    background-color var(--duration-fast),
+    border-color var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.tab-add-btn:hover {
+  border-color: var(--primary-300);
+  color: var(--primary-600);
+  background: var(--color-primary-alpha-03);
+}
+
+/* 空状态提示 */
+
+.tab-empty-hint {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ===== 通用：icon 按钮 ===== */
+
+/* ===== 导入弹窗 ===== */
+
+.import-list {
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.import-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.import-item:hover {
+  background: var(--surface-hover);
+}
+
+.import-item.selected {
+  background: var(--color-primary-alpha-06);
+}
+
+.import-item-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-item-path {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-empty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ===== Text button ===== */
+
+.config-disabled {
+  opacity: 0.65;
+  pointer-events: none;
+  filter: saturate(0.5);
+}
+
+.cfg-empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  gap: var(--space-2);
+}
+
+.cfg-empty-hint .empty-hint-icon {
+  font-size: var(--text-2xl);
+  opacity: 0.5;
+}
+
+/* 定时执行开关样式 */
+
+.cfg-form :deep(.el-switch) {
+  --el-switch-on-color: var(--primary-600);
+  --el-switch-off-color: var(--slate-300);
+}
+
+.cfg-form :deep(.el-switch__core) {
+  border-radius: var(--radius-full);
+  min-width: 36px;
+  height: 20px;
+}
+
+.cfg-form :deep(.el-switch__core .el-switch__action) {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== 通用面板头部（steps-panel / right-panel 共用） ===== */
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  min-height: 48px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 4px var(--color-neutral-alpha-04);
+}
+
+.panel-actions {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+/* ===== 通用 icon 按钮 - 24x24px ===== */
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+/* ── Sortable 拖拽动效 ── */
+.sortable-ghost {
+  opacity: 0.4;
+  background: var(--color-primary-alpha-06);
+  border: 1.5px dashed var(--primary-300);
+  border-radius: var(--radius-md);
+  transition:
+    opacity var(--duration-fast) ease,
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.sortable-drag {
+  opacity: 0.95;
+  transform: scale(1.02);
+  box-shadow:
+    0 8px 25px var(--color-neutral-alpha-12),
+    0 4px 10px var(--color-primary-alpha-15);
+  border-radius: var(--radius-md);
+  z-index: 100;
+  transition:
+    transform var(--duration-base) cubic-bezier(0.2, 1, 0.2, 1),
+    box-shadow var(--duration-base) ease,
+    transform var(--duration-base) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ===== 树形导入弹窗 ===== */
+.import-tree-dialog :deep(.el-dialog__body) {
+  padding: var(--space-3) var(--space-5) var(--space-1);
+}
+.import-search-bar {
+  margin-bottom: var(--space-2);
+}
+.import-tree-body {
+  max-height: 420px;
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-page);
+  min-height: 100px;
+}
+.import-tree {
+  padding: var(--space-1) 0;
+}
+.import-tree :deep(.el-tree-node__expand-icon.is-leaf) {
+  opacity: 0;
+  width: var(--space-4);
+}
+/* 统一树节点间距 8px */
+.import-tree :deep(.el-tree-node__content) {
+  height: auto;
+  min-height: 32px;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+.import-tree-node {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  font-size: var(--text-sm);
+}
+.tree-node-icon {
+  flex-shrink: 0;
+  width: var(--space-4);
+  height: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.category-icon {
+  color: var(--primary-500);
+}
+.tree-node-label {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree-node-count {
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  padding: 0 var(--space-1);
+  background: var(--surface-nested);
+  border-radius: var(--radius-xs);
+}
+.tree-node-path {
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.case-priority-tag {
+  flex-shrink: 0;
+}
+.import-empty-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+.import-footer-info {
+  position: absolute;
+  left: var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* ── Scenes步骤列表间距增强 ── */
+.step-list-wrapper {
+  padding: var(--space-4);
+  padding-top: 0;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  padding-right: var(--space-2);
+  margin-bottom: var(--space-1);
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast);
+  gap: var(--space-1-5);
+}
+.step-item:last-child {
+  margin-bottom: 0;
+}
+.step-item:hover {
+  background: var(--surface-hover);
+}
+
+/* 步骤序号与方法标签 */
+.step-item .step-index {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-secondary);
+  min-width: 24px;
+  text-align: center;
+}
+.step-item .step-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* 运行配置面板增强 */
+.config-panel {
+  padding: var(--space-6);
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.config-section {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.config-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.config-section-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  letter-spacing: 0.01em;
+}
+.config-row {
+  margin-bottom: var(--space-3);
+}
+.config-label {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-1);
+}
+
+/* ===== 暗色模式 ===== */
+html.dark .step-item:hover {
+  background: var(--surface-hover);
+}
+html.dark .step-item .step-index {
+  color: var(--text-muted);
+}
+
+/* ===== v3 视觉增强 ===== */
+/* 运行按钮组：视觉关联 */
+.run-btn-group {
+  display: inline-flex;
+  gap: 0;
+}
+.run-btn-group .el-button:first-child {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.run-btn-group .run-dropdown-trigger {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+  padding-left: var(--space-1-5);
+  padding-right: var(--space-1-5);
+}
+
+/* 步骤序号统一样式 */
+.step-item.active .step-index,
+.step-item.selected .step-index {
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-600);
+}
+
+/* 步骤操作区紧凑化 */
+.step-item .step-actions,
+.step-item .step-right {
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* 配置面板步骤区增加底部间距 */
+.steps-panel {
+  padding-bottom: 0;
+}
+
+/* 暗色模式 */
+html.dark .step-item .step-index {
+  background: var(--border-subtle);
+}
+html.dark .step-item.active .step-index,
+html.dark .step-item.selected .step-index {
+  background: var(--color-primary-alpha-12);
+  color: var(--primary-400);
+}
+
+/* ===== 运行按钮微交互 ===== */
+.run-btn-group .el-button--success {
+  position: relative;
+  overflow: visible;
+}
+.run-btn-group .el-button--success::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--color-white-alpha-20), transparent);
+  transform: translateX(-100%);
+}
+.run-btn-group .el-button--success:hover::after {
+  animation: btn-shimmer 0.8s ease-out;
+}
+@keyframes btn-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ===== 步骤行运行态指示 ===== */
+.step-row.running {
+  background: var(--color-primary-alpha-06);
+  border: 1px solid var(--primary-200);
+  position: relative;
+}
+.step-row.running::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--primary-500);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+.step-row.running .step-name {
+  color: var(--primary-600);
+}
+.step-row.success {
+  background: var(--color-success-alpha-04);
+}
+.step-row.success::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-success);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+.step-row.failed {
+  background: var(--color-error-alpha-04);
+}
+.step-row.failed::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--error);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+
+/* ===== 配置面板分区增强 - 统一分组标题 ===== */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.section-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.section-title-icon {
+  color: var(--text-secondary);
+}
+.section-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+/* ===== 暗色模式适配 ===== */
+html.dark .sortable-drag {
+  box-shadow:
+    0 8px 25px var(--color-black-alpha-30),
+    0 4px 10px var(--color-primary-alpha-20);
+}
+html.dark .step-row.running {
+  background: var(--color-primary-alpha-08);
+  border-color: var(--color-primary-alpha-25);
+}
+html.dark .step-row.running .step-name {
+  color: var(--color-primary);
+}
+html.dark .step-row.success {
+  background: var(--color-success-alpha-06);
+}
+html.dark .step-row.failed {
+  background: var(--color-error-alpha-06);
+}
+
+/* 暗色模式：步骤画布点阵 */
+html.dark .step-list {
+  background-image: radial-gradient(circle, var(--color-white-alpha-08) 1px, transparent 1px);
+}
+
+/* 暗色模式：详情弹窗标签页 */
+html.dark .detail-tab.active {
+  color: var(--primary-300);
+  background: var(--color-primary-alpha-10);
+  border-bottom-color: var(--primary-400);
+}
+
+html.dark .detail-tab:hover:not(.active) {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+html.dark .detail-tab-badge {
+  background: var(--color-primary-alpha-14);
+  color: var(--primary-400);
+}
+
+/* ===== 循环徽章 ===== */
+.loop-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--warning-text);
+  background: var(--color-warning-alpha-10);
+  border: 1px solid var(--color-warning-alpha-20);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-1-5);
+  height: 20px;
+  line-height: 18px;
+}
+
+/* ===== 引用计数徽章 ===== */
+:deep(.ref-count-badge) {
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-600);
+  border: 1px solid var(--color-primary-alpha-15);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  padding: 0 var(--space-2);
+  height: 22px;
+  line-height: 20px;
+}
+
+/* ===== 导入弹窗空状态 ===== */
+.import-empty-tree {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10);
+  min-height: 100px;
+}
+
+/* ===== 数据流视图 ===== */
+.data-flow-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-page);
+  border-top: 1px solid var(--border-subtle);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.df-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.df-step:hover {
+  border-color: var(--primary-300);
+  box-shadow: var(--shadow-xs);
+  transform: translateY(-1px);
+}
+
+.df-step-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.df-step-index {
+  width: 28px;
+  height: 28px;
+  min-width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-600);
+}
+
+.df-step-method {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  font-family: var(--font-mono);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+}
+
+.df-step-method.get {
+  background: var(--method-get-bg);
+  color: var(--method-get-text);
+}
+.df-step-method.post {
+  background: var(--method-post-bg);
+  color: var(--method-post-text);
+}
+.df-step-method.put {
+  background: var(--method-put-bg);
+  color: var(--method-put-text);
+}
+.df-step-method.delete {
+  background: var(--method-delete-bg);
+  color: var(--method-delete-text);
+}
+.df-step-method.patch {
+  background: var(--method-patch-bg);
+  color: var(--method-patch-text);
+}
+
+.df-step-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.df-var-refs,
+.df-var-extract {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.df-arrow {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.df-arrow.down {
+  background: var(--color-error-alpha-08);
+  color: var(--error);
+}
+
+.df-arrow.up {
+  background: var(--color-success-alpha-08);
+  color: var(--color-success);
+}
+
+.df-var-chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-primary-alpha-08);
+  color: var(--primary-600);
+  border: 1px solid var(--color-primary-alpha-15);
+}
+
+.df-var-chip.extract {
+  background: var(--color-success-alpha-08);
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
+}
+
+html.dark .df-step {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+}
+
+html.dark .df-step:hover {
+  border-color: var(--primary-400);
+}
+
+html.dark .df-var-chip {
+  background: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+  border-color: var(--color-primary-alpha-20);
+}
+
+/* ===== 视图模式切换 Tab ===== */
+.view-mode-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+}
+.view-mode-tabs button {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--text-xs);
+}
+.view-mode-tabs button.active {
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-700);
+  border-color: var(--primary-400);
+  font-weight: var(--weight-semibold);
+}
+
+.enable-cb {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary-500);
+  flex-shrink: 0;
+}
+.variables-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  background: var(--surface-card);
+}
+
+/* 步骤栏多选提示 */
+.steps-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: var(--weight-normal);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+.steps-hint kbd {
+  display: inline-block;
+  padding: var(--space-0-25) var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  box-shadow: 0 1px 0 var(--border-subtle);
+}
+
+html.dark .steps-hint {
+  color: var(--text-muted);
+}
+html.dark .steps-hint kbd {
+  color: var(--text-secondary);
+  background: var(--color-white-alpha-06);
+  border-color: var(--color-white-alpha-10);
+  box-shadow: 0 1px 0 var(--color-white-alpha-05);
+}
+
+/* Hero 区域暗色模式 - 由 PageLayout 统一处理 */
+
+/* 操作按钮一致性 */
+:deep(.el-button--primary:hover) {
+  filter: brightness(1.05);
+}
+:deep(.el-button--primary:active) {
+  filter: brightness(0.95);
+  transform: scale(0.98);
+}
+
+/* ===== 等待步骤特殊样式 ===== */
+.step-method.is-wait {
+  background: var(--color-warning-alpha-10);
+  color: var(--warning-text);
+  border: 1px solid var(--color-warning-alpha-20);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+}
+.step-method.is-wait svg {
+  vertical-align: -2px;
+}
+.step-row:has(.is-wait) {
+  border-left: 3px solid var(--warning-color);
+}
+/* 条件标签 */
+.condition-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-25) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--method-patch-bg);
+  color: var(--method-patch-text);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--weight-semibold);
+  margin-left: var(--space-1);
+  height: 20px;
+  line-height: 18px;
+}
+
+/* 依赖标签 */
+.depends-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-25) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-alpha-08);
+  color: var(--primary-600);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--weight-semibold);
+  margin-left: var(--space-1);
+  height: 20px;
+  line-height: 18px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 依赖连线提示 */
+.depends-indicator::before {
+  content: '⇪';
+  margin-right: var(--space-1);
+  color: var(--text-muted);
+}
+
+/* 等待步骤对话框 */
+.wait-step-dialog-content {
+  padding: var(--space-2) 0;
+}
+.wait-step-dialog-content .cfg-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.wait-step-dialog-content .config-hint {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ===== 数据驱动执行结果分组 ===== */
+.dataset-results-grouped {
+  margin-top: var(--space-4);
+}
+.dataset-results-grouped > h4 {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  padding-left: var(--space-1);
+}
+.dataset-row-result {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+}
+.dataset-row-result.failed {
+  border-color: var(--error);
+}
+.dataset-row-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-nested);
+  cursor: pointer;
+  transition: background-color var(--duration-fast);
+}
+.dataset-row-header:hover {
+  background: var(--surface-hover);
+}
+.row-index {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+.row-status.passed {
+  color: var(--success);
+  font-weight: var(--weight-medium);
+}
+.row-status.failed {
+  color: var(--error);
+  font-weight: var(--weight-bold);
+}
+.row-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.dataset-row-steps {
+  background: var(--surface-card);
+}
+.mini-step-result {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+.mini-step-result .success,
+.mini-step-result .passed {
+  color: var(--success);
+  font-weight: var(--weight-semibold);
+}
+.mini-step-result .failed,
+.mini-step-result .error {
+  color: var(--error);
+  font-weight: var(--weight-bold);
+}
+
+/* ===== Webhook 配置 ===== */
+.config-section {
+  margin-bottom: var(--space-4);
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2);
+}
+.section-body {
+  padding-left: var(--space-4);
+}
+.section-body label {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-1);
+  margin-top: var(--space-2);
+}
+.config-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ===== 场景描述与优先级 ===== */
+.scene-meta-row {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+.scene-desc-row {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.scene-desc-row label {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+}
+.scene-desc-input :deep(.el-textarea__inner) {
+  font-size: var(--text-sm);
+  resize: none;
+}
+.scene-priority-row {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+.scene-priority-row label {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+}
+
+/* ===== 场景描述与优先级 暗色 ===== */
+html.dark .scene-meta-row {
+  background: var(--surface-card);
+  border-bottom-color: var(--border-subtle);
+}
+html.dark .scene-desc-row label { color: var(--text-secondary); }
+html.dark .scene-priority-row label { color: var(--text-secondary); }
+
+/* ===== 数据集管理面板 ===== */
+.dataset-panel {
+  padding: var(--space-4);
+  background: var(--surface-page);
+  border-top: 1px solid var(--border-subtle);
+  max-height: 400px;
+  overflow-y: auto;
+}
+.dataset-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+.dataset-panel-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.dataset-panel-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.dataset-empty {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.dataset-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  background: var(--surface-card);
+}
+.dataset-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.dataset-row-count {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.dataset-table-wrap {
+  overflow-x: auto;
+}
+.dataset-table {
+  width: 100%;
+}
+.dataset-table :deep(.el-input__inner) {
+  font-size: var(--text-xs);
+  padding: 0 var(--space-1);
+  height: 28px;
+}
+.upload-btn {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+/* ===== 步骤执行详情展开 ===== */
+.step-row-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.step-exec-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform var(--duration-fast);
+}
+.step-exec-status:hover {
+  transform: scale(1.2);
+}
+.step-exec-status.success {
+  background: var(--color-success-alpha-10);
+  color: var(--success);
+}
+.step-exec-status.failed {
+  background: var(--color-error-alpha-10);
+  color: var(--error);
+}
+.step-exec-status.skipped {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+.step-exec-detail {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-nested);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  max-height: 300px;
+  overflow-y: auto;
+}
+.exec-detail-section {
+  margin-bottom: var(--space-3);
+}
+.exec-detail-section:last-child {
+  margin-bottom: 0;
+}
+.exec-detail-title {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-1);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.exec-detail-title.error {
+  color: var(--error);
+}
+.exec-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  font-size: var(--text-xs);
+}
+.exec-label {
+  min-width: 60px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-weight: var(--weight-medium);
+}
+.exec-value {
+  color: var(--text-primary);
+  word-break: break-all;
+}
+.exec-value.mono {
+  font-family: var(--font-mono);
+}
+.exec-value.method-badge {
+  font-weight: var(--weight-bold);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-xs);
+}
+.exec-value.method-badge.get { color: var(--method-get); background: var(--method-get-bg); }
+.exec-value.method-badge.post { color: var(--method-post); background: var(--method-post-bg); }
+.exec-value.method-badge.put { color: var(--method-put); background: var(--method-put-bg); }
+.exec-value.method-badge.delete { color: var(--method-delete); background: var(--method-delete-bg); }
+.exec-value.status-2xx { color: var(--success); font-weight: var(--weight-bold); }
+.exec-value.status-4xx { color: var(--warning-text); font-weight: var(--weight-bold); }
+.exec-value.status-5xx { color: var(--error); font-weight: var(--weight-bold); }
+.code-block {
+  background: var(--surface-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  max-height: 120px;
+  overflow: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.error-text {
+  color: var(--error);
+}
+
+/* ===== 场景执行进度条 ===== */
+.execution-progress {
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.progress-text {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 步骤执行状态指示点 ===== */
+.step-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color var(--duration-base) var(--ease-smooth);
+}
+
+.step-status-dot.pending {
+  background: var(--text-muted);
+}
+
+.step-status-dot.running {
+  background: var(--color-primary);
+  animation: pulse 1s infinite;
+}
+
+.step-status-dot.pass {
+  background: var(--color-success);
+}
+
+.step-status-dot.fail {
+  background: var(--color-danger);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ===== 断言详情列表 ===== */
+.assertion-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+.assertion-item {
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  transition: background-color var(--duration-fast), border-color var(--duration-fast);
+}
+.assertion-item.assertion-passed {
+  background: var(--color-success-alpha-04);
+  border-color: var(--color-success-alpha-15);
+}
+.assertion-item.assertion-failed {
+  background: var(--color-error-alpha-04);
+  border-color: var(--color-error-alpha-15);
+}
+.assertion-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  flex-wrap: wrap;
+}
+.assertion-icon {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+}
+.assertion-passed .assertion-icon {
+  color: var(--success);
+}
+.assertion-failed .assertion-icon {
+  color: var(--error);
+}
+.assertion-type {
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  background: var(--surface-nested);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-2xs);
+}
+.assertion-op {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}
+.assertion-expected {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}
+.assertion-actual {
+  color: var(--error);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+}
+
+/* ===== 断言 Diff 视图 ===== */
+.assertion-diff {
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-2);
+}
+.diff-label {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  font-weight: var(--weight-semibold);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.diff-content {
+  background: var(--surface-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 0;
+  white-space: pre;
+}
+.diff-content .diff-added {
+  color: var(--success);
+  background: var(--color-success-alpha-06);
+}
+.diff-content .diff-removed {
+  color: var(--error);
+  background: var(--color-error-alpha-06);
+}
+.diff-content .diff-meta {
+  color: var(--text-muted);
+  font-weight: var(--weight-semibold);
+}
+.diff-content .diff-context {
+  color: var(--text-secondary);
+}
+
+/* ===== 变量替换结果 ===== */
+.var-subst-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.var-subst-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-page);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+}
+.var-subst-original {
+  color: var(--primary-600);
+  background: var(--color-primary-alpha-08);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+.var-subst-arrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.var-subst-resolved {
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+/* ===== 脚本输出面板 ===== */
+.script-output-panel {
+  margin-top: var(--space-1);
+}
+.script-stdout {
+  color: var(--text-primary);
+}
+.script-stderr {
+  color: var(--error);
+  border-color: var(--color-error-alpha-15);
+}
+
+/* ===== 步骤执行详情增强 ===== */
+.step-exec-detail {
+  max-height: 500px;
+}
+
+/* ==========================================================================
+   v17 视觉增强 · 柔和灵动 · 增量补充（不覆盖原有精确规则）
+   ==========================================================================
+   设计目标：
+   · 统一圆角 / 边框 / 背景层次
+   · 柔和的主色 alpha 选中态 + 左侧指示条
+   · 当前步骤轻微放大 + 阴影灵动反馈
+   · 所有可点击组件具备 focus-visible 可达性
+   · 暗色模式主色与表面同步提亮
+   ========================================================================== */
+
+/* ============================================================
+   1. 整体三栏布局 —— 圆角 / 边框 / 背景层次
+   ============================================================ */
+:where(.scenes-workspace) {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+:where(.scenes-workspace > :first-child),
+:where(.steps-panel),
+:where(.right-panel) {
+  transition:
+    background-color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth);
+}
+
+:where(.steps-panel) {
+  background: var(--surface-bg);
+  border-right: 1px solid var(--border-subtle);
+}
+
+:where(.right-panel) {
+  background: var(--surface-card);
+}
+
+/* ============================================================
+   2. 左侧场景列表 / 树 —— 柔和选中 + 指示条
+   ============================================================ */
+
+/* 左侧树外层 padding（层次分隔） */
+:where(.scenes-workspace > :first-child) > * {
+  transition: background-color var(--duration-fast) var(--ease-smooth);
+}
+
+/* 通用场景项 / 树节点（包含 .scene-item / .tree-node / el-tree-node__content 等） */
+:where(.scene-item),
+:where(.scene-tree .tree-node),
+:where(.scenes-list .scene-item) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-primary);
+  background: transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+/* hover：柔和背景提升 */
+:where(.scene-item):hover,
+:where(.scene-tree .tree-node):hover,
+:where(.scenes-list .scene-item):hover {
+  background: var(--surface-hover);
+}
+
+/* 选中态：主色 alpha 背景 + 左侧 2px 主色指示条 */
+:where(.scene-item).is-active,
+:where(.scene-item).is-selected,
+:where(.scene-tree .tree-node).is-active,
+:where(.scene-tree .tree-node).is-selected,
+:where(.scenes-list .scene-item).is-active,
+:where(.scenes-list .scene-item).is-selected {
+  background: var(--color-primary-alpha-06);
+  color: var(--primary-700);
+  font-weight: var(--weight-medium);
+}
+
+:where(.scene-item).is-active::before,
+:where(.scene-item).is-selected::before,
+:where(.scene-tree .tree-node).is-active::before,
+:where(.scene-tree .tree-node).is-selected::before,
+:where(.scenes-list .scene-item).is-active::before,
+:where(.scenes-list .scene-item).is-selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--space-1);
+  bottom: var(--space-1);
+  width: 2px;
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  background: var(--primary-500);
+}
+
+/* focus-visible：键盘可达性 */
+:where(.scene-item):focus-visible,
+:where(.scene-tree .tree-node):focus-visible,
+:where(.scenes-list .scene-item):focus-visible,
+:where(.scenes-workspace > :first-child) button:focus-visible,
+:where(.scenes-workspace > :first-child) [role="treeitem"]:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================
+   3. 中间步骤面板 —— 步骤卡片 / 数字图标 / 状态
+   ============================================================ */
+
+/* 步骤工具栏 —— 柔和层次 */
+:where(.steps-toolbar) {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+
+/* 步骤卡片（step-row 作为行式卡片基础） */
+:where(.step-row) {
+  position: relative;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: var(--surface-card);
+  transition:
+    background-color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+
+/* hover：柔和提升 */
+:where(.step-row):hover {
+  background: var(--surface-hover);
+}
+
+/* 当前执行步骤 —— 轻微放大 + 阴影 */
+:where(.step-row.is-active),
+:where(.step-row.running) {
+  background: var(--color-primary-alpha-06);
+  border-color: var(--color-primary-alpha-15);
+  transform: scale(1.015);
+  box-shadow: var(--shadow-sm);
+  z-index: 1;
+}
+
+/* focus-visible 键盘焦点 */
+:where(.step-row):focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+/* 步骤数字图标（圆形） */
+:where(.step-index),
+:where(.step-num),
+:where(.step-item .step-index) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 var(--space-1-5);
+  border-radius: var(--radius-full);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  background: var(--surface-nested);
+  transition:
+    background-color var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+/* 当前步骤：主色 + 放大 + 柔光阴影 */
+:where(.step-row.is-active) .step-index,
+:where(.step-row.running) .step-index,
+:where(.step-item.active) .step-index,
+:where(.step-item.selected) .step-index {
+  background: var(--primary-500);
+  color: var(--text-inverse);
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px var(--color-primary-alpha-20);
+}
+
+/* 已完成步骤：绿色背景 */
+:where(.step-row.passed) .step-index,
+:where(.step-row.success) .step-index,
+:where(.step-item.passed) .step-index,
+:where(.step-item.success) .step-index {
+  background: var(--success-500);
+  color: var(--text-inverse);
+  box-shadow: 0 2px 8px var(--color-success-alpha-18);
+}
+
+/* 已完成行：柔和绿色背景提示 */
+:where(.step-row.passed),
+:where(.step-row.success) {
+  background: var(--color-success-alpha-04);
+}
+
+/* 失败步骤：柔和红色背景提示 */
+:where(.step-row.error),
+:where(.step-row.failed) {
+  background: var(--color-error-alpha-04);
+}
+
+/* 未开始步骤：灰色 + 灰色文字 */
+:where(.step-row.pending) .step-index,
+:where(.step-item.pending) .step-index {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+:where(.step-row.pending) .step-name,
+:where(.step-item.pending) .step-name {
+  color: var(--text-muted);
+}
+
+/* 步骤行选中（selected）—— 与 is-active 区分为选中态 */
+:where(.step-row.selected) {
+  background: var(--surface-selected);
+}
+
+:where(.step-row.selected) .step-index {
+  background: var(--primary-100);
+  color: var(--primary-700);
+}
+
+/* 步骤执行状态圆点 —— 灵动呼吸 */
+:where(.step-status-dot) {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  transition: background-color var(--duration-base) var(--ease-smooth);
+}
+
+:where(.step-status-dot.running) {
+  animation: step-breath 1.8s ease-in-out infinite;
+}
+
+@keyframes step-breath {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
+
+/* 步骤执行状态徽章 */
+:where(.step-exec-status) {
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    background-color var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+
+:where(.step-exec-status):hover {
+  transform: scale(1.15);
+}
+
+/* 步骤操作按钮 focus-visible */
+:where(.step-row) button:focus-visible,
+:where(.step-item) button:focus-visible,
+:where(.steps-toolbar) button:focus-visible,
+:where(.steps-toolbar) .el-button:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   4. 右侧配置面板 —— 表单标签 / 分组标题 / 输入框焦点
+   ============================================================ */
+
+/* 区块统一 padding 呼吸感 */
+:where(.right-section) {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+:where(.right-section + .right-section) {
+  padding-top: var(--space-4);
+}
+
+/* 配置表单 —— 标签字重 medium */
+:where(.cfg-form) .cfg-item,
+:where(.cfg-item) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+:where(.cfg-label),
+:where(.cfg-item) label,
+:where(.cfg-row-grid) label,
+:where(.config-label) {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  margin-bottom: var(--space-2);
+}
+
+/* 分组标题 —— kicker 风格（uppercase small + muted + bold） */
+:where(.section-header),
+:where(.cfg-form) .section-header,
+:where(.config-section .section-header),
+:where(.detail-tab-content .section-header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* 次要分组标题文本（无下划线版本） */
+:where(.more-row) label,
+:where(.config-row) label {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* 输入框 —— 统一 focus-visible 主色（对 Element Plus 组件做补充） */
+:where(.cfg-form) :deep(.el-input__wrapper),
+:where(.cfg-row-grid) :deep(.el-input__wrapper),
+:where(.cfg-form) :deep(.el-select .el-input__wrapper),
+:where(.cfg-form) :deep(.el-textarea__inner) {
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    background-color var(--duration-fast) var(--ease-smooth);
+}
+
+:where(.cfg-form) :deep(.el-input__wrapper.is-focus),
+:where(.cfg-form) :deep(.el-select.is-focus .el-input__wrapper),
+:where(.cfg-form) :deep(.el-textarea__inner):focus {
+  box-shadow: 0 0 0 2px var(--color-primary-alpha-20);
+  border-color: var(--primary-400);
+}
+
+/* 配置面板按钮组 focus-visible */
+:where(.right-panel) button:focus-visible,
+:where(.right-panel) .el-button:focus-visible,
+:where(.config-section) button:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   5. 统一焦点可达性 —— 全组件覆盖
+   ============================================================ */
+
+/* 通用可点击项 / 按钮 focus-visible（不覆盖已有 outline，仅补充键盘可达） */
+:where(.center-empty-action):focus-visible,
+:where(.tab-add-btn):focus-visible,
+:where(.extract-del):focus-visible,
+:where(.import-item):focus-visible,
+:where(.import-tree .el-tree-node__content):focus-visible,
+:where(.dataset-row-header):focus-visible,
+:where(.df-step):focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* 数据驱动步骤卡片 hover 灵动 */
+:where(.df-step):hover {
+  border-color: var(--primary-400);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+/* 数据驱动步骤数字图标 */
+:where(.df-step-index) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-600);
+}
+
+/* ============================================================
+   6. 过渡动画统一 —— 颜色 / 背景 / 变换
+   ============================================================ */
+
+:where(.scenes-workspace),
+:where(.step-row),
+:where(.step-item),
+:where(.step-index),
+:where(.cfg-form :deep(.el-input__wrapper)),
+:where(.cfg-form :deep(.el-select .el-input__wrapper)),
+:where(.extract-row),
+:where(.right-section),
+:where(.batch-toolbar),
+:where(.import-item),
+:where(.dataset-card),
+:where(.df-step),
+:where(.detail-tab),
+:where(.center-empty-action),
+:where(.tab-add-btn),
+:where(.icon-btn),
+:where(.section-header) {
+  transition:
+    background-color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    opacity var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-base) var(--ease-spring);
+}
+
+/* 空状态操作按钮 —— 灵动微交互 */
+:where(.center-empty-action):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+:where(.center-empty-action):active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* add 按钮 —— hover 放大轻微反馈 */
+:where(.tab-add-btn):hover {
+  border-color: var(--primary-400);
+  color: var(--primary-700);
+  background: var(--color-primary-alpha-06);
+  transform: translateY(-1px);
+}
+
+/* 通用 icon-btn hover 柔和过渡 */
+:where(.icon-btn):hover {
+  color: var(--primary-600);
+  background: var(--color-primary-alpha-06);
+}
+
+/* ============================================================
+   7. 暗色模式 html.dark —— 主色/表面/状态 适配
+   ============================================================ */
+
+html.dark :where(.scenes-workspace) {
+  border-color: var(--border-subtle);
+  background: var(--surface-card);
+  box-shadow: 0 2px 16px var(--color-black-alpha-30);
+}
+
+html.dark :where(.steps-panel) {
+  background: var(--surface-bg);
+  border-right-color: var(--border-subtle);
+}
+
+/* 场景项选中 —— 暗色主色 alpha 提亮 */
+html.dark :where(.scene-item).is-active,
+html.dark :where(.scene-item).is-selected,
+html.dark :where(.scene-tree .tree-node).is-active,
+html.dark :where(.scene-tree .tree-node).is-selected {
+  background: var(--color-primary-alpha-10);
+  color: var(--primary-300);
+}
+
+html.dark :where(.scene-item).is-active::before,
+html.dark :where(.scene-item).is-selected::before,
+html.dark :where(.scene-tree .tree-node).is-active::before,
+html.dark :where(.scene-tree .tree-node).is-selected::before {
+  background: var(--primary-400);
+}
+
+html.dark :where(.scene-item):hover,
+html.dark :where(.scene-tree .tree-node):hover {
+  background: var(--surface-hover);
+}
+
+/* 步骤卡片 —— 暗色背景适配 */
+html.dark :where(.step-row) {
+  background: var(--surface-card);
+  border-color: transparent;
+  color: var(--text-primary);
+}
+
+html.dark :where(.step-row):hover {
+  background: var(--surface-hover);
+}
+
+/* 当前步骤 —— 暗色主色调整为 primary-400 */
+html.dark :where(.step-row.is-active),
+html.dark :where(.step-row.running) {
+  background: var(--color-primary-alpha-12);
+  border-color: var(--color-primary-alpha-25);
+}
+
+html.dark :where(.step-row.is-active) .step-index,
+html.dark :where(.step-row.running) .step-index,
+html.dark :where(.step-item.active) .step-index,
+html.dark :where(.step-item.selected) .step-index {
+  background: var(--primary-400);
+  color: var(--text-inverse);
+  box-shadow: 0 2px 10px var(--color-primary-alpha-35);
+}
+
+/* 已完成步骤 —— 暗色绿色 */
+html.dark :where(.step-row.passed) .step-index,
+html.dark :where(.step-row.success) .step-index {
+  background: var(--success-500);
+  color: var(--text-inverse);
+}
+
+html.dark :where(.step-row.passed),
+html.dark :where(.step-row.success) {
+  background: var(--color-success-alpha-06);
+}
+
+/* 失败步骤 —— 暗色红色 */
+html.dark :where(.step-row.error),
+html.dark :where(.step-row.failed) {
+  background: var(--color-error-alpha-06);
+}
+
+html.dark :where(.step-row.error) .step-index,
+html.dark :where(.step-row.failed) .step-index {
+  background: var(--error);
+  color: var(--text-inverse);
+}
+
+/* 未开始步骤 —— 暗色灰 */
+html.dark :where(.step-row.pending) .step-index,
+html.dark :where(.step-item.pending) .step-index {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+/* 步骤行选中态 —— 暗色 */
+html.dark :where(.step-row.selected) {
+  background: var(--color-primary-alpha-08);
+}
+
+html.dark :where(.step-row.selected) .step-index {
+  background: var(--color-primary-alpha-15);
+  color: var(--primary-300);
+}
+
+/* 步骤数字图标 —— 暗色普通态 */
+html.dark :where(.step-index),
+html.dark :where(.step-num),
+html.dark :where(.step-item .step-index) {
+  background: var(--surface-nested);
+  color: var(--text-secondary);
+}
+
+/* 右侧配置 —— 暗色输入框焦点 */
+html.dark :where(.cfg-form) :deep(.el-input__wrapper.is-focus),
+html.dark :where(.cfg-form) :deep(.el-select.is-focus .el-input__wrapper) {
+  box-shadow: 0 0 0 2px var(--color-primary-alpha-30);
+  border-color: var(--primary-400);
+}
+
+html.dark :where(.cfg-label),
+html.dark :where(.cfg-item) label {
+  color: var(--text-primary);
+}
+
+html.dark :where(.section-header),
+html.dark :where(.more-row) label {
+  color: var(--text-muted);
+  border-bottom-color: var(--border-subtle);
+}
+
+/* focus-visible —— 暗色主色 primary-400 */
+html.dark :where(.scene-item):focus-visible,
+html.dark :where(.step-row):focus-visible,
+html.dark :where(.right-panel) button:focus-visible,
+html.dark :where(.center-empty-action):focus-visible,
+html.dark :where(.tab-add-btn):focus-visible {
+  outline-color: var(--primary-400);
+}
+
+/* 数据驱动卡片 —— 暗色 */
+html.dark :where(.df-step) {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+}
+
+html.dark :where(.df-step):hover {
+  border-color: var(--primary-400);
+}
+
+html.dark :where(.df-step-index) {
+  background: var(--color-primary-alpha-14);
+  color: var(--primary-300);
+}

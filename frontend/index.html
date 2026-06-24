@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="API Pilot - 企业级接口自动化测试平台，支持接口管理、场景测试、Mock 规则、自动化测试报告生成" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>API Pilot</title>
+  </head>
+  <body>
+    <script>
+      // FOUC prevention: apply theme BEFORE any rendering occurs
+      // This inline script runs synchronously before body parsing
+      (function(){
+        try{
+          var t=localStorage.getItem('api_pilot_theme');
+          if(!t){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'}
+          if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark'}
+          // Disable transitions during initial render to prevent flash
+          document.documentElement.style.setProperty('--theme-transition','none');
+        }catch(e){}
+      })();
+    </script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

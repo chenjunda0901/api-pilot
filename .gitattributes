@@ -1,0 +1,68 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python
+*.py text diff=python
+*.pyw text
+*.pyx text
+*.pxd text
+*.pxi text
+
+# JavaScript / TypeScript
+*.js text
+*.jsx text
+*.ts text diff=typescript
+*.tsx text
+*.vue text
+*.json text
+*.mjs text
+*.cjs text
+
+# Web
+*.html text diff=html
+*.css text
+*.scss text
+*.less text
+*.svg text
+
+# Config
+*.yml text
+*.yaml text
+*.toml text
+*.ini text
+*.cfg text
+*.conf text
+
+# Markdown / Docs
+*.md text
+*.mdx text
+*.rst text
+
+# Docker
+Dockerfile* text
+.dockerignore text
+
+# Shell / Scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+
+# Environment
+.env* text
+.gitignore text
+.gitattributes text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.ttf binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary

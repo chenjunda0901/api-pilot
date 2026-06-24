@@ -1,0 +1,86 @@
+# ============================================================
+# API Pilot Docker Compose
+# 开发/部署一键启动
+# ============================================================
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: api-pilot-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=5000
+      # SQLite 数据库（单进程部署，不支持多 worker）
+      - DATABASE_URL=sqlite+aiosqlite:///app/data/api_pilot.db
+      # 生产环境必须设置真实密钥
+      - API_PILOT_SECRET_KEY=${API_PILOT_SECRET_KEY}
+      # 生产环境必须配置真实域名
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8080}
+      - ENFORCE_CORS_WHITELIST=${ENFORCE_CORS_WHITELIST:-false}
+    volumes:
+      - api_pilot_data:/app/data
+    # 注意：SQLite 不支持多进程，workers 必须为 1
+    # 如果需要多进程支持，请切换到 PostgreSQL
+    command: uvicorn app.main:app --host 0.0.0.0 --port 5000 --workers 1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # 资源限制（参照 PERFORMANCE.md 建议）
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # 优雅停机：SIGTERM 后等待 30 秒再 SIGKILL
+    stop_grace_period: 30s
+    # 日志驱动：限制单文件 10MB，最多保留 3 个文件
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: api-pilot-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - VITE_API_BASE_URL=${API_BASE_URL:-http://localhost:5000}
+    depends_on:
+      backend:
+        condition: service_healthy
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # 优雅停机
+    stop_grace_period: 10s
+    # 日志驱动
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  api_pilot_data:

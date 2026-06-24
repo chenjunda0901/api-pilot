@@ -1,0 +1,151 @@
+/* ==========================================
+   Module: Cascader Date
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   二六、步骤条组件覆盖
+   完成态使用主色背景 + 主色连接线
+   ================================================================ */
+.el-steps__item.is-finish .el-step__icon {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+}
+.el-steps__item.is-finish .el-step__line {
+  background: var(--primary-500);
+}
+.el-steps__item.is-process .el-step__icon {
+  border-color: var(--primary-500);
+}
+.el-steps__item.is-process .el-step__title {
+  color: var(--primary-600);
+}
+
+/* 暗色步骤条 */
+html.dark .el-steps__item.is-process .el-step__title {
+  color: var(--primary-400);
+}
+
+/* ================================================================
+   二七、时间线组件覆盖
+   节点使用主色填充
+   ================================================================ */
+.el-timeline-item__node {
+  background: var(--primary-500);
+}
+
+/* 暗色时间线 */
+html.dark .el-timeline-item__node {
+  background: var(--primary-500);
+}
+
+/* ================================================================
+   二八、分割线组件覆盖
+   使用默认边框色，标签使用卡片背景 + muted 文字
+   ================================================================ */
+.el-divider {
+  border-color: var(--border-subtle);
+}
+.el-divider__text {
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+/* 暗色分割线 */
+html.dark .el-divider {
+  border-color: var(--border-subtle);
+}
+html.dark .el-divider__text {
+  background: var(--surface-card);
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   二九、图像组件覆盖
+   中等圆角 + muted 占位背景
+   ================================================================ */
+.el-image__inner {
+  border-radius: var(--radius-md);
+}
+.el-image__placeholder,
+.el-image__error {
+  background: var(--surface-muted);
+  border-radius: var(--radius-md);
+}
+
+/* 暗色图像 */
+html.dark .el-image__placeholder,
+html.dark .el-image__error {
+  background: var(--surface-muted);
+}
+
+/* ================================================================
+   步骤条 / 时间线 — focus-visible 键盘可达
+   ================================================================ */
+
+.el-step.is-process .el-step__icon-inner:focus-visible,
+.el-step__icon:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-full);
+}
+
+/* ================================================================
+   Cascader 级联选择 / DatePicker — 暗色与聚焦
+   ================================================================ */
+
+.el-cascader-menu__item.is-active {
+  color: var(--primary-500);
+  background: var(--color-primary-alpha-06);
+  font-weight: var(--weight-medium);
+}
+.el-cascader-menu__item:focus-visible,
+.el-cascader-menu__item:hover {
+  background: var(--color-primary-alpha-08);
+  outline: none;
+}
+html.dark .el-cascader-menu__item.is-active {
+  color: var(--primary-400);
+  background: var(--color-primary-alpha-12);
+}
+html.dark .el-cascader-menu__item:focus-visible,
+html.dark .el-cascader-menu__item:hover {
+  background: var(--color-primary-alpha-14);
+}
+
+/* DatePicker 下拉面板主色高亮 */
+.el-date-table td.today span {
+  color: var(--primary-500);
+}
+.el-date-table td.current:not(.disabled) span {
+  background: var(--primary-500);
+  color: var(--text-on-primary);
+}
+.el-date-table td.in-range div,
+.el-date-table td.in-range div:hover {
+  background: var(--color-primary-alpha-08);
+  color: var(--text-primary);
+}
+.el-date-table td.start-date div,
+.el-date-table td.end-date div {
+  background: var(--primary-500);
+  color: var(--text-on-primary);
+}
+
+html.dark .el-date-table td.today span { color: var(--primary-400); }
+html.dark .el-date-table td.current:not(.disabled) span {
+  background: var(--primary-400);
+}
+html.dark .el-date-table td.in-range div,
+html.dark .el-date-table td.in-range div:hover {
+  background: var(--color-primary-alpha-14);
+}
+
+/* DatePicker 头部按钮 focus-visible */
+.el-picker-panel__icon-btn:focus-visible,
+.el-date-picker__header-label:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

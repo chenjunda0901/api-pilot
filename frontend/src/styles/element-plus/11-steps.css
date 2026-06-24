@@ -1,0 +1,27 @@
+/* ==========================================
+   Module: Steps
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   二十、进度条组件覆盖
+   圆角满格 + 平滑宽度过渡动画
+   ================================================================ */
+.el-progress-bar__outer {
+  border-radius: var(--radius-full);
+  background: var(--surface-muted);
+}
+.el-progress-bar__inner {
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+.el-progress--circle .el-progress-bar__outer {
+  background: var(--surface-muted);
+}
+
+/* 暗色进度条 */
+html.dark .el-progress-bar__outer {
+  background: var(--surface-muted);
+}
+html.dark .el-progress--circle .el-progress-bar__outer {
+  background: var(--surface-muted);
+}

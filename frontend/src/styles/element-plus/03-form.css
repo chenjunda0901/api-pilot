@@ -1,0 +1,400 @@
+/* ==========================================
+   Module: Form
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   四、输入框组件覆盖 — 柔和聚焦环
+   使用 inset box-shadow 模拟边框，聚焦时显示主色环
+   ================================================================ */
+/* el-input 交互样式由 global.css 统一提供（focus 渐变背景 + 1px 主色边 + 3px 软光晕） */
+
+/* 输入框统一高度与圆角 */
+.el-input__wrapper {
+  height: var(--height-input);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  box-shadow: 0 0 0 1px var(--border-default) inset;
+}
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+.el-input__inner {
+  height: var(--height-input);
+}
+.el-input__inner::placeholder {
+  color: var(--text-placeholder);
+}
+
+.el-input.is-focus .el-input__wrapper {
+  box-shadow:
+    0 0 0 1px var(--border-focus),
+    0 0 0 4px var(--color-primary-alpha-12);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+/* 多行文本输入框：更大圆角 + 聚焦主色环 */
+.el-textarea__inner {
+  border-radius: var(--radius-md);
+  min-height: var(--height-input);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  border: 1px solid var(--border-default);
+}
+.el-textarea__inner::placeholder {
+  color: var(--text-placeholder);
+}
+.el-textarea__inner:hover {
+  border-color: var(--border-strong);
+}
+.el-textarea__inner:focus {
+  border-color: var(--border-focus);
+  box-shadow:
+    0 0 0 4px var(--color-primary-alpha-12);
+}
+
+/* 暗色输入框 */
+html.dark .el-input__wrapper {
+  background-color: var(--surface-elevated);
+  box-shadow: 0 0 0 1px var(--border-default) inset;
+}
+html.dark .el-input__inner::placeholder {
+  color: var(--text-placeholder);
+}
+html.dark .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+html.dark .el-input__wrapper.is-focus,
+html.dark .el-input.is-focus .el-input__wrapper {
+  box-shadow:
+    0 0 0 1px var(--border-focus),
+    0 0 0 4px var(--color-primary-alpha-20);
+}
+html.dark .el-textarea__inner {
+  background-color: var(--surface-elevated);
+  border-color: var(--border-default);
+}
+html.dark .el-textarea__inner::placeholder {
+  color: var(--text-placeholder);
+}
+html.dark .el-textarea__inner:hover {
+  border-color: var(--border-strong);
+}
+html.dark .el-textarea__inner:focus {
+  border-color: var(--border-focus);
+  box-shadow:
+    0 0 0 4px var(--color-primary-alpha-20);
+}
+
+/* ================================================================
+   五、Select 选择器覆盖 — 统一聚焦样式
+   下拉面板使用 shadow-pop 阴影 + menu-in 入场动画
+   ================================================================ */
+.el-select__wrapper {
+  height: var(--height-input);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  box-shadow: 0 0 0 1px var(--border-default) inset;
+}
+.el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+.el-select__wrapper.is-focused {
+  box-shadow:
+    0 0 0 1px var(--border-focus),
+    0 0 0 4px var(--color-primary-alpha-12);
+}
+.el-select-dropdown {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-pop);
+  border: 1px solid var(--border-subtle);
+  animation: dropdown-enter 180ms var(--ease-out);
+}
+@keyframes dropdown-enter {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.el-select-dropdown__item.is-selected {
+  color: var(--primary-600);
+  font-weight: var(--weight-medium);
+  background: var(--color-primary-alpha-08);
+}
+.el-select-dropdown__item.is-hovering {
+  background: var(--surface-hover);
+}
+
+/* 暗色 Select */
+html.dark .el-select__wrapper {
+  background-color: var(--surface-elevated);
+}
+html.dark .el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+html.dark .el-select__wrapper.is-focused {
+  box-shadow:
+    0 0 0 1px var(--border-focus),
+    0 0 0 4px var(--color-primary-alpha-20);
+}
+html.dark .el-select-dropdown {
+  background: var(--surface-overlay);
+  border-color: var(--border-subtle);
+}
+html.dark .el-select-dropdown__item.is-selected {
+  color: var(--primary-400);
+  background: var(--color-primary-alpha-12);
+}
+
+/* ================================================================
+   六、表单组件覆盖
+   标签使用中粗字重 + 主文字色，错误提示使用小字号
+   ================================================================ */
+.el-form-item__label {
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+.el-form-item__error {
+  font-size: var(--text-xs);
+  padding-top: var(--space-1);
+}
+
+/* 开关组件：激活态使用主色 */
+.el-switch {
+  --el-switch-off-color: var(--slate-300);
+}
+.el-switch.is-checked {
+  --el-switch-on-color: var(--primary-500);
+}
+.el-switch__core {
+  transition: all var(--transition-base);
+}
+html.dark .el-switch {
+  --el-switch-off-color: var(--slate-600);
+}
+
+/* 单选框和复选框 */
+.el-radio__input.is-checked .el-radio__inner {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+}
+.el-radio__input.is-checked + .el-radio__label {
+  color: var(--primary-600);
+}
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+}
+.el-checkbox__input.is-checked + .el-checkbox__label {
+  color: var(--primary-600);
+}
+.el-checkbox__inner:hover {
+  border-color: var(--primary-500);
+}
+html.dark .el-radio__input.is-checked + .el-radio__label {
+  color: var(--primary-400);
+}
+html.dark .el-checkbox__input.is-checked + .el-checkbox__label {
+  color: var(--primary-400);
+}
+
+/* ================================================================
+   输入框 / 文本域 增强 — hover / focus-visible / 暗色聚焦
+   ================================================================ */
+
+/* hover 态：边框过渡为主色淡影 */
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--primary-500) inset;
+  transition: box-shadow var(--duration-micro) var(--ease-smooth);
+}
+
+/* 聚焦 + focus-visible 一致的主色光环（可键盘触发） */
+.el-input.is-focus .el-input__wrapper,
+.el-input__wrapper.is-focus,
+.el-input__inner:focus-visible + .el-input__wrapper {
+  box-shadow:
+    0 0 0 1px var(--primary-500) inset,
+    0 0 0 4px var(--color-primary-alpha-20);
+  outline: none;
+}
+
+.el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px var(--primary-500) inset;
+  transition: box-shadow var(--duration-micro) var(--ease-smooth);
+}
+.el-textarea__inner:focus,
+.el-textarea__inner:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--primary-500) inset,
+    0 0 0 4px var(--color-primary-alpha-20);
+  outline: none;
+}
+
+/* 暗色模式聚焦 — 提亮 alpha */
+html.dark .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--primary-400) inset;
+}
+html.dark .el-input.is-focus .el-input__wrapper,
+html.dark .el-input__wrapper.is-focus {
+  box-shadow:
+    0 0 0 1px var(--primary-400) inset,
+    0 0 0 4px var(--color-primary-alpha-30);
+}
+html.dark .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px var(--primary-400) inset;
+}
+html.dark .el-textarea__inner:focus,
+html.dark .el-textarea__inner:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--primary-400) inset,
+    0 0 0 4px var(--color-primary-alpha-30);
+}
+
+/* ================================================================
+   InputNumber 数字输入框 — 统一高度 / 聚焦
+   ================================================================ */
+
+.el-input-number {
+  border-radius: var(--radius-sm);
+  height: var(--height-input);
+}
+.el-input-number .el-input__inner {
+  text-align: center;
+  padding: 0 var(--space-8);
+}
+.el-input-number__decrease,
+.el-input-number__increase {
+  width: var(--height-input);
+  color: var(--text-secondary);
+  transition: color var(--duration-micro) var(--ease-smooth),
+              background-color var(--duration-micro) var(--ease-smooth);
+}
+.el-input-number__decrease:hover,
+.el-input-number__increase:hover {
+  color: var(--primary-500);
+  background: var(--color-primary-alpha-06);
+}
+html.dark .el-input-number__decrease:hover,
+html.dark .el-input-number__increase:hover {
+  color: var(--primary-400);
+  background: var(--color-primary-alpha-08);
+}
+.el-input-number__decrease:focus-visible,
+.el-input-number__increase:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+/* ================================================================
+   Slider 滑块 — 主色轨道 / 拖拽反馈 / focus-visible
+   ================================================================ */
+
+.el-slider__runway {
+  background: var(--slate-200);
+  height: 6px;
+  border-radius: var(--radius-full);
+  transition: background-color var(--duration-micro) var(--ease-smooth);
+}
+.el-slider__bar {
+  background: var(--color-primary-500);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-micro) var(--ease-smooth);
+}
+.el-slider__button {
+  border: 2px solid var(--color-primary-500);
+  background: var(--white);
+  width: 16px;
+  height: 16px;
+  transition: transform var(--duration-micro) var(--ease-spring),
+              box-shadow var(--duration-micro) var(--ease-smooth),
+              background-color var(--duration-micro) var(--ease-smooth);
+}
+.el-slider__button:hover {
+  transform: scale(1.1);
+}
+.el-slider__button.dragging,
+.el-slider__button:focus-visible {
+  box-shadow:
+    0 0 0 6px var(--color-primary-alpha-20),
+    var(--shadow-xs);
+  outline: none;
+}
+.el-slider__input .el-input__wrapper {
+  height: var(--height-input);
+}
+
+html.dark .el-slider__runway {
+  background: var(--slate-500);
+}
+html.dark .el-slider__bar {
+  background: var(--color-primary-400);
+}
+html.dark .el-slider__button {
+  border-color: var(--color-primary-400);
+  background: var(--surface-card);
+}
+html.dark .el-slider__button.dragging,
+html.dark .el-slider__button:focus-visible {
+  box-shadow:
+    0 0 0 6px var(--color-primary-alpha-30),
+    var(--shadow-xs);
+}
+
+/* ================================================================
+   Checkbox / Radio — focus-visible 可键盘定位
+   ================================================================ */
+
+.el-checkbox__inner:focus-visible,
+.el-radio__inner:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-primary-alpha-25);
+  outline: none;
+}
+html.dark .el-checkbox__inner:focus-visible,
+html.dark .el-radio__inner:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-primary-alpha-35);
+}
+
+/* Form 标签错误态 — 红色主色一致 */
+.el-form-item.is-error .el-input__wrapper {
+  box-shadow: 0 0 0 1px var(--error-500) inset;
+}
+.el-form-item.is-error .el-input__wrapper:hover,
+.el-form-item.is-error .el-input__wrapper.is-focus {
+  box-shadow:
+    0 0 0 1px var(--error-500) inset,
+    0 0 0 4px var(--color-error-alpha-20);
+}
+html.dark .el-form-item.is-error .el-input__wrapper.is-focus {
+  box-shadow:
+    0 0 0 1px var(--error-500) inset,
+    0 0 0 4px var(--color-error-alpha-30);
+}
+
+/* 表单错误信息 — 柔和红色，保持正文对比度 */
+.el-form-item__error {
+  color: var(--error-500);
+}
+html.dark .el-form-item__error {
+  color: var(--error-500);
+}
+
+/* ================================================================
+   表单禁用态 — 清晰区分，柔和灰显
+   ================================================================ */
+.el-input.is-disabled .el-input__wrapper,
+.el-textarea.is-disabled .el-textarea__inner {
+  background: var(--surface-muted);
+  cursor: not-allowed;
+}
+
+.el-input.is-disabled .el-input__inner,
+.el-textarea.is-disabled .el-textarea__inner {
+  color: var(--text-disabled);
+  -webkit-text-fill-color: var(--text-disabled);
+}
+
+.el-input.is-disabled .el-input__inner::placeholder,
+.el-textarea.is-disabled .el-textarea__inner::placeholder {
+  color: var(--text-disabled);
+}
+
+.el-select.is-disabled .el-input__wrapper {
+  background: var(--surface-muted);
+  cursor: not-allowed;
+}

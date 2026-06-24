@@ -1,0 +1,51 @@
+/* ==========================================
+   Module: Transfer
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   二四、空状态组件覆盖
+   降低图片透明度 + 使用 muted 文字色
+   ================================================================ */
+.el-empty__image {
+  opacity: 0.65;
+}
+.el-empty__description {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* 暗色空状态 */
+html.dark .el-empty__image {
+  opacity: 0.5;
+}
+html.dark .el-empty__description {
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   二五、加载组件覆盖 — loading-rotate 动画
+   遮罩使用毛玻璃效果，暗色使用深色半透明
+   ================================================================ */
+.el-loading-mask {
+  background: var(--surface-card-alpha-82);
+  backdrop-filter: blur(var(--space-1));
+}
+html.dark .el-loading-mask {
+  background: var(--surface-card-alpha-82);
+}
+.el-loading-spinner .el-loading-text {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  margin-top: var(--space-3);
+}
+.el-loading-spinner .circular {
+  animation: loading-rotate var(--duration-slow) linear infinite;
+}
+.el-loading-spinner .circular .path {
+  animation: loading-dash 1.5s ease-in-out infinite;
+}
+
+/* 暗色加载 */
+html.dark .el-loading-spinner .el-loading-text {
+  color: var(--text-secondary);
+}

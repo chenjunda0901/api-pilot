@@ -1,0 +1,120 @@
+/* ==========================================
+   Module: Anchor
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   三八、评分组件覆盖
+   hover 放大 1.1 倍，激活态使用警告色
+   ================================================================ */
+.el-rate__icon {
+  font-size: var(--text-lg);
+  margin-right: var(--space-1);
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+.el-rate__icon:hover {
+  transform: scale(1.1);
+}
+.el-rate__icon.hover,
+.el-rate__icon.is-active {
+  color: var(--warning);
+}
+
+/* 暗色评分 */
+html.dark .el-rate__icon.hover,
+html.dark .el-rate__icon.is-active {
+  color: var(--warning);
+}
+
+/* ================================================================
+   三九、滑块组件覆盖
+   轨道使用渐变主色，滑块使用主色边框
+   ================================================================ */
+.el-slider__runway {
+  background: var(--surface-muted);
+  border-radius: var(--radius-full);
+}
+.el-slider__bar {
+  background: linear-gradient(90deg, var(--primary-400), var(--primary-500));
+  border-radius: var(--radius-full);
+}
+.el-slider__button {
+  border-color: var(--primary-500);
+}
+
+/* 暗色滑块 */
+html.dark .el-slider__runway {
+  background: var(--surface-muted);
+}
+html.dark .el-slider__button {
+  border-color: var(--primary-400);
+}
+
+/* ================================================================
+   四十、锚点组件覆盖
+   活动链接使用主色，hover 过渡使用快速时长
+   ================================================================ */
+.el-anchor__link {
+  padding: var(--space-1-5) 0;
+}
+.el-anchor__title {
+  font-weight: var(--weight-medium);
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+.el-anchor__title:hover {
+  color: var(--primary-600);
+}
+.el-anchor__link.is-active > .el-anchor__title {
+  color: var(--primary-600);
+}
+
+/* 暗色锚点 */
+html.dark .el-anchor__title:hover,
+html.dark .el-anchor__link.is-active > .el-anchor__title {
+  color: var(--primary-400);
+}
+
+/* ================================================================
+   四一、文本溢出省略
+   ================================================================ */
+.el-typography {
+  --el-font-family: var(--font-sans);
+}
+
+/* ================================================================
+   四二、折叠面板覆盖
+   大圆角容器 + 表头 muted 背景 + hover 切换 hover 色
+   ================================================================ */
+.el-collapse {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+.el-collapse-item__header {
+  padding: var(--space-3-5) var(--space-5);
+  font-weight: var(--weight-medium);
+  background: var(--surface-muted);
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+.el-collapse-item__header:hover {
+  background: var(--surface-hover);
+}
+.el-collapse-item__wrap {
+  border-top: 1px solid var(--border-subtle);
+}
+.el-collapse-item__content {
+  padding: var(--space-4) var(--space-5);
+}
+
+/* 暗色折叠面板 */
+html.dark .el-collapse {
+  border-color: var(--border-subtle);
+}
+html.dark .el-collapse-item__header {
+  background: var(--surface-muted);
+}
+html.dark .el-collapse-item__header:hover {
+  background: var(--surface-hover);
+}
+html.dark .el-collapse-item__wrap {
+  border-top-color: var(--border-subtle);
+}

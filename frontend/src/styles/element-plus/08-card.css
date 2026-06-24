@@ -1,0 +1,41 @@
+/* ==========================================
+   Module: Card
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   十七、卡片组件覆盖
+   圆角 radius-md (8px) | 阴影 shadow-card
+   hover 上浮 2px + spring 缓动 + 阴影加深
+   ================================================================ */
+.el-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  transition: all var(--duration-base) var(--ease-spring);
+}
+.el-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: var(--lift-card-hover);
+}
+.el-card__header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  font-weight: var(--weight-semibold);
+}
+.el-card__body {
+  padding: var(--space-5);
+}
+
+/* 暗色卡片 */
+html.dark .el-card {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+html.dark .el-card:hover {
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card-hover);
+}
+html.dark .el-card__header {
+  border-bottom-color: var(--border-subtle);
+}

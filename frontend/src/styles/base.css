@@ -1,0 +1,368 @@
+/* ==========================================
+ * API Pilot Base Styles v11.0
+ * ==========================================
+ *
+ * 全局重置、排版基础、焦点环、滚动条美化
+ * 依赖: tokens.css (CSS custom properties)
+ *
+ * v11 变更：
+ *   - 自定义滚动条（圆角胶囊状，与品牌色协调）
+ *   - 文本选中态（品牌色半透明高亮）
+ *   - 平滑滚动 + overscroll 弹性阻尼
+ */
+
+/* ===== CSS Custom Properties Reset ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base);
+  line-height: var(--leading-normal);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background-color: var(--surface-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  /* 防止 iOS 横屏时文字放大 */
+  -webkit-text-size-adjust: 100%;
+  tab-size: 2;
+  /* 允许横向溢出控制 */
+  overflow-x: hidden;
+  min-height: 100dvh;
+  /* 主题切换过渡动画（使用 CSS 变量控制，首次加载时禁用防止闪烁） */
+  transition: var(--theme-transition, background-color 240ms ease, color 240ms ease);
+}
+
+/* 主题切换时，子元素也需要平滑过渡 */
+html *,
+html *::before,
+html *::after {
+  transition: var(--theme-transition, background-color 240ms ease, color 240ms ease, border-color 240ms ease, box-shadow 240ms ease, fill 240ms ease, stroke 240ms ease);
+}
+
+body {
+  min-height: 100dvh;
+  font-size: var(--font-size-base);
+  line-height: inherit;
+  overflow-x: hidden;
+  /* 页面级微妙氛围背景 */
+  background-image: var(--gradient-radial-glow);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* ===== 排版基础 v17 — 更清晰的层级与阅读节奏 ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+}
+h1 {
+  font-size: var(--font-size-3xl);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-4);
+  font-weight: var(--weight-bold);
+}
+h2 {
+  font-size: var(--font-size-2xl);
+  letter-spacing: -0.015em;
+  margin-bottom: var(--space-3);
+}
+h3 { font-size: var(--font-size-lg); letter-spacing: -0.01em; margin-bottom: var(--space-2); }
+h4 { font-size: var(--font-size-base); letter-spacing: -0.005em; margin-bottom: var(--space-2); }
+h5 { font-size: var(--font-size-md); margin-bottom: var(--space-1-5); }
+h6 { font-size: var(--font-size-base); margin-bottom: var(--space-1-5); }
+
+p {
+  margin-bottom: var(--space-5);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  max-width: 75ch;
+}
+
+a {
+  color: var(--primary-600);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color var(--duration-fast) var(--ease-smooth),
+              text-decoration-color var(--duration-fast) var(--ease-smooth);
+}
+a:hover {
+  color: var(--primary-700);
+  text-decoration-color: currentColor;
+}
+a:active {
+  color: var(--primary-800);
+  opacity: 0.85;
+}
+a:visited {
+  color: var(--primary-700);
+}
+a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+  text-decoration-color: currentColor;
+}
+
+html.dark a { color: var(--primary-400); }
+html.dark a:hover { color: var(--primary-300); }
+html.dark a:active { color: var(--primary-200); opacity: 0.85; }
+html.dark a:visited { color: var(--primary-300); }
+html.dark a:focus-visible {
+  outline-color: var(--primary-400);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha-16);
+}
+
+img, svg, video, canvas, audio, iframe {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* ===== 代码块基础样式 v17 — 更精致、更易读 ===== */
+code,
+pre {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+}
+code {
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
+  background: var(--surface-code);
+  font-size: 0.8125em;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+pre {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface-code);
+  overflow-x: auto;
+  font-size: var(--font-size-sm);
+  line-height: var(--leading-relaxed);
+  tab-size: 2;
+  border: 1px solid var(--border-subtle);
+}
+pre code {
+  padding: 0;
+  background: transparent;
+  font-size: inherit;
+  line-height: var(--leading-relaxed);
+  border: none;
+}
+
+/* ===== 文本选中态 v17：品牌色柔和高亮，更明显但不过度 ===== */
+::selection {
+  background: var(--color-primary-alpha-16);
+  color: inherit;
+}
+::-moz-selection {
+  background: var(--color-primary-alpha-16);
+  color: inherit;
+}
+
+/* ===== 焦点可见性（WCAG 2.4.11）===== */
+/* 基础焦点环：使用 design tokens 确保一致性 */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--border-focus);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+  transition: box-shadow var(--duration-fast) var(--ease-out),
+              outline-color var(--duration-fast) var(--ease-out);
+}
+
+/* 移除鼠标点击时的 focus ring，仅保留键盘导航的 :focus-visible */
+:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ===== 高对比度模式（Windows 高对比度 / 辅助需求）===== */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight;
+    box-shadow: none;
+  }
+  .el-button, .nav-item, [role="button"] {
+    border: 1px solid ButtonText;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --border-default: var(--border-strong);
+    --border-strong:  var(--color-neutral-alpha-28);
+    --text-muted: var(--slate-500);
+    --shadow-sm: var(--shadow-xs);
+  }
+  :focus-visible {
+    outline: 3px solid currentColor;
+    box-shadow: none;
+  }
+}
+
+/* ===== prefers-reduced-motion：全局降级（晕眩/认知需求用户）===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .el-dialog, .el-drawer, .el-popover, .el-tooltip__popper {
+    animation: none !important;
+  }
+  .el-table__row,
+  .el-tree-node__expand-icon,
+  .el-rate__icon {
+    transition: none !important;
+  }
+  .el-tabs__active-bar { transition: none !important; }
+  .el-progress-bar__inner-striped { animation: none !important; }
+}
+
+
+/* ===== 触摸目标最小尺寸（44×44pt）===== */
+@media (pointer: coarse) {
+  .el-button--small,
+  .el-tag,
+  [role="button"]:not(.el-button),
+  .clickable-icon {
+    min-height: 2.75rem;
+    min-width:  2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ===== 自定义滚动条（Webkit）— 胶囊状柔和风格 ===== */
+/* 滚动条尺寸 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* 滚动条轨道：透明背景 */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 滚动条滑块：使用 tokens 变量，亮/暗主题自动适配 */
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+
+/* 滚动条滑块悬停 */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  border-color: transparent;
+  background-clip: padding-box;
+}
+
+/* 滚动条滑块激活 */
+::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+  border-color: transparent;
+  background-clip: padding-box;
+}
+
+/* 滚动条角落 */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox 滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* 暗色模式滚动条（tokens 已在 html.dark 中定义，此处确保覆盖） */
+html.dark {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-color: transparent;
+  background-clip: padding-box;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  border-color: transparent;
+  background-clip: padding-box;
+}
+html.dark ::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+  border-color: transparent;
+  background-clip: padding-box;
+}
+
+/* ===== Overscroll 行为（弹性阻尼，非橡胶回弹）===== */
+html {
+  overscroll-behavior-y: contain;
+}
+
+/* ===== Skip Link（无障碍跳转）===== */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: var(--space-4);
+  z-index: var(--z-max);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-card);
+  color: var(--primary-600);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  font-weight: var(--weight-medium);
+  transition: top var(--duration-fast) ease-out;
+  &:focus {
+    top: var(--space-4);
+  }
+}
+
+/* ===== Reduced Motion 基础降级 ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

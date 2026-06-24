@@ -1,0 +1,200 @@
+/* ==========================================
+   Module: Upload
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   三十、滚动条组件覆盖
+   使用自定义滚动条颜色 token，圆角满格
+   ================================================================ */
+.el-scrollbar__bar {
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+.el-scrollbar__thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+.el-scrollbar__thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* 暗色滚动条 */
+html.dark .el-scrollbar__thumb {
+  background: var(--scrollbar-thumb);
+}
+html.dark .el-scrollbar__thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ================================================================
+   三一、回到顶部组件覆盖
+   卡片风格 + hover 上浮效果
+   ================================================================ */
+.el-backtop {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-base);
+}
+.el-backtop:hover {
+  background: var(--surface-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* 暗色回到顶部 */
+html.dark .el-backtop {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+html.dark .el-backtop:hover {
+  background: var(--surface-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ================================================================
+   三二、计数动画组件覆盖
+   使用等宽字体 + 数字特性（防止布局抖动）
+   ================================================================ */
+.el-statistic__head {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+.el-statistic__content {
+  font-family: var(--font-mono);
+  font-feature-settings: var(--font-features-num);
+}
+
+/* 暗色统计 */
+html.dark .el-statistic__head {
+  color: var(--text-secondary);
+}
+html.dark .el-statistic__content {
+  color: var(--text-primary);
+}
+
+/* ================================================================
+   三三、穿梭框组件覆盖
+   大圆角面板 + 中等圆角按钮
+   ================================================================ */
+.el-transfer-panel {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+.el-transfer__buttons {
+  padding: 0 var(--space-3);
+}
+.el-transfer__button {
+  border-radius: var(--radius-md);
+  margin: var(--space-1) 0;
+}
+
+/* 暗色穿梭框 */
+html.dark .el-transfer-panel {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+}
+
+/* ================================================================
+   三四、日期选择器组件覆盖
+   大圆角面板 + pop 阴影，今日高亮主色
+   当前选中日期使用主色背景 + 反白文字
+   ================================================================ */
+.el-picker-panel {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-pop);
+  border: 1px solid var(--border-subtle);
+}
+.el-date-picker__header-label {
+  font-weight: var(--weight-semibold);
+}
+.el-date-table th {
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+.el-month-table td.today .cell,
+.el-year-table td.today .cell {
+  color: var(--primary-500);
+  font-weight: var(--weight-semibold);
+}
+.el-date-table td.current:not(.disabled) .cell {
+  color: var(--text-inverse);
+  background: var(--primary-500);
+}
+.el-date-table td.in-range .cell {
+  background: var(--color-primary-alpha-08);
+}
+
+/* 暗色日期选择器 */
+html.dark .el-picker-panel {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+}
+
+/* ================================================================
+   三五、时间选择器组件覆盖
+   大圆角面板 + 活动项使用主色
+   ================================================================ */
+.el-time-panel {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-pop);
+  border: 1px solid var(--border-subtle);
+}
+.el-time-spinner__item {
+  border-radius: var(--radius-sm);
+}
+.el-time-spinner__item.is-active {
+  color: var(--primary-600);
+  font-weight: var(--weight-semibold);
+}
+
+/* 暗色时间选择器 */
+html.dark .el-time-panel {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+}
+html.dark .el-time-spinner__item.is-active {
+  color: var(--primary-400);
+}
+
+/* ================================================================
+   三六、颜色选择器组件覆盖
+   ================================================================ */
+.el-color-picker__trigger {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+}
+
+/* 暗色颜色选择器 */
+html.dark .el-color-picker__trigger {
+  border-color: var(--border-default);
+}
+
+/* ================================================================
+   三七、上传组件覆盖
+   拖拽区域使用大圆角 + 虚线边框，hover 切换主色
+   ================================================================ */
+.el-upload-dragger {
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--border-default);
+  transition: all var(--transition-base);
+}
+.el-upload-dragger:hover {
+  border-color: var(--primary-500);
+  background: var(--color-primary-alpha-04);
+}
+.el-upload__trigger {
+  border-radius: var(--radius-lg);
+}
+
+/* 暗色上传 */
+html.dark .el-upload-dragger {
+  background: var(--surface-card);
+  border-color: var(--border-default);
+}
+html.dark .el-upload-dragger:hover {
+  border-color: var(--primary-500);
+  background: var(--color-primary-alpha-08);
+}

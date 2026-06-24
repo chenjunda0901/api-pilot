@@ -1,0 +1,246 @@
+/* ==========================================
+   Module: Dialog
+   Split from element-plus-override.css
+   ========================================== */
+/* ================================================================
+   九、消息提示组件覆盖 — 毛玻璃通知
+   使用 backdrop-filter 毛玻璃效果 + 多层阴影
+   各类型使用对应语义边框色
+   ================================================================ */
+.el-message {
+  border-radius: var(--radius-lg) !important;
+  padding: var(--space-3) var(--space-5);
+  backdrop-filter: blur(var(--space-3)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--space-3)) saturate(1.2);
+  box-shadow: var(--shadow-card), var(--shadow-xs) !important;
+  border-width: 1px;
+  /* 弹簧滑入：右上角方向 */
+  animation: msg-spring-in 240ms var(--ease-bounce-soft) both;
+}
+.el-message.is-leaving {
+  animation: msg-spring-out 200ms var(--ease-soft) forwards;
+}
+@keyframes msg-spring-in {
+  0%   { opacity: 0; transform: translate(20px, -8px) scale(0.92); }
+  60%  { opacity: 1; transform: translate(-2px, 1px) scale(1.02); }
+  100% { opacity: 1; transform: translate(0, 0) scale(1); }
+}
+@keyframes msg-spring-out {
+  from { opacity: 1; transform: translate(0, 0) scale(1); }
+  to   { opacity: 0; transform: translate(20px, -4px) scale(0.96); }
+}
+.el-message--success {
+  background: var(--surface-card-alpha-82);
+  border-color: var(--success-border);
+}
+.el-message--error {
+  background: var(--surface-card-alpha-82);
+  border-color: var(--error-border);
+}
+.el-message--warning {
+  background: var(--surface-card-alpha-82);
+  border-color: var(--warning-border);
+}
+.el-message--info {
+  background: var(--surface-card-alpha-82);
+  border-color: var(--border-subtle);
+}
+
+/* 暗色消息：使用暗色表面 + 更弱模糊 */
+html.dark .el-message {
+  background: var(--surface-overlay);
+  backdrop-filter: blur(var(--space-2));
+  -webkit-backdrop-filter: blur(var(--space-2));
+  box-shadow: var(--shadow-pop) !important;
+}
+html.dark .el-message--success { border-color: var(--success-border); }
+html.dark .el-message--error { border-color: var(--error-border); }
+html.dark .el-message--warning { border-color: var(--warning-border); }
+html.dark .el-message--info { border-color: var(--border-subtle); }
+
+/* ================================================================
+   对话框组件覆盖 — 统一 Linear 风格
+   圆角 radius-dialog (14px) | 阴影 shadow-pop | 标题栏带分割线
+   入场动画：fadeInBlur（模糊淡入 + 微缩放）
+   ================================================================ */
+.el-dialog {
+  border-radius: var(--radius-dialog);
+  overflow: hidden;
+  box-shadow: var(--shadow-pop);
+  animation: dialogEnter var(--duration-interaction) var(--ease-smooth);
+}
+@keyframes dialogEnter {
+  from { opacity: 0; transform: scale(0.98) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.el-dialog__header {
+  padding: var(--space-4) var(--space-5);
+  margin: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.el-dialog__title {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+.el-dialog__body {
+  padding: var(--space-5) var(--space-6);
+}
+.el-dialog__footer {
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* 遮罩层：毛玻璃模糊 + 半透明背景 */
+.el-overlay {
+  backdrop-filter: blur(var(--space-2));
+  -webkit-backdrop-filter: blur(var(--space-2));
+  background: var(--alpha-overlay) !important;
+}
+html.dark .el-overlay {
+  background-color: rgba(5, 10, 20, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* 暗色对话框 */
+html.dark .el-dialog {
+  background: var(--surface-elevated);
+  border: 1px solid var(--color-white-alpha-08);
+  box-shadow: var(--shadow-pop);
+}
+html.dark .el-dialog__header {
+  border-bottom-color: var(--border-subtle);
+}
+
+/* ================================================================
+   对话框 / 抽屉 弹簧动画增强 — 进入 / 退出 / 遮罩 全套
+   ================================================================ */
+
+/* Dialog 进入：微缩放 + 下移 + 轻淡入（替换旧 dialogEnter） */
+.el-dialog {
+  animation: dialog-spring-in var(--duration-interaction) var(--ease-bounce-soft) both;
+}
+@keyframes dialog-spring-in {
+  0%   { opacity: 0; transform: scale(0.94) translateY(12px); }
+  60%  { opacity: 1; transform: scale(1.015) translateY(-1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes dialog-spring-out {
+  0%   { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.96) translateY(6px); }
+}
+
+/* Drawer 侧滑：右进右出，顶进顶出，底进底出 */
+.el-drawer {
+  animation-duration: var(--duration-interaction);
+  animation-fill-mode: both;
+  animation-timing-function: var(--ease-soft);
+}
+.el-drawer.ltr { animation-name: drawer-in-left; }
+.el-drawer.rtl { animation-name: drawer-in-right; }
+.el-drawer.ttb { animation-name: drawer-in-top; }
+.el-drawer.btt { animation-name: drawer-in-bottom; }
+
+@keyframes drawer-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes drawer-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes drawer-in-top {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes drawer-in-bottom {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* 遮罩层：淡入淡出 */
+.el-overlay {
+  transition: opacity var(--duration-fast) var(--ease-smooth),
+              background-color var(--duration-fast) var(--ease-smooth);
+}
+.el-overlay.is-hidden { opacity: 0; }
+
+/* 关闭按钮 focus-visible：保证键盘可达 */
+.el-dialog__headerbtn:focus-visible,
+.el-drawer__close:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--primary-500),
+    0 0 0 4px var(--color-primary-alpha-20);
+  border-radius: var(--radius-sm);
+}
+html.dark .el-dialog__headerbtn:focus-visible,
+html.dark .el-drawer__close:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--primary-400),
+    0 0 0 4px var(--color-primary-alpha-30);
+}
+
+/* ================================================================
+   Popover / Tooltip — 淡入微缩放 + 暗色背景
+   ================================================================ */
+
+.el-popover {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-pop);
+  padding: var(--space-3) var(--space-4);
+  animation: pop-in var(--duration-micro) var(--ease-spring) both;
+  color: var(--text-primary);
+}
+.el-popover:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--primary-500),
+    var(--shadow-pop);
+}
+html.dark .el-popover {
+  background: var(--surface-card);
+  border-color: var(--color-white-alpha-08);
+  color: var(--text-primary);
+}
+
+@keyframes pop-in {
+  0%   { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.el-tooltip__popper {
+  border-radius: var(--radius-sm);
+  padding: var(--space-1-5) var(--space-2);
+  font-size: var(--text-xs);
+  box-shadow: var(--shadow-sm);
+  animation: tooltip-in var(--duration-micro) var(--ease-soft) both;
+}
+.el-tooltip__popper.is-dark {
+  background: var(--slate-800);
+  color: #ffffff;
+}
+.el-tooltip__popper.is-light {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+html.dark .el-dialog__title {
+  color: var(--text-primary);
+}
+html.dark .el-dialog__footer {
+  border-top-color: var(--border-subtle);
+}

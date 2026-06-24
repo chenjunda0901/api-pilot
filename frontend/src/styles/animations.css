@@ -1,0 +1,732 @@
+/* ==========================================
+ * API Pilot Animations & Keyframes (v3 Vivid)
+ * ==========================================
+ * 设计风格：灵动温润 · 丝滑自然 · 层次丰富
+ *
+ * 内容：
+ *   1. 基础入场关键帧（淡入/缩放/滑动）
+ *   2. 微交互关键帧（按压/浮动/shimmer/形态变换）
+ *   3. 反馈关键帧（脉冲/呼吸/涟漪/发光）
+ *   4. 骨架屏/Loading 关键帧
+ *   5. 菜单/面板入场关键帧
+ *   6. 持续动画关键帧（漂移/柔和脉冲）
+ *   7. 退出关键帧（淡出滑动/缩小消失）
+ *   8. 动画工具类（可组合使用）
+ *   9. 交错入场 stagger（扩展至 12 项）
+ *  10. 骨架屏 shimmer 效果
+ *  11. reduced-motion 无障碍降级
+ *
+ * 依赖: tokens.css (CSS custom properties)
+ * ========================================== */
+
+/* ============================================================
+   一、基础入场关键帧
+   ============================================================ */
+
+/* 淡入上滑 — 最常用的列表项入场 */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 渐入 — 简单纯透明度过渡 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 缩放淡入 — 弹窗/模态框入场 */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* 右侧滑入 — 侧边栏/抽屉入场 */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 底部滑入 — 底部面板/消息条入场 */
+@keyframes slideInBottom {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 左侧滑入 */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 缩放淡入 — 卡片/模态框入场 */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* 左侧滑入 — 侧面板/抽屉入场 */
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 模糊淡入 — 弹窗/模态框/卡片高级入场（带模糊和缩放） */
+@keyframes fadeInBlur {
+  from { opacity: 0; filter: blur(8px); transform: scale(0.97); }
+  to   { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+/* 交错滑入增强版 — 列表项依次入场（带轻微缩放） */
+@keyframes slideInStaggerEnhanced {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================================================
+   二、微交互关键帧（新增）
+   ============================================================ */
+
+/* 按下反馈 — 按钮/可点击元素的按压感 */
+@keyframes pressDown {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* 按钮按压微交互 — 更轻柔的缩放反馈 */
+@keyframes btnPress {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* Shimmer 移动 — 骨架屏/加载占位的光泽扫过效果 */
+@keyframes shimmerMove {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 轻柔浮动 — 图标/装饰元素的悬浮感（±3px） */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* 形态变换 — 图标切换/状态转换时的柔和变形 */
+@keyframes morph {
+  0%   { border-radius: var(--radius-md); transform: scale(1); }
+  50%  { border-radius: var(--radius-xl); transform: scale(1.05); }
+  100% { border-radius: var(--radius-md); transform: scale(1); }
+}
+
+/* 暖调光泽扫过 — 骨架屏/加载占位的温暖光效（配套工具类使用暖色调渐变） */
+@keyframes shimmerWarm {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 轻柔抖动提示 — 表单验证失败/操作受阻时的温和提醒 */
+@keyframes gentleShake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-3px); }
+  40%      { transform: translateX(3px); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
+
+/* ============================================================
+   三、反馈关键帧
+   ============================================================ */
+
+/* 脉冲 — 加载指示器/在线状态 */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+/* 柔和脉冲 — 加载状态的微妙背景呼吸 */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+/* 发光脉冲 — 强调元素吸引注意力 */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-primary-alpha-35); }
+  50%      { box-shadow: 0 0 0 8px var(--color-primary-alpha-06); }
+}
+
+/* 呼吸 — 卡片/容器的微妙生命感 */
+@keyframes breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(0.98); }
+}
+
+/* 涟漪 — 点击扩散效果 */
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* 柔和高亮脉冲 — 输入聚焦/选中态的温和提醒 */
+@keyframes highlightPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-primary-alpha-12); }
+  50%      { box-shadow: 0 0 0 4px var(--color-primary-alpha-06); }
+}
+
+/* 柔和弹跳 — 列表项添加成功后的轻量反馈 */
+@keyframes bounceSoft {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+/* Tab 旧标签下沉淡出 — AppTabs 切换时旧标签退场 */
+@keyframes tabSlideOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+
+/* Tab 新标签上移淡入 — AppTabs 切换时新标签入场 */
+@keyframes tabSlideIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Stagger 子项错位进场 — 侧边栏子项依次入场 */
+@keyframes staggerItem {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 进度条完成闪烁 — 100% 填充时的短暂高光 */
+@keyframes progressShine {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 按钮光斑扫过 — 主按钮 hover 时的高光扫过 */
+@keyframes shineSweep {
+  0%   { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+
+/* 按钮光斑扫过（background-position 版本）— 用于 ::after 背景渐变扫光 */
+@keyframes shine-sweep {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* 增强涟漪扩散 — 按钮点击涟漪效果增强版（带阴影扩散） */
+@keyframes rippleExpand {
+  0%   { transform: scale(0); opacity: 0.6; box-shadow: 0 0 0 0 var(--color-primary-alpha-20); }
+  50%  { opacity: 0.3; box-shadow: 0 0 0 10px var(--color-primary-alpha-08); }
+  100% { transform: scale(2.8); opacity: 0; box-shadow: 0 0 0 20px var(--color-primary-alpha-04); }
+}
+
+/* ============================================================
+   四、骨架屏 & Loading 关键帧
+   ============================================================ */
+
+/* 骨架屏闪烁（水平扫光） */
+@keyframes skeleton-loading {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* 旋转 — Spinner/刷新图标 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Loading 圆环旋转 */
+@keyframes loading-rotate {
+  100% { transform: rotate(360deg); }
+}
+
+/* Loading 虚线描边动画 */
+@keyframes loading-dash {
+  0%   { stroke-dasharray: 1, 126; stroke-dashoffset: 0; }
+  50%  { stroke-dasharray: 47, 80; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 47, 80; stroke-dashoffset: -124; }
+}
+
+/* ============================================================
+   五、菜单/面板入场关键帧
+   ============================================================ */
+
+/* 下拉菜单/弹出层入场 */
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-2px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 上下文菜单入场（更轻微） */
+@keyframes ctx-menu-in {
+  from { opacity: 0; transform: translateY(-1px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 滑入 + 展开 — 折叠面板/手风琴
+   ★ 使用 scaleY + opacity 替代 max-height，避免触发 layout 重排，
+   GPU 合成层加速，帧率更稳定 */
+@keyframes slideInExpand {
+  from { opacity: 0; transform: scaleY(0); transform-origin: top; }
+  to   { opacity: 1; transform: scaleY(1); transform-origin: top; }
+}
+
+/* ============================================================
+   六、持续动画关键帧
+   ============================================================ */
+
+/* 缓慢漂移 — 装饰元素/引导图标的缓慢漂浮感（比 float 更轻柔缓慢） */
+@keyframes drift {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25%      { transform: translateY(-4px) rotate(0.5deg); }
+  75%      { transform: translateY(2px) rotate(-0.3deg); }
+}
+
+/* 柔和脉冲 — 在线状态指示器/活跃标记的温和呼吸 */
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.75; transform: scale(1.02); }
+}
+
+/* ============================================================
+   七、退出关键帧
+   ============================================================ */
+
+/* 淡出滑动消失 — 列表项删除/页面元素退场 */
+@keyframes fadeOutSlide {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-8px) scale(0.96); }
+}
+
+/* 缩小消失 — 弹窗关闭/toast 退出 */
+@keyframes scaleOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.92); }
+}
+
+/* 淡出下滑 — 元素退出时向下滑出并淡出 */
+@keyframes fadeOutDown {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(10px); }
+}
+
+/* ============================================================
+   八、页面切换关键帧
+   用于 Vue Router 过渡，配合 <transition> 组件使用
+   ============================================================ */
+
+/* 页面淡入 — 路由切换时的标准入场效果 */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 页面滑入 — 路由切换时的滑动入场效果 */
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 页面退出 — 路由切换时的标准退场效果 */
+@keyframes pageExit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+/* 页面切换淡入 — 应用到主内容区域容器 */
+#main-content > *,
+.content-inner > * {
+  animation: pageEnter 200ms var(--ease-soft);
+}
+
+/* ============================================================
+   企业级微交互关键帧（v14.3 silk-smooth）
+   ============================================================ */
+
+/* 快速悬浮滑动 — 可点击元素 hover 时的微位移 */
+@keyframes hoverSlide {
+  from { transform: translateX(0); }
+  to { transform: translateX(2px); }
+}
+
+/* 焦点环向外扩展 — 输入框聚焦时 3px 软光晕 */
+@keyframes focusExpand {
+  0% { box-shadow: 0 0 0 0 var(--border-focus); }
+  100% { box-shadow: 0 0 0 3px var(--border-focus); }
+}
+
+/* Tab 下划线惯性滑入 */
+@keyframes tabSlide {
+  from { transform: scaleX(0.8); opacity: 0.6; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+/* ============================================================
+   八、动画工具类
+   统一使用 tokens.css 中的时长变量，确保全局一致性
+   ============================================================ */
+
+/* ---- 基础入场工具类 ---- */
+
+/* 淡入 — 最通用的入场动画，适用于大多数元素 */
+.animate-fade-in {
+  animation: fadeIn var(--duration-base) var(--ease-out);
+}
+
+/* 淡入上滑 — 列表项、卡片入场，带方向感 */
+.animate-fade-in-up {
+  animation: fadeInUp var(--duration-slow) var(--ease-out);
+}
+
+/* 缩放淡入 — 弹窗、模态框、下拉菜单入场，带弹性感 */
+.animate-scale-in {
+  animation: scaleIn var(--duration-base) var(--ease-spring);
+}
+
+/* 右侧滑入 — 侧边栏、抽屉面板入场 */
+.animate-slide-in {
+  animation: slideInRight var(--duration-base) var(--ease-out);
+}
+
+/* 底部滑入 — 底部面板、消息条、Toast 入场 */
+.animate-slide-in-bottom {
+  animation: slideInBottom var(--duration-slow) var(--ease-out);
+}
+
+/* 左侧滑入 — 左侧面板、导航菜单入场 */
+.animate-slide-in-left {
+  animation: slideInLeft var(--duration-base) var(--ease-out);
+}
+
+/* 缩放淡入 — 卡片、模态框入场（别名） */
+.animate-fade-in-scale {
+  animation: fadeInScale var(--duration-base) var(--ease-out);
+}
+
+/* 左侧滑入 — 侧面板、抽屉入场（别名） */
+.animate-slide-from-left {
+  animation: slideInFromLeft var(--duration-base) var(--ease-out);
+}
+
+/* ---- 高级入场工具类 ---- */
+
+/* 模糊淡入 — 弹窗、模态框高级入场，带模糊和缩放效果 */
+.animate-fade-in-blur {
+  animation: fadeInBlur var(--duration-slow) var(--ease-out);
+}
+
+/* 交错滑入增强 — 列表项依次入场，带轻微缩放 */
+.animate-slide-stagger {
+  animation: slideInStaggerEnhanced var(--duration-slow) var(--ease-smooth) both;
+}
+
+/* ---- 页面切换动画 ---- */
+
+/* 页面淡入 — 路由切换时的页面入场效果 */
+.animate-page-enter {
+  animation: pageEnter var(--duration-slow) var(--ease-out);
+}
+
+/* 页面滑入 — 路由切换时的页面滑动效果 */
+.animate-page-slide-in {
+  animation: pageSlideIn var(--duration-base) var(--ease-out);
+}
+
+/* ---- 微交互工具类 ---- */
+
+/* 轻柔浮动 — 装饰图标、引导提示的悬浮效果 */
+.animate-float {
+  will-change: transform;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 按压反馈 — 按钮点击时的触觉模拟（150ms 快速响应） */
+.animate-press {
+  animation: pressDown var(--duration-fast) var(--ease-out) both;
+}
+
+/* 形态变换 — 图标切换、状态转换时的柔和变形 */
+.animate-morph {
+  animation: morph var(--duration-base) var(--ease-smooth);
+}
+
+/* 抖动提示 — 表单验证失败、操作受阻时的温和提醒 */
+.animate-shake {
+  animation: gentleShake var(--duration-base) var(--ease-bounce);
+}
+
+/* ---- 反馈动画工具类 ---- */
+
+/* 脉冲 — 加载指示器、在线状态点 */
+.animate-pulse {
+  will-change: opacity;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 呼吸 — 卡片、容器的微妙生命感 */
+.animate-breathe {
+  will-change: transform, opacity;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* 旋转 — Spinner、刷新图标 */
+.animate-spin {
+  will-change: transform;
+  animation: spin 0.8s linear infinite;
+}
+
+/* 发光脉冲 — 强调元素、重要按钮的注意力吸引 */
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* 柔和弹跳 — 列表项添加成功后的轻量反馈 */
+.animate-bounce-soft {
+  animation: bounceSoft 1s ease-in-out infinite;
+}
+
+/* Tab 切换：旧标签下沉 */
+.animate-tab-out {
+  animation: tabSlideOut var(--duration-fast) var(--ease-soft) both;
+}
+
+/* Tab 切换：新标签上移 */
+.animate-tab-in {
+  animation: tabSlideIn var(--duration-base) var(--ease-bounce-soft) both;
+}
+
+/* 侧边栏/子菜单 stagger 进场 */
+.animate-stagger-item {
+  animation: staggerItem var(--duration-base) var(--ease-soft) both;
+}
+
+/* 进度条完成闪烁 */
+.animate-progress-shine {
+  animation: progressShine var(--duration-slow) ease-out;
+}
+
+/* 按钮光斑扫过 */
+.animate-shine-sweep {
+  animation: shineSweep var(--duration-slow) var(--ease-soft);
+}
+
+/* 涟漪扩散 — 按钮点击涟漪效果增强版 */
+.animate-ripple-expand {
+  animation: rippleExpand var(--duration-slow) var(--ease-out) forwards;
+}
+
+/* ---- 持续动画工具类 ---- */
+
+/* 缓慢漂移 — 装饰元素、引导图标的缓慢漂浮感 */
+.animate-drift {
+  will-change: transform;
+  animation: drift 5s ease-in-out infinite;
+}
+
+/* 柔和脉冲 — 在线状态指示器、活跃标记的温和呼吸 */
+.animate-pulse-soft {
+  animation: pulseSoft 2.5s ease-in-out infinite;
+}
+
+/* ---- 退出动画工具类 ---- */
+
+/* 淡出滑动 — 列表项删除、页面元素退场 */
+.animate-fade-out-slide {
+  animation: fadeOutSlide var(--duration-base) var(--ease-in) forwards;
+}
+
+/* 缩小消失 — 弹窗关闭、Toast 退出 */
+.animate-scale-out {
+  animation: scaleOut var(--duration-fast) var(--ease-in) forwards;
+}
+
+/* 页面退出 — 路由切换时的页面退场效果 */
+.animate-page-exit {
+  animation: pageExit var(--duration-fast) var(--ease-in) forwards;
+}
+
+/* ============================================================
+   九、交错入场 Stagger（扩展至 12 项）
+   适用于列表/网格中子元素的依次入场
+   使用 token 变量统一时长，每项间隔 50ms
+   ============================================================ */
+
+/* 通用交错入场 — 列表项依次淡入上滑 */
+.stagger-enter {
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) both;
+}
+.stagger-enter:nth-child(1)  { animation-delay: 0.03s; }
+.stagger-enter:nth-child(2)  { animation-delay: 0.07s; }
+.stagger-enter:nth-child(3)  { animation-delay: 0.11s; }
+.stagger-enter:nth-child(4)  { animation-delay: 0.15s; }
+.stagger-enter:nth-child(5)  { animation-delay: 0.19s; }
+.stagger-enter:nth-child(6)  { animation-delay: 0.23s; }
+.stagger-enter:nth-child(7)  { animation-delay: 0.27s; }
+.stagger-enter:nth-child(8)  { animation-delay: 0.31s; }
+.stagger-enter:nth-child(9)  { animation-delay: 0.35s; }
+.stagger-enter:nth-child(10) { animation-delay: 0.39s; }
+.stagger-enter:nth-child(11) { animation-delay: 0.43s; }
+.stagger-enter:nth-child(12) { animation-delay: 0.47s; }
+
+/* 统计卡片交错入场 — Dashboard 统计卡片专用（4 项） */
+.stat-card {
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) both;
+}
+.stat-card:nth-child(1) { animation-delay: 0.04s; }
+.stat-card:nth-child(2) { animation-delay: 0.09s; }
+.stat-card:nth-child(3) { animation-delay: 0.14s; }
+.stat-card:nth-child(4) { animation-delay: 0.19s; }
+
+/* ============================================================
+   十、骨架屏 shimmer 效果
+   与 SkeletonLoader.vue 和 element-plus-override.css 保持一致
+   ============================================================ */
+.skeleton-box {
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted) 25%,
+    var(--surface-hover) 37%,
+    var(--surface-muted) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmerMove 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   十一、reduced-motion 无障碍降级
+   尊重用户系统偏好设置，为前庭功能障碍用户关闭动画
+   ============================================================ */
+.stagger-enter,
+.stat-card {
+  animation-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 浮动动画改为静态 */
+  .animate-float {
+    animation: none !important;
+  }
+
+  /* 脉冲/呼吸类持续动画停止在最终状态 */
+  .animate-pulse,
+  .animate-breathe,
+  .animate-glow-pulse,
+  .animate-bounce-soft,
+  .animate-spin {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* 新增动画降级 */
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-scale-in,
+  .animate-slide-in,
+  .animate-slide-in-bottom,
+  .animate-slide-in-left,
+  .animate-fade-in-scale,
+  .animate-slide-from-left,
+  .animate-fade-in-blur,
+  .animate-slide-stagger,
+  .animate-morph,
+  .animate-shake,
+  .animate-ripple-expand,
+  .animate-drift,
+  .animate-pulse-soft,
+  .animate-fade-out-slide,
+  .animate-scale-out,
+  .animate-page-enter,
+  .animate-page-slide-in,
+  .animate-page-exit,
+  .animate-tab-out,
+  .animate-tab-in,
+  .animate-stagger-item,
+  .animate-progress-shine,
+  .animate-shine-sweep {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* 骨架屏显示静态背景 */
+  .skeleton-box,
+  .el-skeleton__item {
+    animation: none !important;
+    background: var(--surface-muted);
+  }
+
+  /* 按压反馈保留但极快完成 */
+  .animate-press {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ===== 列表项入场（通用）— 结合 stagger 延迟 ===== */
+
+/* 列表项依次淡入上滑入场 — 配合 stagger-delay-* 使用 */
+@keyframes listItemAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-list-item {
+  animation: listItemAppear 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 卡片/面板入场 */
+.animate-card-enter {
+  animation: fadeInScale 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 骨架屏 shimmer 增强版（更明显的光扫效果） */
+@keyframes shimmerEnhanced {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer-enhanced {
+  background: linear-gradient(
+    90deg,
+    var(--surface-nested) 25%,
+    var(--surface-hover) 37%,
+    var(--surface-nested) 50%
+  );
+  background-size: 200% 100%;
+  animation: shimmerEnhanced 1.6s ease-in-out infinite;
+}
+
+/* Stagger 延迟辅助类 — 最多 12 项 */
+.stagger-delay-1  { animation-delay: 30ms; }
+.stagger-delay-2  { animation-delay: 60ms; }
+.stagger-delay-3  { animation-delay: 90ms; }
+.stagger-delay-4  { animation-delay: 120ms; }
+.stagger-delay-5  { animation-delay: 150ms; }
+.stagger-delay-6  { animation-delay: 180ms; }
+.stagger-delay-7  { animation-delay: 210ms; }
+.stagger-delay-8  { animation-delay: 240ms; }
+.stagger-delay-9  { animation-delay: 270ms; }
+.stagger-delay-10 { animation-delay: 300ms; }
+.stagger-delay-11 { animation-delay: 330ms; }
+.stagger-delay-12 { animation-delay: 360ms; }
