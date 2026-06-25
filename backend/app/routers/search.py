@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Query
-from typing import Optional
 from sqlalchemy import select, or_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -19,6 +18,7 @@ from app.services.permission_service import check_read_access
 from app.limiter import limiter
 from fastapi import Request
 from app.utils.response import success
+from datetime import UTC
 
 router = APIRouter(prefix="/projects/{project_id}/search", tags=["Global Search"])
 
@@ -31,7 +31,7 @@ PER_GROUP_LIMIT = 5
 async def global_search(
     project_id: int,
     keyword: str = Query(..., min_length=1),
-    type: Optional[str] = Query(None, description="过滤类型: api/case/scene/report/mock_rule/environment"),
+    type: str | None = Query(None, description="过滤类型: api/case/scene/report/mock_rule/environment"),
     include_deleted: bool = Query(False, description="是否包含已删除的资源"),
     request: Request = None,
     current_user: User | None = Depends(get_optional_user),
@@ -200,8 +200,8 @@ async def save_search_history(
     )
     record = existing.scalar_one_or_none()
     if record:
-        from datetime import datetime, timezone
-        record.created_at = datetime.now(timezone.utc)
+        from datetime import datetime
+        record.created_at = datetime.now(UTC)
     else:
         db.add(SearchHistory(user_id=current_user.id, query=q))
     await db.flush()

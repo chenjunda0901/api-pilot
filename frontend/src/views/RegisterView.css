@@ -264,15 +264,13 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: stretch;
+  align-items: center;
 }
 
-/* 表单包裹容器 — 居中布局 */
-.register-right > * {
+/* 表单包裹容器 — 居中布局，最大宽度 420px */
+.form-wrapper {
   width: 100%;
   max-width: 420px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* 表单头部 */
@@ -398,7 +396,7 @@
     width var(--duration-base) var(--ease-smooth),
     background-color var(--duration-base) var(--ease-smooth);
 }
-.password-strength-bar-fill.level-1 { background: var(--danger-500); width: 33%; }
+.password-strength-bar-fill.level-1 { background: var(--error-500); width: 33%; }
 .password-strength-bar-fill.level-2 { background: var(--warning-500); width: 66%; }
 .password-strength-bar-fill.level-3 { background: var(--success-500); width: 100%; }
 .password-strength-text {
@@ -409,7 +407,7 @@
   text-align: right;
   font-weight: var(--weight-medium);
 }
-.password-strength-text.text-level-1 { color: var(--danger-500); }
+.password-strength-text.text-level-1 { color: var(--error-500); }
 .password-strength-text.text-level-2 { color: var(--warning-500); }
 .password-strength-text.text-level-3 { color: var(--success-500); }
 
@@ -697,7 +695,7 @@ html.dark .password-strength-bar {
 html.dark .password-strength-text {
   color: var(--text-muted);
 }
-html.dark .password-strength-text.text-level-1 { color: var(--danger-400); }
+html.dark .password-strength-text.text-level-1 { color: var(--error-400); }
 html.dark .password-strength-text.text-level-2 { color: var(--warning-400); }
 html.dark .password-strength-text.text-level-3 { color: var(--success-400); }
 
@@ -718,6 +716,11 @@ html.dark .form-message.is-info {
 }
 
 /* ===== 响应式 ===== */
+
+/* 移动端键盘弹出时的布局调整 */
+.mobile-keyboard-open .register-card {
+  transform: translateY(-20px);
+}
 
 @media (max-width: 768px) {
   .register-page {

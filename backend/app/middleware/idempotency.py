@@ -14,13 +14,13 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from app.services.idempotency import IdempotencyStore, default_store
+from app.services.idempotency import IdempotencyError, IdempotencyStore, default_store
 
 logger = logging.getLogger("api_pilot.idempotency")
 
@@ -47,6 +47,7 @@ def _fingerprint_request(method: str, path: str, body: bytes) -> str:
 def _is_idempotency_enabled() -> bool:
     """环境变量控制：默认开。设置 ``DISABLE_IDEMPOTENCY=1`` 可关闭。"""
     import os
+
     return os.getenv("DISABLE_IDEMPOTENCY", "0").lower() not in ("1", "true", "yes")
 
 
@@ -84,26 +85,28 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         body = await request.body()
         fingerprint = _fingerprint_request(request.method, request.url.path, body)
 
-        # 命中：检查 fingerprint 是否一致
-        cached = await self.store.aget(key)
-        if cached is not None:
-            cached_hash = cached.get("fingerprint", "")
+        # 原子检查并设置（防止 TOCTOU 竞态）
+        try:
+            is_new, cached = await self.store.aget_or_set(key, fingerprint)
+        except IdempotencyError:
+            # 同一 key 关联不同 body：拒绝
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "code": "2004",
+                    "message": "Idempotency-Key 已被其他请求使用",
+                    "suggestion": "请使用新的 Idempotency-Key，或保持请求体一致",
+                    "category": "resource",
+                    "detail": "key fingerprint mismatch",
+                },
+            )
+
+        if not is_new and cached is not None:
+            # 命中且一致：直接重放
             cached_status = cached.get("status_code", 200)
             cached_body_bytes = cached.get("body", b"")
             cached_content_type = cached.get("content_type", "application/json")
-            if cached_hash != fingerprint:
-                # 同一 key 关联不同 body：拒绝
-                return JSONResponse(
-                    status_code=409,
-                    content={
-                        "code": "2004",
-                        "message": "Idempotency-Key 已被其他请求使用",
-                        "suggestion": "请使用新的 Idempotency-Key，或保持请求体一致",
-                        "category": "resource",
-                        "detail": "key fingerprint mismatch",
-                    },
-                )
-            # 命中且一致：直接重放
+            cached_hash = cached.get("fingerprint", "")
             logger.info("Idempotency replay key=%s status=%d", key[:16], cached_status)
             headers = {
                 REPLAY_HEADER: "true",
@@ -116,7 +119,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 media_type=cached_content_type,
             )
 
-        # 未命中：执行请求
+        # 未命中（is_new=True）：执行请求
         # 把 body 放回 receive stream，使下游能再次读取
         async def receive() -> dict:
             return {"type": "http.request", "body": body, "more_body": False}
@@ -150,7 +153,11 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             return Response(
                 content=resp_body,
                 status_code=response.status_code,
-                headers={**dict(response.headers), REPLAY_HEADER: "false", HASH_HEADER: fingerprint},
+                headers={
+                    **dict(response.headers),
+                    REPLAY_HEADER: "false",
+                    HASH_HEADER: fingerprint,
+                },
                 media_type=content_type,
             )
 

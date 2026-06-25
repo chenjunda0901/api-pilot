@@ -1,7 +1,7 @@
 """5 层作用域变量路由。"""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
@@ -31,8 +31,8 @@ logger = logging.getLogger("api_pilot.routers.variables")
 
 
 async def _resolve_project_id(
-    db: AsyncSession, scope: str, scope_id: Optional[int]
-) -> Optional[int]:
+    db: AsyncSession, scope: str, scope_id: int | None
+) -> int | None:
     """从变量的 scope/scope_id 解析出 project_id。"""
     if scope == "project":
         return scope_id
@@ -124,24 +124,16 @@ def _to_dict(v: Variable) -> dict:
 @router.get("", summary="变量列表")
 async def list_variables(
     project_id: int = Query(..., ge=1),
-    scope: Optional[str] = Query(None, description="global / project / env / case"),
-    scope_id: Optional[int] = Query(None, ge=1),
+    scope: str | None = Query(None, description="global / project / env / case"),
+    scope_id: int | None = Query(None, ge=1),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
 ):
     await require_project_access(db, project_id, current_user, require_write=False)
-    query = select(Variable).where(
-        Variable.scope == "project", Variable.scope_id == project_id
-    )
-    count_q = select(func.count(Variable.id)).where(
-        Variable.scope == "project", Variable.scope_id == project_id
-    )
-    if scope:
-        query = query.where(Variable.scope == scope)
-        count_q = count_q.where(Variable.scope == scope)
-    if scope_id is not None:
+    # 根据 scope/scope_id 动态构建查询，不硬编码 scope == "project"
+    if scope and scope_id is not None:
         # 验证 scope_id 属于当前项目，防止跨项目泄漏
         if scope == "env":
             env_exists = await db.execute(
@@ -159,8 +151,23 @@ async def list_variables(
             )
             if not case_exists.scalar():
                 raise_biz(ErrorCodes.PARAM_ERROR, f"用例 {scope_id} 不属于当前项目")
-        query = query.where(Variable.scope_id == scope_id)
-        count_q = count_q.where(Variable.scope_id == scope_id)
+        query = select(Variable).where(
+            Variable.scope == scope, Variable.scope_id == scope_id
+        )
+        count_q = select(func.count(Variable.id)).where(
+            Variable.scope == scope, Variable.scope_id == scope_id
+        )
+    else:
+        # 默认返回项目级变量
+        query = select(Variable).where(
+            Variable.scope == "project", Variable.scope_id == project_id
+        )
+        count_q = select(func.count(Variable.id)).where(
+            Variable.scope == "project", Variable.scope_id == project_id
+        )
+        if scope:
+            query = query.where(Variable.scope == scope)
+            count_q = count_q.where(Variable.scope == scope)
     total = await db.scalar(count_q) or 0
     result = await db.execute(
         query.order_by(Variable.scope, Variable.name)
@@ -361,20 +368,25 @@ async def resolve_variable(
 @router.get("/export", summary="导出变量（JSON）")
 async def export_variables(
     project_id: int = Query(..., ge=1),
-    scope: Optional[str] = Query(None),
-    scope_id: Optional[int] = Query(None, ge=1),
-    current_user: Optional[User] = Depends(get_optional_user),
+    scope: str | None = Query(None),
+    scope_id: int | None = Query(None, ge=1),
+    current_user: User | None = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
 ):
     """导出变量为 JSON；secret 标记 + 占位符（不导出明文）。"""
     await require_project_access(db, project_id, current_user, require_write=False)
-    query = select(Variable).where(
-        Variable.scope == "project", Variable.scope_id == project_id
-    )
-    if scope:
-        query = query.where(Variable.scope == scope)
-    if scope_id is not None:
-        query = query.where(Variable.scope_id == scope_id)
+    if scope and scope_id is not None:
+        query = select(Variable).where(
+            Variable.scope == scope, Variable.scope_id == scope_id
+        )
+    else:
+        query = select(Variable).where(
+            Variable.scope == "project", Variable.scope_id == project_id
+        )
+        if scope:
+            query = query.where(Variable.scope == scope)
+        if scope_id is not None:
+            query = query.where(Variable.scope_id == scope_id)
     result = await db.execute(query)
     items = []
     for v in result.scalars().all():

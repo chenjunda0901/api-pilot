@@ -3,7 +3,7 @@
 提供项目成员权限的查询和修改API。
 """
 import json
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Query
 from sqlalchemy import select
@@ -105,7 +105,7 @@ async def get_user_permissions(
 async def update_user_permissions(
     project_id: int,
     user_id: int,
-    permissions: Dict[str, Any] = Body(..., description="权限配置"),
+    permissions: dict[str, Any] = Body(..., description="权限配置"),
     current_user: User = Depends(get_current_user),
     _project: Project = Depends(check_write_access),
     db: AsyncSession = Depends(get_db),

@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -33,7 +32,7 @@ class Comment(Base):
         nullable=False, index=True,
     )
     content_md: Mapped[str] = mapped_column(Text, nullable=False)
-    mentions_json: Mapped[Optional[str]] = mapped_column(
+    mentions_json: Mapped[str | None] = mapped_column(
         Text, nullable=True,
         comment='例如: {"user_ids":[1,2]}',
     )
@@ -41,7 +40,7 @@ class Comment(Base):
         String(20), default="open", nullable=False,
         comment="枚举: open / resolved",
     )
-    parent_id: Mapped[Optional[int]] = mapped_column(
+    parent_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("comments.id", ondelete="CASCADE", use_alter=True),
         nullable=True, index=True,

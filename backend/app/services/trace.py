@@ -16,7 +16,8 @@ import functools
 import logging
 import uuid
 from contextvars import ContextVar, Token
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
+from collections.abc import Callable
 
 logger = logging.getLogger("service.trace")
 

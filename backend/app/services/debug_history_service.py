@@ -1,4 +1,3 @@
-from typing import Optional
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +12,7 @@ class DebugHistoryService:
                      method: str, duration_ms: int,
                      request_headers: str = "[]",
                      request_body: str = "",
-                     response_status: Optional[int] = None,
+                     response_status: int | None = None,
                      response_headers: str = "[]",
                      response_body: str = "") -> DebugHistory:
         entry = DebugHistory(
@@ -53,7 +52,7 @@ class DebugHistoryService:
         )
         await self.db.execute(stmt)
 
-    async def get(self, history_id: int) -> Optional[DebugHistory]:
+    async def get(self, history_id: int) -> DebugHistory | None:
         stmt = select(DebugHistory).where(DebugHistory.id == history_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()

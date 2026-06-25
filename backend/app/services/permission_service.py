@@ -1,4 +1,3 @@
-from typing import Optional
 import logging
 
 from fastapi import Depends
@@ -39,7 +38,7 @@ class PermissionService:
         self.db = db
 
     async def check_project_access(
-        self, project_id: int, user: Optional[User], require_write: bool = False
+        self, project_id: int, user: User | None, require_write: bool = False
     ) -> Project:
         """检查用户对项目的访问权限。
 
@@ -120,7 +119,7 @@ class PermissionService:
 
     async def check_project_member(
         self, project_id: int, user: User, require_role: str = "viewer"
-    ) -> Optional[ProjectMember]:
+    ) -> ProjectMember | None:
         """检查用户是否是项目成员并且满足角色要求。"""
         if user.role == "admin":
             return ProjectMember(project_id=project_id, user_id=user.id, role="admin")
@@ -139,7 +138,7 @@ class PermissionService:
         user_level = self.ROLE_LEVELS.get(member.role, 0)
         return member if user_level >= required_level else None
 
-    async def get_project_role(self, project_id: int, user: User) -> Optional[str]:
+    async def get_project_role(self, project_id: int, user: User) -> str | None:
         """获取用户在项目中的角色。"""
         if user.role == "admin":
             return "admin"
@@ -161,7 +160,7 @@ async def require_project_access(
 
 async def check_read_access(
     project_id: int,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
 ) -> Project:
     """FastAPI dependency for project read access."""
@@ -194,7 +193,7 @@ async def check_seed_mark_access(
     return await PermissionService(db).check_project_access(project_id, current_user, require_write=True)
 
 
-async def check_seed_template_readonly(project: Optional[Project], method: str) -> None:
+async def check_seed_template_readonly(project: Project | None, method: str) -> None:
     """种子项目（global_demo=1）写操作守卫（独立函数版）。
 
     通常由 check_project_access 内置调用；如下游路由不经过

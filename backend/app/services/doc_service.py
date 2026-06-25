@@ -3,7 +3,7 @@
 import json
 import secrets
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -66,7 +66,7 @@ class DocService:
 
         expires_at = None
         if expires_in_days > 0:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=expires_in_days)
+            expires_at = datetime.now(UTC) + timedelta(days=expires_in_days)
 
         doc = ApiDocument(
             project_id=project_id,
@@ -97,7 +97,7 @@ class DocService:
             raise_biz(ErrorCodes.DOC_NOT_FOUND, "文档不存在或已失效")
 
         # 检查过期
-        if doc.expires_at and datetime.now(timezone.utc) > doc.expires_at.replace(tzinfo=timezone.utc):
+        if doc.expires_at and datetime.now(UTC) > doc.expires_at.replace(tzinfo=UTC):
             raise_biz(ErrorCodes.DOC_EXPIRED, "文档已过期")
 
         # 密码验证

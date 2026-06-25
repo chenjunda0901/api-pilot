@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from typing import Any
 
 from sqlalchemy import select
@@ -194,7 +194,7 @@ class MetricsCollector:
             from app.models.metrics_snapshot import MetricsSnapshot
         except ImportError as exc:  # pragma: no cover
             raise MetricsError("无法加载 MetricsSnapshot 模型") from exc
-        threshold = datetime.now(timezone.utc) - timedelta(days=days)
+        threshold = datetime.now(UTC) - timedelta(days=days)
         q = (
             select(MetricsSnapshot)
             .where(
@@ -248,7 +248,7 @@ class MetricsCollector:
             from app.models.metrics_snapshot import MetricsSnapshot
         except ImportError as exc:  # pragma: no cover
             raise MetricsError("无法加载 MetricsSnapshot 模型") from exc
-        threshold = datetime.now(timezone.utc) - timedelta(days=days)
+        threshold = datetime.now(UTC) - timedelta(days=days)
         q = select(MetricsSnapshot.value).where(
             MetricsSnapshot.scope == scope,
             MetricsSnapshot.scope_id == scope_id,

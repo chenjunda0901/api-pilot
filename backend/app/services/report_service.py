@@ -1,8 +1,7 @@
 import logging
 import secrets
 
-from typing import Optional
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from sqlalchemy import select, func, delete as sa_delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,29 +22,48 @@ class ReportService:
 
     def to_dict(self, r: TestReport, scene_name: str = "", env_name: str = "") -> dict:
         return {
-            "id": r.id, "project_id": r.project_id, "name": r.name, "scene_id": r.scene_id,
-            "environment_id": r.environment_id, "status": r.status,
-            "pass_count": r.pass_count, "fail_count": r.fail_count,
-            "skip_count": r.skip_count, "total_count": r.total_count,
-            "duration": r.duration, "executor_id": r.executor_id,
+            "id": r.id,
+            "project_id": r.project_id,
+            "name": r.name,
+            "scene_id": r.scene_id,
+            "environment_id": r.environment_id,
+            "status": r.status,
+            "pass_count": r.pass_count,
+            "fail_count": r.fail_count,
+            "skip_count": r.skip_count,
+            "total_count": r.total_count,
+            "duration": r.duration,
+            "executor_id": r.executor_id,
             "created_at": str(r.created_at),
-            "scene_name": scene_name, "env_name": env_name,
+            "scene_name": scene_name,
+            "env_name": env_name,
             "share_token": r.share_token or "",
         }
 
     async def get(self, report_id: int) -> TestReport:
-        result = await self.db.execute(select(TestReport).where(TestReport.id == report_id))
+        result = await self.db.execute(
+            select(TestReport).where(TestReport.id == report_id)
+        )
         r = result.scalar_one_or_none()
         if not r:
             raise_biz(ErrorCodes.REPORT_NOT_FOUND)
         return r
 
-    async def list(self, project_id: int, scene_id: Optional[int] = None,
-                   status: Optional[str] = None, start_date: Optional[str] = None,
-                   end_date: Optional[str] = None, keyword: Optional[str] = None,
-                   page: int = 1, page_size: int = 20) -> tuple:
+    async def list(
+        self,
+        project_id: int,
+        scene_id: int | None = None,
+        status: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        keyword: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple:
         query = select(TestReport).where(TestReport.project_id == project_id)
-        count_query = select(func.count(TestReport.id)).where(TestReport.project_id == project_id)
+        count_query = select(func.count(TestReport.id)).where(
+            TestReport.project_id == project_id
+        )
         if scene_id:
             query = query.where(TestReport.scene_id == scene_id)
             count_query = count_query.where(TestReport.scene_id == scene_id)
@@ -73,7 +91,10 @@ class ReportService:
             count_query = count_query.where(or_(*conditions))
         total = await self.db.scalar(count_query) or 0
         result = await self.db.execute(
-            query.order_by(TestReport.id.desc()).offset((page-1)*page_size).limit(page_size))
+            query.order_by(TestReport.id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
         reports = result.scalars().all()
 
         # 批量获取场景名称和环境名称
@@ -82,20 +103,34 @@ class ReportService:
         scene_map: dict[int, str] = {}
         env_map: dict[int, str] = {}
         if scene_ids:
-            s_res = await self.db.execute(select(TestScene.id, TestScene.name).where(TestScene.id.in_(scene_ids)))
+            s_res = await self.db.execute(
+                select(TestScene.id, TestScene.name).where(TestScene.id.in_(scene_ids))
+            )
             scene_map = dict(s_res.all())
         if env_ids:
-            e_res = await self.db.execute(select(Environment.id, Environment.name).where(Environment.id.in_(env_ids)))
+            e_res = await self.db.execute(
+                select(Environment.id, Environment.name).where(
+                    Environment.id.in_(env_ids)
+                )
+            )
             env_map = dict(e_res.all())
 
-        return [self.to_dict(r, scene_map.get(r.scene_id, ""), env_map.get(r.environment_id, "")) for r in reports], total
+        return [
+            self.to_dict(
+                r, scene_map.get(r.scene_id, ""), env_map.get(r.environment_id, "")
+            )
+            for r in reports
+        ], total
 
     async def get_detail(self, report_id: int) -> dict:
         r = await self.get(report_id)
         from app.models.scene_step import SceneStep
 
         steps_result = await self.db.execute(
-            select(ReportStep).where(ReportStep.report_id == report_id).order_by(ReportStep.sort_order))
+            select(ReportStep)
+            .where(ReportStep.report_id == report_id)
+            .order_by(ReportStep.sort_order)
+        )
         report_steps = steps_result.scalars().all()
 
         # 批量加载关联的 SceneStep 获取 label
@@ -103,7 +138,8 @@ class ReportService:
         scene_steps_map = {}
         if step_ids:
             ss_result = await self.db.execute(
-                select(SceneStep).where(SceneStep.id.in_(step_ids)))
+                select(SceneStep).where(SceneStep.id.in_(step_ids))
+            )
             for ss in ss_result.scalars().all():
                 scene_steps_map[ss.id] = ss.label or ""
 
@@ -115,21 +151,34 @@ class ReportService:
             if missing:
                 logger.warning(
                     "步骤 #%d (report_id=%s) 缺少必需字段: %s，已跳过",
-                    idx, report_id, ", ".join(missing),
+                    idx,
+                    report_id,
+                    ", ".join(missing),
                 )
                 continue
-            steps.append({
-                "id": s.id, "report_id": s.report_id, "scene_step_id": s.scene_step_id,
-                "api_id": s.api_id, "sort_order": s.sort_order, "status": s.status,
-                "duration": s.duration, "request_url": s.request_url,
-                "request_method": s.request_method, "request_headers": s.request_headers,
-                "request_body": s.request_body, "response_status": s.response_status,
-                "response_headers": s.response_headers, "response_body": s.response_body,
-                "assertions": safe_json_load(s.assertions, []), "error_message": s.error_message,
-                "label": scene_steps_map.get(s.scene_step_id, ""),
-                "script_output": s.script_output,
-                "script_error": s.script_error,
-            })
+            steps.append(
+                {
+                    "id": s.id,
+                    "report_id": s.report_id,
+                    "scene_step_id": s.scene_step_id,
+                    "api_id": s.api_id,
+                    "sort_order": s.sort_order,
+                    "status": s.status,
+                    "duration": s.duration,
+                    "request_url": s.request_url,
+                    "request_method": s.request_method,
+                    "request_headers": s.request_headers,
+                    "request_body": s.request_body,
+                    "response_status": s.response_status,
+                    "response_headers": s.response_headers,
+                    "response_body": s.response_body,
+                    "assertions": safe_json_load(s.assertions, []),
+                    "error_message": s.error_message,
+                    "label": scene_steps_map.get(s.scene_step_id, ""),
+                    "script_output": s.script_output,
+                    "script_error": s.script_error,
+                }
+            )
 
         # 根据实际 steps 重新计算统计数据，确保与步骤列表始终一致
         actual_pass = sum(1 for s in steps if s["status"] == "success")
@@ -138,16 +187,24 @@ class ReportService:
         actual_total = len(steps)
 
         # 如果数据库聚合值与实际不一致，修正报告记录并记录日志
-        if (r.pass_count != actual_pass or r.fail_count != actual_fail
-                or r.skip_count != actual_skip or r.total_count != actual_total):
+        if (
+            r.pass_count != actual_pass
+            or r.fail_count != actual_fail
+            or r.skip_count != actual_skip
+            or r.total_count != actual_total
+        ):
             logger.info(
                 "报告 #%d 统计数据不一致，已自动修正: "
                 "pass_count %d→%d, fail_count %d→%d, skip_count %d→%d, total_count %d→%d",
                 report_id,
-                r.pass_count, actual_pass,
-                r.fail_count, actual_fail,
-                r.skip_count, actual_skip,
-                r.total_count, actual_total,
+                r.pass_count,
+                actual_pass,
+                r.fail_count,
+                actual_fail,
+                r.skip_count,
+                actual_skip,
+                r.total_count,
+                actual_total,
             )
             r.pass_count = actual_pass
             r.fail_count = actual_fail
@@ -178,26 +235,36 @@ class ReportService:
         return {**result, "steps": steps, "stress_metrics": metrics}
 
     async def create_share_token(
-        self, report_id: int, expires_in_days: Optional[int] = 7, password: Optional[str] = None
+        self,
+        report_id: int,
+        expires_in_days: int | None = 7,
+        password: str | None = None,
     ) -> str:
         r = await self.get(report_id)
         token = secrets.token_urlsafe(32)
         r.share_token = token
         r.share_enabled = 1
         if expires_in_days is not None and expires_in_days > 0:
-            r.share_token_expire_at = datetime.now(timezone.utc) + timedelta(days=expires_in_days)
+            r.share_token_expire_at = datetime.now(UTC) + timedelta(
+                days=expires_in_days
+            )
         else:
             r.share_token_expire_at = None
         if password:
             import hashlib
-            r.share_password = hashlib.sha256(password.encode()).hexdigest()
+
+            salt = secrets.token_hex(16)
+            dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100000)
+            r.share_password = f"pbkdf2:sha256:100000:{salt}:{dk.hex()}"
         else:
             r.share_password = None
         await self.db.flush()
         return token
 
     async def get_by_share_token(self, token: str) -> dict:
-        result = await self.db.execute(select(TestReport).where(TestReport.share_token == token))
+        result = await self.db.execute(
+            select(TestReport).where(TestReport.share_token == token)
+        )
         r = result.scalar_one_or_none()
         if not r:
             raise_biz(ErrorCodes.REPORT_LINK_INVALID)
@@ -208,7 +275,7 @@ class ReportService:
         r.share_token = None
         await self.db.flush()
 
-    async def compare(self, report_id: int, compare_with: Optional[int] = None) -> dict:
+    async def compare(self, report_id: int, compare_with: int | None = None) -> dict:
         """增强版报告对比：支持指定对比报告，提供详细的对比分析
 
         Args:
@@ -231,7 +298,7 @@ class ReportService:
                 "current": current_detail,
                 "previous": None,
                 "comparison": None,
-                "message": "当前报告无步骤数据，无法进行对比"
+                "message": "当前报告无步骤数据，无法进行对比",
             }
 
         # 确定对比报告
@@ -239,17 +306,18 @@ class ReportService:
         if not prev_report_id:
             # 自动查找上一个报告
             result = await self.db.execute(
-                select(TestReport).where(
-                    TestReport.scene_id == r.scene_id,
-                    TestReport.id < report_id
-                ).order_by(TestReport.id.desc()).limit(1))
+                select(TestReport)
+                .where(TestReport.scene_id == r.scene_id, TestReport.id < report_id)
+                .order_by(TestReport.id.desc())
+                .limit(1)
+            )
             prev = result.scalar_one_or_none()
             if not prev:
                 return {
                     "current": current_detail,
                     "previous": None,
                     "comparison": None,
-                    "message": "未找到对比报告"
+                    "message": "未找到对比报告",
                 }
             prev_report_id = prev.id
 
@@ -262,7 +330,7 @@ class ReportService:
                 "current": current_detail,
                 "previous": None,
                 "comparison": None,
-                "message": f"对比报告 #{prev_report_id} 不存在或无法访问"
+                "message": f"对比报告 #{prev_report_id} 不存在或无法访问",
             }
 
         # 检查对比报告是否有步骤数据
@@ -271,7 +339,7 @@ class ReportService:
                 "current": current_detail,
                 "previous": prev_detail,
                 "comparison": None,
-                "message": "对比报告无步骤数据，无法进行对比"
+                "message": "对比报告无步骤数据，无法进行对比",
             }
 
         # 执行对比分析
@@ -299,7 +367,11 @@ class ReportService:
             "fail": current.get("fail_count", 0),
             "skip": current.get("skip_count", 0),
             "duration": current.get("duration", 0),
-            "pass_rate": (current.get("pass_count", 0) / current.get("total_count", 1) * 100) if current.get("total_count", 0) > 0 else 0,
+            "pass_rate": (
+                current.get("pass_count", 0) / current.get("total_count", 1) * 100
+            )
+            if current.get("total_count", 0) > 0
+            else 0,
         }
         previous_stats = {
             "total": previous.get("total_count", 0),
@@ -307,7 +379,11 @@ class ReportService:
             "fail": previous.get("fail_count", 0),
             "skip": previous.get("skip_count", 0),
             "duration": previous.get("duration", 0),
-            "pass_rate": (previous.get("pass_count", 0) / previous.get("total_count", 1) * 100) if previous.get("total_count", 0) > 0 else 0,
+            "pass_rate": (
+                previous.get("pass_count", 0) / previous.get("total_count", 1) * 100
+            )
+            if previous.get("total_count", 0) > 0
+            else 0,
         }
 
         # 计算变化
@@ -316,17 +392,28 @@ class ReportService:
             "pass_change": current_stats["pass"] - previous_stats["pass"],
             "fail_change": current_stats["fail"] - previous_stats["fail"],
             "skip_change": current_stats["skip"] - previous_stats["skip"],
-            "duration_change": round(current_stats["duration"] - previous_stats["duration"], 3),
-            "pass_rate_change": round(current_stats["pass_rate"] - previous_stats["pass_rate"], 2),
-            "pass_rate_trend": "improved" if current_stats["pass_rate"] > previous_stats["pass_rate"] else
-                             "declined" if current_stats["pass_rate"] < previous_stats["pass_rate"] else "unchanged",
+            "duration_change": round(
+                current_stats["duration"] - previous_stats["duration"], 3
+            ),
+            "pass_rate_change": round(
+                current_stats["pass_rate"] - previous_stats["pass_rate"], 2
+            ),
+            "pass_rate_trend": "improved"
+            if current_stats["pass_rate"] > previous_stats["pass_rate"]
+            else "declined"
+            if current_stats["pass_rate"] < previous_stats["pass_rate"]
+            else "unchanged",
         }
 
         # 2. 步骤级对比
-        current_steps = {s.get("label", f"步骤{s.get('sort_order', '')}"): s
-                        for s in current.get("steps", [])}
-        previous_steps = {s.get("label", f"步骤{s.get('sort_order', '')}"): s
-                         for s in previous.get("steps", [])}
+        current_steps = {
+            s.get("label", f"步骤{s.get('sort_order', '')}"): s
+            for s in current.get("steps", [])
+        }
+        previous_steps = {
+            s.get("label", f"步骤{s.get('sort_order', '')}"): s
+            for s in previous.get("steps", [])
+        }
 
         all_step_labels = set(current_steps.keys()) | set(previous_steps.keys())
 
@@ -340,20 +427,24 @@ class ReportService:
 
             if curr and not prev:
                 # 新增步骤
-                step_comparisons.append({
-                    "label": label,
-                    "change_type": "added",
-                    "current_status": curr.get("status"),
-                    "previous_status": None,
-                })
+                step_comparisons.append(
+                    {
+                        "label": label,
+                        "change_type": "added",
+                        "current_status": curr.get("status"),
+                        "previous_status": None,
+                    }
+                )
             elif not curr and prev:
                 # 删除步骤
-                step_comparisons.append({
-                    "label": label,
-                    "change_type": "removed",
-                    "current_status": None,
-                    "previous_status": prev.get("status"),
-                })
+                step_comparisons.append(
+                    {
+                        "label": label,
+                        "change_type": "removed",
+                        "current_status": None,
+                        "previous_status": prev.get("status"),
+                    }
+                )
             else:
                 # 步骤存在，对比状态
                 curr_status = curr.get("status") if curr else None
@@ -368,22 +459,29 @@ class ReportService:
                 else:
                     change_type = "unchanged"
 
-                step_comparisons.append({
-                    "label": label,
-                    "change_type": change_type,
-                    "current_status": curr_status,
-                    "previous_status": prev_status,
-                    "duration_change": round(
-                        (curr.get("duration", 0) if curr else 0) -
-                        (prev.get("duration", 0) if prev else 0), 3
-                    ),
-                })
+                step_comparisons.append(
+                    {
+                        "label": label,
+                        "change_type": change_type,
+                        "current_status": curr_status,
+                        "previous_status": prev_status,
+                        "duration_change": round(
+                            (curr.get("duration", 0) if curr else 0)
+                            - (prev.get("duration", 0) if prev else 0),
+                            3,
+                        ),
+                    }
+                )
 
         # 3. 稳定性评估
-        stability_score = self._calculate_stability_score(current_stats, previous_stats, stats_comparison)
+        stability_score = self._calculate_stability_score(
+            current_stats, previous_stats, stats_comparison
+        )
 
         # 4. 总结
-        summary = self._generate_summary(stats_comparison, new_failed_steps, fixed_steps, stability_score)
+        summary = self._generate_summary(
+            stats_comparison, new_failed_steps, fixed_steps, stability_score
+        )
 
         return {
             "stats_comparison": stats_comparison,
@@ -396,7 +494,9 @@ class ReportService:
             "summary": summary,
         }
 
-    def _calculate_stability_score(self, current: dict, previous: dict, comparison: dict) -> int:
+    def _calculate_stability_score(
+        self, current: dict, previous: dict, comparison: dict
+    ) -> int:
         """计算稳定性评分 (0-100)
 
         评分维度：
@@ -421,7 +521,9 @@ class ReportService:
 
         # 耗时稳定性
         if previous["duration"] > 0:
-            duration_change_pct = abs(comparison["duration_change"]) / previous["duration"] * 100
+            duration_change_pct = (
+                abs(comparison["duration_change"]) / previous["duration"] * 100
+            )
             if duration_change_pct > 50:
                 score -= 20
             elif duration_change_pct > 20:
@@ -429,7 +531,9 @@ class ReportService:
 
         return max(0, min(100, score))
 
-    def _generate_summary(self, comparison: dict, new_failed: list, fixed: list, stability_score: int) -> str:
+    def _generate_summary(
+        self, comparison: dict, new_failed: list, fixed: list, stability_score: int
+    ) -> str:
         """生成人类可读的对比总结"""
         parts = []
 
@@ -464,18 +568,25 @@ class ReportService:
 
     async def delete(self, report_id: int):
         r = await self.get(report_id)
-        await self.db.execute(sa_delete(ReportStep).where(ReportStep.report_id == report_id))
+        await self.db.execute(
+            sa_delete(ReportStep).where(ReportStep.report_id == report_id)
+        )
         await self.db.delete(r)
         await self.db.flush()
 
     async def clean_old(self, days: int):
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         result = await self.db.execute(
-            select(TestReport.id).where(TestReport.created_at < cutoff))
+            select(TestReport.id).where(TestReport.created_at < cutoff)
+        )
         old_ids = [row[0] for row in result.fetchall()]
         if old_ids:
-            await self.db.execute(sa_delete(ReportStep).where(ReportStep.report_id.in_(old_ids)))
-            await self.db.execute(sa_delete(TestReport).where(TestReport.id.in_(old_ids)))
+            await self.db.execute(
+                sa_delete(ReportStep).where(ReportStep.report_id.in_(old_ids))
+            )
+            await self.db.execute(
+                sa_delete(TestReport).where(TestReport.id.in_(old_ids))
+            )
             await self.db.flush()
             logger.info(f"Cleaned {len(old_ids)} old reports")
 

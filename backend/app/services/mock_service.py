@@ -6,7 +6,6 @@ import logging
 import re
 import time
 from functools import lru_cache
-from typing import Optional, List
 
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import raise_biz, ErrorCodes
 from app.models.mock_rule import MockRule
 from app.utils.json_helpers import safe_json_load
+import builtins
 
 logger = logging.getLogger("mock")
 
@@ -115,7 +115,7 @@ class MockService:
         return rule
 
     @staticmethod
-    def _serialize_conditions(conditions) -> Optional[str]:
+    def _serialize_conditions(conditions) -> str | None:
         """把 Pydantic 列表 / dict 列表统一序列化为 JSON 字符串。"""
         if not conditions:
             return None
@@ -139,7 +139,7 @@ class MockService:
         )
 
     async def match(self, project_id: int, method: str, path: str,
-                    request_data: dict | None = None) -> Optional[MockRule]:
+                    request_data: dict | None = None) -> MockRule | None:
         """按优先级匹配 Mock 规则，支持条件过滤"""
         result = await self.db.execute(
             select(MockRule).where(
@@ -361,7 +361,7 @@ class MockService:
         await self.db.refresh(rule)
         return rule
 
-    async def batch_generate_from_apis(self, project_id: int, api_ids: Optional[List[int]] = None) -> int:
+    async def batch_generate_from_apis(self, project_id: int, api_ids: builtins.list[int] | None = None) -> int:
         """批量生成 Mock 规则：从指定 API 列表（或所有 API）生成"""
         from app.models.api_definition import ApiDefinition
 

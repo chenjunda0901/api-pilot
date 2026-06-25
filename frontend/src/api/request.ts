@@ -372,7 +372,7 @@ request.interceptors.response.use(
         if (isWriteRequest(method)) {
           void import('element-plus').then(mod => mod.ElMessage.warning('请先登录'))
           void router.push({ path: '/login', query: { redirect: window.location.pathname + window.location.search } })
-          return new Promise(() => {}) // 永远 pending，防止页面层 catch 到原始错误
+          return new Promise<never>(() => {})
         }
         // 读操作：静默拒绝，由页面层自行处理（显示空状态等）
         return Promise.reject(err)

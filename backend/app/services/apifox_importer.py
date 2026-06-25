@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +23,7 @@ MAX_FILE_SIZE_CHARS = 10_485_760  # 10MB
 # =============================================================================
 
 
-def _generate_default_from_schema(schema: Optional[Dict]) -> Any:
+def _generate_default_from_schema(schema: dict | None) -> Any:
     """根据 JSON Schema 生成默认值。"""
     if not schema:
         return ""
@@ -54,7 +54,7 @@ def _content_type_to_body_type(content_type: str) -> str:
     return mapping.get(content_type, "raw")
 
 
-def _extract_body(request_body: Optional[Dict]) -> Dict:
+def _extract_body(request_body: dict | None) -> dict:
     """
     提取 Body 内容。
     优先级: examples[0].value > example(单数字段) > data > jsonSchema 生成 > 空
@@ -101,7 +101,7 @@ def _extract_body(request_body: Optional[Dict]) -> Dict:
 # =============================================================================
 
 
-def _parse_servers(servers: List[Dict]) -> List[Dict]:
+def _parse_servers(servers: list[dict]) -> list[dict]:
     """解析 projectSetting.servers，过滤掉 default 和非 URL 条目。"""
     result = []
     for s in servers:
@@ -119,7 +119,7 @@ def _parse_servers(servers: List[Dict]) -> List[Dict]:
     return result
 
 
-def _parse_environments(env_list: List[Dict], servers: List[Dict]) -> List[Dict]:
+def _parse_environments(env_list: list[dict], servers: list[dict]) -> list[dict]:
     """解析环境列表，注入前置 services。"""
     result = []
     for env in env_list:
@@ -165,7 +165,7 @@ def _parse_environments(env_list: List[Dict], servers: List[Dict]) -> List[Dict]
     return result
 
 
-def _parse_global_variables(gv_list: List[Dict]) -> List[Dict]:
+def _parse_global_variables(gv_list: list[dict]) -> list[dict]:
     """解析全局变量（外层是数组，内层才是 variables）。"""
     variables = []
     for gv_group in gv_list:
@@ -178,7 +178,7 @@ def _parse_global_variables(gv_list: List[Dict]) -> List[Dict]:
     return variables
 
 
-def _parse_common_parameters(cp: Optional[Dict]) -> Dict:
+def _parse_common_parameters(cp: dict | None) -> dict:
     """解析公共参数，只提取 header 类型。"""
     if not cp:
         return {"headers": []}
@@ -193,7 +193,7 @@ def _parse_common_parameters(cp: Optional[Dict]) -> Dict:
     return {"headers": headers}
 
 
-def _parse_single_api(api: Dict, display_name: str, category_id: Any, apifox_id: str) -> Dict:
+def _parse_single_api(api: dict, display_name: str, category_id: Any, apifox_id: str) -> dict:
     """解析单个接口定义的所有字段。"""
     headers = []
 
@@ -287,8 +287,8 @@ def _build_folder_id_map(parsed_categories):
 
 
 def _parse_api_collection_node(
-    node: Dict, parent_id: Any, depth: int,
-    categories: List, apis: List,
+    node: dict, parent_id: Any, depth: int,
+    categories: list, apis: list,
 ) -> None:
     """递归处理单个 apiCollection 节点（接口目录或接口）。"""
     if depth > MAX_RECURSION_DEPTH:
@@ -335,7 +335,7 @@ def _parse_api_collection_node(
 
 
 def _parse_request_collection_node(
-    collection: Dict, folder_id_map: Dict[int, str], categories: List, apis: List,
+    collection: dict, folder_id_map: dict[int, str], categories: list, apis: list,
 ) -> None:
     """解析 requestCollection（Apifox 扁平的请求列表）。
     利用 folder_id_map 将 folderId 映射到 apiCollection 中的分类。
@@ -377,15 +377,14 @@ def _parse_request_collection_node(
         apis.append(api)
 
 
-
-def _build_preview_tree(parsed_categories: List[Dict], parsed_apis: List[Dict]) -> List[Dict]:
+def _build_preview_tree(parsed_categories: list[dict], parsed_apis: list[dict]) -> list[dict]:
     """将扁平的接口目录+接口列表构建为嵌套树，供前端 `<el-tree>` 渲染。"""
-    tree: List[Dict] = []
+    tree: list[dict] = []
 
     # 接口目录字典: apifox_id -> node
-    cat_map: Dict[str, Dict] = {}
+    cat_map: dict[str, dict] = {}
     for cat in parsed_categories:
-        node: Dict = {
+        node: dict = {
             "name": cat["name"],
             "apifox_id": cat["apifox_id"],
             "exists": False,
@@ -406,7 +405,7 @@ def _build_preview_tree(parsed_categories: List[Dict], parsed_apis: List[Dict]) 
 
     # 将接口挂到接口目录下
     for api in parsed_apis:
-        api_node: Dict = {
+        api_node: dict = {
             "name": api["name"],
             "method": api["method"],
             "path": api["path"],
@@ -475,8 +474,8 @@ class ImportService(BaseApiImporter):
         global_variables = _parse_global_variables(data.get("globalVariables", []))
         global_headers = _parse_common_parameters(data.get("commonParameters"))
 
-        parsed_categories: List[Dict] = []
-        parsed_apis: List[Dict] = []
+        parsed_categories: list[dict] = []
+        parsed_apis: list[dict] = []
         for collection in data.get("apiCollection", []):
             _parse_api_collection_node(
                 collection, parent_id=None, depth=0,
@@ -515,9 +514,9 @@ class ImportService(BaseApiImporter):
         }
 
     async def _mark_exists(self, project_id: int,
-                           parsed_categories: List[Dict],
-                           parsed_apis: List[Dict],
-                           environments: List[Dict]) -> None:
+                           parsed_categories: list[dict],
+                           parsed_apis: list[dict],
+                           environments: list[dict]) -> None:
         """查询数据库，标记各个条目是否存在（批量查询优化，避免 N+1）。"""
         # 批量查询分类
         cat_names = list({cat["name"] for cat in parsed_categories})
@@ -568,7 +567,7 @@ class ImportService(BaseApiImporter):
     # ------------------------------------------------
 
     async def import_apifox(self, project_id: int, content: str,
-                            import_options: Optional[Dict] = None) -> dict:
+                            import_options: dict | None = None) -> dict:
         """
         执行导入。全量事务，任何步骤失败全部回滚。
 
@@ -601,8 +600,8 @@ class ImportService(BaseApiImporter):
         global_variables = _parse_global_variables(data.get("globalVariables", []))
         global_headers = _parse_common_parameters(data.get("commonParameters"))
 
-        parsed_categories: List[Dict] = []
-        parsed_apis: List[Dict] = []
+        parsed_categories: list[dict] = []
+        parsed_apis: list[dict] = []
         for collection in data.get("apiCollection", []):
             _parse_api_collection_node(
                 collection, parent_id=None, depth=0,
@@ -698,7 +697,7 @@ class ImportService(BaseApiImporter):
                     stats["created_environments"] += 1
 
         # ---- 4. 接口目录树 ----
-        cat_id_map: Dict[str, int] = {}
+        cat_id_map: dict[str, int] = {}
         # 批量查询已存在的分类（避免 N+1）
         cat_names = list({cat["name"] for cat in parsed_categories})
         existing_cats_result = await self.db.execute(

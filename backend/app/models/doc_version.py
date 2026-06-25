@@ -1,7 +1,6 @@
 """API 文档版本快照模型 — 保存文档编辑历史，支持版本回滚"""
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, ForeignKey, Integer, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -26,7 +25,7 @@ class DocVersion(Base):
         Text, nullable=False, comment="JSON 字符串，包含完整文档数据",
     )
     change_summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
-    changed_by: Mapped[Optional[int]] = mapped_column(
+    changed_by: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(

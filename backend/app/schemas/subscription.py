@@ -1,6 +1,5 @@
 """订阅 Pydantic 模型。"""
 
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 
@@ -27,4 +26,4 @@ class SubscriptionOut(BaseModel):
     user_id: int
     resource_type: str
     resource_id: int
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None

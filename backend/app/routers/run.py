@@ -9,6 +9,9 @@ from app.middleware.auth import get_current_user, get_optional_user
 from app.models.user import User
 from app.models.project import Project
 from app.models.environment import Environment
+from app.models.test_scene import TestScene
+from app.models.scene_step import SceneStep
+from app.models.test_case import TestCase
 from app.services.executor.linear_executor import LinearExecutor
 from app.services.metrics import MetricsCollector
 from app.services.permission_service import check_read_access, check_write_access
@@ -27,6 +30,40 @@ async def _validate_env(db: AsyncSession, env_id: int):
     env = await db.get(Environment, env_id)
     if not env:
         raise_biz(ErrorCodes.ENV_NOT_FOUND)
+
+
+async def _validate_scene_belongs_to_project(
+    db: AsyncSession, scene_id: int, project_id: int
+):
+    """验证场景属于指定项目"""
+    scene = await db.get(TestScene, scene_id)
+    if not scene:
+        raise_biz(ErrorCodes.SCENE_NOT_FOUND, f"场景 {scene_id} 不存在")
+    if scene.project_id != project_id:
+        raise_biz(ErrorCodes.PROJECT_FORBIDDEN, f"场景 {scene_id} 不属于当前项目")
+
+
+async def _validate_step_belongs_to_project(
+    db: AsyncSession, step_id: int, project_id: int
+):
+    """验证步骤属于指定项目（通过步骤所属场景的项目）"""
+    step = await db.get(SceneStep, step_id)
+    if not step:
+        raise_biz(ErrorCodes.SCENE_NOT_FOUND, f"步骤 {step_id} 不存在")
+    scene = await db.get(TestScene, step.scene_id)
+    if not scene or scene.project_id != project_id:
+        raise_biz(ErrorCodes.PROJECT_FORBIDDEN, f"步骤 {step_id} 不属于当前项目")
+
+
+async def _validate_case_belongs_to_project(
+    db: AsyncSession, case_id: int, project_id: int
+):
+    """验证用例属于指定项目"""
+    case = await db.get(TestCase, case_id)
+    if not case:
+        raise_biz(ErrorCodes.CASE_NOT_FOUND, f"用例 {case_id} 不存在")
+    if case.project_id != project_id:
+        raise_biz(ErrorCodes.PROJECT_FORBIDDEN, f"用例 {case_id} 不属于当前项目")
 
 
 @router.post(
@@ -52,6 +89,7 @@ async def run_scene(
     支持数据驱动：指定 dataset_id 时，遍历数据集每一行作为变量注入执行上下文。
     """
     await _validate_env(db, env_id)
+    await _validate_scene_belongs_to_project(db, scene_id, project_id)
     engine = None
     started = time.perf_counter()
     status_code = 200
@@ -124,6 +162,7 @@ async def run_scene_stress(
 ):
     """Execute a scene in stress (concurrent) mode."""
     await _validate_env(db, env_id)
+    await _validate_scene_belongs_to_project(db, scene_id, project_id)
     engine = None
     try:
         engine = LinearExecutor(db)
@@ -132,7 +171,15 @@ async def run_scene_stress(
         report_id = await engine.execute(
             scene_id, env_id, current_user.id, concurrent=True
         )
-        return success({"report_id": report_id, "status": "running", "thread_count": thread_count, "loop_count": loop_count, "stress_note": "thread_count/loop_count 参数暂未实现，当前为单线程顺序执行"})
+        return success(
+            {
+                "report_id": report_id,
+                "status": "running",
+                "thread_count": thread_count,
+                "loop_count": loop_count,
+                "stress_note": "thread_count/loop_count 参数暂未实现，当前为单线程顺序执行",
+            }
+        )
     except ValueError as e:
         msg = str(e)
         if "not found" in msg.lower():
@@ -163,6 +210,7 @@ async def run_step(
 ):
     """Execute a single step."""
     await _validate_env(db, env_id)
+    await _validate_step_belongs_to_project(db, step_id, project_id)
     engine = None
     try:
         engine = LinearExecutor(db)
@@ -194,6 +242,7 @@ async def run_case(
 ):
     """Execute a single test case."""
     await _validate_env(db, env_id)
+    await _validate_case_belongs_to_project(db, case_id, project_id)
     engine = None
     try:
         engine = LinearExecutor(db)
@@ -286,16 +335,18 @@ async def get_case_last_run(
     if not history:
         return success({"found": False, "message": "暂无执行记录"})
 
-    return success({
-        "found": True,
-        "id": history.id,
-        "api_id": history.api_id,
-        "environment_id": history.environment_id,
-        "request_url": history.request_url,
-        "request_method": history.request_method,
-        "response_status": history.response_status,
-        "duration": history.duration,
-        "status": history.status,
-        "error": history.error,
-        "created_at": str(history.created_at) if history.created_at else None,
-    })
+    return success(
+        {
+            "found": True,
+            "id": history.id,
+            "api_id": history.api_id,
+            "environment_id": history.environment_id,
+            "request_url": history.request_url,
+            "request_method": history.request_method,
+            "response_status": history.response_status,
+            "duration": history.duration,
+            "status": history.status,
+            "error": history.error,
+            "created_at": str(history.created_at) if history.created_at else None,
+        }
+    )

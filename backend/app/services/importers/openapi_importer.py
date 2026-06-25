@@ -9,7 +9,7 @@
 
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from app.services.format_parsers import (
     HTTP_METHODS,
@@ -83,7 +83,7 @@ def _resolve_refs_deep(obj: Any, spec: dict, depth: int = 0, max_depth: int = 15
 # =============================================================================
 
 
-def _extract_parameters(operation: dict, path_params: list, spec: dict) -> Tuple[List[Dict], List[Dict], List[Dict]]:
+def _extract_parameters(operation: dict, path_params: list, spec: dict) -> tuple[list[dict], list[dict], list[dict]]:
     """提取并分类参数为 query, header, path 三组。
 
     Args:
@@ -95,7 +95,7 @@ def _extract_parameters(operation: dict, path_params: list, spec: dict) -> Tuple
         (query_params, headers, path_params_out)
     """
     # 合并路径级和操作级参数（操作级覆盖路径级同名参数）
-    merged: Dict[str, dict] = {}
+    merged: dict[str, dict] = {}
     for p in path_params + operation.get("parameters", []):
         p = _resolve_refs_deep(p, spec) if isinstance(p, dict) else p
         if not isinstance(p, dict):
@@ -132,7 +132,7 @@ def _extract_parameters(operation: dict, path_params: list, spec: dict) -> Tuple
     return query_params, headers, path_params_out
 
 
-def _extract_request_body(request_body: Optional[dict], spec: dict) -> Dict:
+def _extract_request_body(request_body: dict | None, spec: dict) -> dict:
     """提取 OpenAPI 3.0 requestBody。"""
     if not request_body or not isinstance(request_body, dict):
         return {"type": "none", "content": ""}
@@ -191,7 +191,7 @@ def _extract_request_body(request_body: Optional[dict], spec: dict) -> Dict:
     }
 
 
-def _extract_responses(responses: Optional[dict], spec: dict) -> Tuple[Optional[Dict], List[Dict]]:
+def _extract_responses(responses: dict | None, spec: dict) -> tuple[dict | None, list[dict]]:
     """提取响应 schema 和示例。
 
     Returns:
@@ -252,7 +252,7 @@ def _extract_responses(responses: Optional[dict], spec: dict) -> Tuple[Optional[
 # =============================================================================
 
 
-def parse_openapi_3(spec: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def parse_openapi_3(spec: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 OpenAPI 3.0 规范，返回 (categories, apis, project_name)。
 
     增强特性:
@@ -280,7 +280,7 @@ def parse_openapi_3(spec: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
 
     categories = []
     apis = []
-    cat_ref_cache: Dict[str, str] = {}
+    cat_ref_cache: dict[str, str] = {}
     cat_idx = 0
 
     def get_cat_ref(tag_name: str) -> str:

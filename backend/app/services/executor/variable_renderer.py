@@ -181,6 +181,7 @@ def render_template(template: str, variables: dict[str, Any], default: str = "",
         logger.error("模板渲染失败: %s, 错误: %s", template[:200], str(e))
         return template
 
+
 def render_dict(data: dict, variables: dict[str, Any]) -> dict:
     """递归渲染字典中所有字符串值的模板变量。
 

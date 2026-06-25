@@ -5,7 +5,7 @@ import logging
 import asyncio
 from collections import defaultdict
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from app.config import settings
@@ -20,10 +20,10 @@ _query_count = defaultdict(int)
 _query_counter_enabled = False
 
 # --- 稳定性配置 ---
-DB_MAX_RETRIES = 3           # 最大重试次数
-DB_RETRY_DELAY = 0.5        # 重试延迟（秒）
+DB_MAX_RETRIES = 3  # 最大重试次数
+DB_RETRY_DELAY = 0.5  # 重试延迟（秒）
 DB_CONNECTION_TIMEOUT = 10  # 连接超时（秒，阶段 4 调整为 10s）
-DB_QUERY_TIMEOUT = 20       # 查询超时（秒，阶段 4 调整为 20s）
+DB_QUERY_TIMEOUT = 20  # 查询超时（秒，阶段 4 调整为 20s）
 
 
 def enable_query_counter():
@@ -53,8 +53,10 @@ async def _retry_async_operation(operation, max_retries: int = DB_MAX_RETRIES):
             last_error = e
             # SQLite 锁定错误
             if "database is locked" in str(e).lower() or "locked" in str(e).lower():
-                wait_time = DB_RETRY_DELAY * (2 ** attempt)  # 指数退避
-                logger.warning(f"数据库锁定，{wait_time:.1f}秒后重试 ({attempt + 1}/{max_retries})")
+                wait_time = DB_RETRY_DELAY * (2**attempt)  # 指数退避
+                logger.warning(
+                    f"数据库锁定，{wait_time:.1f}秒后重试 ({attempt + 1}/{max_retries})"
+                )
                 await asyncio.sleep(wait_time)
             else:
                 raise
@@ -66,7 +68,7 @@ def _create_engine_with_retry(max_retries: int = 3):
     last_error = None
     for attempt in range(max_retries):
         try:
-            if settings.DATABASE_URL.startswith('sqlite'):
+            if settings.DATABASE_URL.startswith("sqlite"):
                 engine = create_async_engine(
                     settings.DATABASE_URL,
                     echo=False,
@@ -82,7 +84,7 @@ def _create_engine_with_retry(max_retries: int = 3):
                 # 阶段 4：PostgreSQL 增加 connect_timeout 与 statement_timeout
                 # statement_timeout 由 SQLAlchemy 通过 connect_args 传递到 server_side_binding
                 connect_args: dict = {"connect_timeout": DB_CONNECTION_TIMEOUT}
-                if settings.DATABASE_URL.startswith('postgresql'):
+                if settings.DATABASE_URL.startswith("postgresql"):
                     # statement_timeout 单位为毫秒，PostgreSQL 服务端生效
                     connect_args["options"] = (
                         f"-c statement_timeout={DB_QUERY_TIMEOUT * 1000}"
@@ -104,7 +106,7 @@ def _create_engine_with_retry(max_retries: int = 3):
             last_error = e
             logger.warning(f"数据库引擎创建失败 ({attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                time.sleep(DB_RETRY_DELAY * (2 ** attempt))
+                time.sleep(DB_RETRY_DELAY * (2**attempt))
     raise RuntimeError(f"数据库引擎创建失败，已重试 {max_retries} 次: {last_error}")
 
 
@@ -112,13 +114,16 @@ engine = _create_engine_with_retry()
 
 
 # SQLite 默认关闭外键约束，每次连接时启用
-if settings.DATABASE_URL.startswith('sqlite'):
+if settings.DATABASE_URL.startswith("sqlite"):
 
     @event.listens_for(engine.sync_engine, "connect")
     def _set_sqlite_pragma(dbapi_connection, connection_record):
-        """SQLite 连接建立时启用外键约束，确保级联删除生效。"""
+        """SQLite 连接建立时设置 PRAGMA，确保 WAL/外键等生效（不在事务内执行）。"""
         cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA journal_mode=WAL;")
+        cursor.execute("PRAGMA foreign_keys=ON;")
+        cursor.execute("PRAGMA synchronous=NORMAL;")
+        cursor.execute("PRAGMA cache_size=-64000;")
         cursor.close()
 
 
@@ -141,12 +146,15 @@ def _after_cursor_execute(conn, cursor, statement, parameters, context, executem
         )
     if _query_counter_enabled:
         import traceback
+
         stack = "".join(traceback.format_stack(limit=6)[-4:-1])
         _query_count[stack] += 1
 
 
 async_session_factory = async_sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False,
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
 )
 
 
@@ -204,9 +212,14 @@ class _RetrySession:
                 return self._session
             except Exception as e:
                 if attempt < self._max_retries - 1:
-                    wait_time = DB_RETRY_DELAY * (2 ** attempt)
-                    logger.warning("DB connection failed (attempt %d/%d): %s, retrying in %.1fs",
-                                   attempt + 1, self._max_retries, e, wait_time)
+                    wait_time = DB_RETRY_DELAY * (2**attempt)
+                    logger.warning(
+                        "DB connection failed (attempt %d/%d): %s, retrying in %.1fs",
+                        attempt + 1,
+                        self._max_retries,
+                        e,
+                        wait_time,
+                    )
                     await asyncio.sleep(wait_time)
                 else:
                     raise
@@ -235,6 +248,7 @@ async def get_db_with_retry(max_retries: int = DB_MAX_RETRIES):
 async def warmup_pool():
     """启动时预热连接池，避免首次请求的冷启动延迟"""
     from sqlalchemy import text
+
     for _ in range(3):
         try:
             async with async_session_factory() as session:
@@ -252,6 +266,7 @@ async def warmup_pool():
 async def health_check() -> dict:
     """数据库健康检查，返回连接状态和统计信息"""
     import datetime
+
     result = {
         "status": "unknown",
         "database": settings.DATABASE_URL.split("://")[0].split("+")[0],
@@ -266,13 +281,13 @@ async def health_check() -> dict:
             elapsed_ms = (time.time() - start) * 1000
             result["status"] = "healthy" if elapsed_ms < 1000 else "degraded"
             result["latency_ms"] = round(elapsed_ms, 2)
-            
+
             # 获取慢查询统计
             slow_count = len(_query_count) if _query_count else 0
             result["slow_queries"] = slow_count
-            
+
     except Exception as e:
         result["status"] = "unhealthy"
         result["error"] = str(e)
-    
+
     return result

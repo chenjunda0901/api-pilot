@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -19,11 +18,11 @@ class NotificationDispatch(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[Optional[int]] = mapped_column(
+    user_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True, index=True,
     )
-    project_id: Mapped[Optional[int]] = mapped_column(
+    project_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("projects.id", ondelete="CASCADE"),
         nullable=True, index=True,
     )
@@ -38,8 +37,8 @@ class NotificationDispatch(Base):
         comment="枚举: pending / sent / failed",
     )
     retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False
     )

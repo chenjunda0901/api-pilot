@@ -1,4 +1,4 @@
-from typing import Optional, Any, Literal
+from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 Priority = Literal["P0", "P1", "P2", "P3"]
@@ -14,7 +14,7 @@ class CaseCreate(BaseModel):
     status: CaseStatus = Field(default="active")
     case_type: CaseType = Field(default="other")
     tags: str = Field(default="")
-    request_body: Optional[str] = None
+    request_body: str | None = None
     assertions: list = []
     extract_vars: list = []
 
@@ -26,7 +26,7 @@ class CaseUpdate(BaseModel):
     status: CaseStatus = Field(default="active")
     case_type: CaseType = Field(default="other")
     tags: str = Field(default="")
-    request_body: Optional[str] = None
+    request_body: str | None = None
     assertions: list = []
     extract_vars: list = []
 
@@ -51,6 +51,6 @@ class AssertionUpdate(BaseModel):
 
 class AssertionTestRequest(BaseModel):
     """用例断言临时测试请求"""
-    response_json: Optional[Any] = Field(default=None, description="响应 JSON 数据")
-    response_headers: Optional[dict[str, str]] = Field(default=None, description="响应头")
-    duration_ms: Optional[int] = Field(default=None, ge=0, description="响应耗时(ms)")
+    response_json: Any | None = Field(default=None, description="响应 JSON 数据")
+    response_headers: dict[str, str] | None = Field(default=None, description="响应头")
+    duration_ms: int | None = Field(default=None, ge=0, description="响应耗时(ms)")

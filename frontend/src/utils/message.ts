@@ -2,7 +2,7 @@
 import { ElMessage } from 'element-plus'
 import { h } from 'vue'
 import { logger } from '@/utils/logger'
-import { pushUndo, createDeleteUndo, type UndoItem } from '../composables/useUndoManager'
+import { pushUndo, createDeleteUndo, type UndoItem } from '@/composables/useUndoManager'
 
 const baseOpts = { grouping: true, showClose: true }
 

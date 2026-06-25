@@ -36,6 +36,7 @@ async def _read_body(request: Request) -> str:
             raise_biz(ErrorCodes.IMPORT_FILE_TOO_LARGE)
     return body.decode("utf-8")
 
+
 async def _read_json_body(request: Request) -> dict:
     """Read JSON body with size limit (streaming)."""
     body = b""
@@ -94,6 +95,7 @@ async def import_apifox(
     except (ValueError, KeyError, TypeError) as e:
         raise_biz(ErrorCodes.IMPORT_EXECUTE_ERROR, str(e))
 
+
 @import_router.post("/import/openapi", summary="导入 OpenAPI", description="将 OpenAPI/Swagger 格式的接口定义导入系统")
 async def import_openapi(
     project_id: int, request: Request,
@@ -108,6 +110,7 @@ async def import_openapi(
         return success(result)
     except (ValueError, KeyError, TypeError) as e:
         raise_biz(ErrorCodes.IMPORT_EXECUTE_ERROR, str(e))
+
 
 @import_router.post("/import/environments", summary="导入环境变量", description="导入环境变量 JSON 文件")
 async def import_environments(
@@ -285,7 +288,7 @@ async def import_execute_v2(
     importer = UniImporter(db)
     try:
         # 阶段 4：批量导入包在 SAVEPOINT 事务内，失败单条不回滚整批
-        async with transaction_scope(db, nested=True) as session:
+        async with transaction_scope(db, nested=True):
             result = await importer.execute(project_id, text, import_options)
         return success(result)
     except (ValueError, KeyError, TypeError) as e:
@@ -356,6 +359,7 @@ async def import_insomnia(
         except Exception as exc:
             logger.warning("Insomnia 跳过单条: %s: %s", type(exc).__name__, exc)
     return success({"created_apis": created_apis, "total_resources": len(resources)})
+
 
 @import_router.post("/import/openapi-3.1", summary="导入 OpenAPI 3.1", description="导入 OpenAPI 3.1 格式")
 async def import_openapi_31(
@@ -504,7 +508,7 @@ async def import_har(
     from app.services.transaction import transaction_scope
     importer = UniImporter(db)
     try:
-        async with transaction_scope(db, nested=True) as session:
+        async with transaction_scope(db, nested=True):
             import_options = {
                 "import_variables": True,
                 "import_headers": True,
@@ -525,5 +529,3 @@ async def import_har(
 # =============================================================================
 #  完整项目导出（ZIP）
 # =============================================================================
-
-

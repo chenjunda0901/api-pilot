@@ -19,6 +19,7 @@ from app.models.refresh_token import RefreshToken
 from app.models.test_dataset import TestDataset, TestDatasetRow
 from app.models.mock_hit_log import MockHitLog
 from app.models.notification import Notification
+
 # 阶段 1 新增：生产级特性模型
 from app.models.api_test_plan import ApiTestPlan, ApiTestPlanStep
 from app.models.schedule import Schedule
@@ -40,20 +41,49 @@ from app.models.search_history import SearchHistory
 from app.models.doc_version import DocVersion
 from app.models.ci_config import CiConfig
 from app.models.notification_preference import NotificationPreference
+from app.models.api_test_history import ApiTestHistory
 
 __all__ = [
-    "Base", "User", "Project", "ApiCategory", "ApiDefinition",
-    "TestCase", "TestScene", "SceneStep", "SceneEdge",
-    "Environment", "TestReport", "ReportStep", "MockRule", "ProjectMember",
-    "SceneCategory", "DebugHistory", "ApiTestHistory",
-    "RevokedToken", "RefreshToken", "TestDataset", "TestDatasetRow",
-    "MockHitLog", "Notification",
+    "Base",
+    "User",
+    "Project",
+    "ApiCategory",
+    "ApiDefinition",
+    "TestCase",
+    "TestScene",
+    "SceneStep",
+    "SceneEdge",
+    "Environment",
+    "TestReport",
+    "ReportStep",
+    "MockRule",
+    "ProjectMember",
+    "SceneCategory",
+    "DebugHistory",
+    "ApiTestHistory",
+    "RevokedToken",
+    "RefreshToken",
+    "TestDataset",
+    "TestDatasetRow",
+    "MockHitLog",
+    "Notification",
     # 阶段 1 新增
-    "ApiTestPlan", "ApiTestPlanStep", "Schedule", "DataSchema",
-    "MockExpectation", "MockRecording", "ApiSnapshot", "Comment",
-    "Subscription", "Webhook", "NotificationDispatch",
-    "MetricsSnapshot", "ApiAssertion", "Variable",
-    "ApiTag", "ApiTagRelation",
+    "ApiTestPlan",
+    "ApiTestPlanStep",
+    "Schedule",
+    "DataSchema",
+    "MockExpectation",
+    "MockRecording",
+    "ApiSnapshot",
+    "Comment",
+    "Subscription",
+    "Webhook",
+    "NotificationDispatch",
+    "MetricsSnapshot",
+    "ApiAssertion",
+    "Variable",
+    "ApiTag",
+    "ApiTagRelation",
     "SceneDataset",
     # Mock 智能化
     "MockCallLog",

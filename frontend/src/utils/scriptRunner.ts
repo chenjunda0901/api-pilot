@@ -189,14 +189,13 @@ declare global {
   }
 }
 
-/** 清理 Worker（终止计时器并关闭） */
+/** 清理 Worker（终止计时器并关闭）—— 不释放 _workerUrl（模块级单例，复用整个 SPA 生命周期） */
 function _workerTerminate(worker: Worker) {
   if (worker._timer !== undefined) clearTimeout(worker._timer)
   if (!worker._isTerminating) {
     worker._isTerminating = true
     worker.terminate()
   }
-  URL.revokeObjectURL(_workerUrl)
 }
 
 // ── 类型定义 ────────────────────────────────────────────────────────────────

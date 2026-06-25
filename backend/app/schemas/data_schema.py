@@ -1,6 +1,5 @@
 """数据模型 / JSON Schema 库 Pydantic 模型。"""
 
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 
@@ -20,9 +19,9 @@ class DataSchemaCreate(DataSchemaBase):
 class DataSchemaUpdate(BaseModel):
     """更新数据模型请求。"""
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    description: Optional[str] = None
-    schema_json: Optional[str] = Field(default=None, min_length=2)
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = None
+    schema_json: str | None = Field(default=None, min_length=2)
 
 
 class DataSchemaOut(DataSchemaBase):
@@ -30,10 +29,10 @@ class DataSchemaOut(DataSchemaBase):
 
     id: int
     project_id: int
-    example_json: Optional[str] = None
-    created_by: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    example_json: str | None = None
+    created_by: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class DataSchemaPreviewRequest(BaseModel):

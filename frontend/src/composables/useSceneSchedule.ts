@@ -1,8 +1,8 @@
 ﻿import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import request from '../api/request'
+import request from '@/api/request'
 import { logger } from '@/utils/logger'
-import { msgSuccess } from '../utils/message'
+import { msgSuccess } from '@/utils/message'
 import { useRequireLogin } from './useRequireLogin'
 
 /**

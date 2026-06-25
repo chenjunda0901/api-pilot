@@ -1,6 +1,6 @@
 """5 层作用域变量 Pydantic 模型。"""
 
-from typing import Optional, Any
+from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -34,26 +34,26 @@ class VariableBase(BaseModel):
 class VariableCreate(VariableBase):
     """创建变量请求。"""
 
-    scope_id: Optional[int] = Field(default=None, ge=1, description="对应 project/case 的 id；global/env 可为 null")
+    scope_id: int | None = Field(default=None, ge=1, description="对应 project/case 的 id；global/env 可为 null")
 
 
 class VariableUpdate(BaseModel):
     """更新变量请求。"""
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    value: Optional[str] = None
-    is_secret: Optional[bool] = None
-    description: Optional[str] = None
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    value: str | None = None
+    is_secret: bool | None = None
+    description: str | None = None
 
 
 class VariableOut(VariableBase):
     """变量输出（secret 类型仅显示掩码）。"""
 
     id: int
-    scope_id: Optional[int] = None
+    scope_id: int | None = None
     value: str = Field(default="", description="secret 类型只显示掩码")
     is_secret: bool = False
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
     @classmethod
     def model_validate(cls, obj: Any, **kwargs: Any) -> "VariableOut":
@@ -96,7 +96,7 @@ class ImportVariableItem(BaseModel):
     """导入变量中的单条记录。"""
 
     scope: str = Field(..., description="作用域: global / project / env / case")
-    scope_id: Optional[int] = Field(default=None, ge=1, description="作用域 ID")
+    scope_id: int | None = Field(default=None, ge=1, description="作用域 ID")
     name: str = Field(..., min_length=1, max_length=200, description="变量名")
     value: str = Field(default="", description="变量值")
     is_secret: bool = Field(default=False, description="是否加密存储")

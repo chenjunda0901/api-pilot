@@ -1,6 +1,5 @@
 """通知 v2 Pydantic 模型。"""
 
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -11,10 +10,10 @@ class NotificationOut(BaseModel):
     id: int
     type: str
     title: str
-    content: Optional[str] = None
+    content: str | None = None
     is_read: bool = False
-    link: Optional[str] = None
-    created_at: Optional[datetime] = None
+    link: str | None = None
+    created_at: datetime | None = None
 
 
 class NotificationListOut(BaseModel):

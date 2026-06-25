@@ -22,85 +22,101 @@ from app.middleware.idempotency import IdempotencyMiddleware
 from app.middleware.request_logging import StructuredRequestLoggingMiddleware
 
 
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 
 logger = logging.getLogger("api_pilot")
 _app_start_time = time.time()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
-        if engine.url.drivername.startswith("sqlite"):
-            await conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
-            await conn.exec_driver_sql("PRAGMA foreign_keys=ON;")
-            await conn.exec_driver_sql("PRAGMA synchronous=NORMAL;")
-            await conn.exec_driver_sql("PRAGMA cache_size=-64000;")  # 64MB cache
         if settings.ENVIRONMENT != "production":
             await conn.run_sync(Base.metadata.create_all)
     await warmup_pool()
     from app.utils.scheduler import init_scheduler
+
     await init_scheduler()
     # 自动初始化种子数据（确保模板存在 + 老用户自动补齐私有副本）
     from app.utils.seed_core import seed_demo_data
+
     try:
         async with async_session_factory() as db:
             await seed_demo_data(db, auto_migrate=True)
     except Exception as e:
         import logging
-        logging.getLogger("api_pilot").warning(f"种子数据初始化跳过（不影响服务启动）: {e}")
-    if settings.ENFORCE_TURNSTILE_PRODUCTION and settings.is_production:
-        if not settings.TURNSTILE_SECRET_KEY:
-            raise RuntimeError(
-                "FATAL: ENFORCE_TURNSTILE_PRODUCTION=true 且处于生产环境，"
-                "必须通过 TURNSTILE_SECRET_KEY 设置真实密钥"
-            )
-        if settings.TURNSTILE_SECRET_KEY == '1x0000000000000000000000000000000AA':
-            raise RuntimeError(
-                "FATAL: ENFORCE_TURNSTILE_PRODUCTION=true 但仍在使用 Turnstile 测试密钥，"
-                "请通过 TURNSTILE_SECRET_KEY 环境变量设置真实密钥"
-            )
+
+        logging.getLogger("api_pilot").warning(
+            f"种子数据初始化跳过（不影响服务启动）: {e}"
+        )
     logger.info("App started")
     yield
     from app.utils.scheduler import shutdown_scheduler
+
     await shutdown_scheduler()
+    from app.utils.http_client import close_http_client
+
+    await close_http_client()
     await engine.dispose()
+
 
 # ── 模块级安全配置检查（在 lifespan 和 middleware 注册之前执行）────
 
 # CORS 安全检查：ENFORCE_CORS_WHITELIST=true 时拒绝全开（独立于 is_production）
-if settings.cors_has_restrictions and settings.CORS_ORIGINS == '*':
+if settings.cors_has_restrictions and settings.CORS_ORIGINS == "*":
     raise RuntimeError(
         "FATAL: ENFORCE_CORS_WHITELIST=true，不允许 CORS_ORIGINS=*，"
         "请通过 CORS_ORIGINS 环境变量设置允许的域名（逗号分隔）"
     )
-if settings.is_production and settings.CORS_ORIGINS == '*':
+if settings.is_production and settings.CORS_ORIGINS == "*":
     raise RuntimeError(
         "FATAL: 生产环境 (API_PILOT_SECRET_KEY 已设置) 不允许 CORS_ORIGINS=*，"
         "请通过 CORS_ORIGINS 环境变量设置允许的域名（逗号分隔）"
     )
-if settings.CORS_ORIGINS == '*':
-    logger.warning("CORS: allow_origins=* (development mode) — 生产环境请通过 CORS_ORIGINS 环境变量限制允许的域名")
+if settings.CORS_ORIGINS == "*":
+    logger.warning(
+        "CORS: allow_origins=* (development mode) — 生产环境请通过 CORS_ORIGINS 环境变量限制允许的域名"
+    )
 
-app = FastAPI(title="API Pilot", description="Enterprise API automation testing platform", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="API Pilot",
+    description="Enterprise API automation testing platform",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 
 # CORS: 从环境变量读取允许的域名，逗号分隔，默认允许所有来源（开发环境）
 _cors_origins_str = settings.CORS_ORIGINS
-_cors_allow_origins = ["*"] if _cors_origins_str == '*' else [o.strip() for o in _cors_origins_str.split(',')]
+_cors_allow_origins = (
+    ["*"]
+    if _cors_origins_str == "*"
+    else [o.strip() for o in _cors_origins_str.split(",")]
+)
 # 安全规则：当 origins 为 "*"（通配）时不能设置 allow_credentials=True
-_cors_allow_creds = _cors_origins_str != '*'
+_cors_allow_creds = _cors_origins_str != "*"
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_allow_origins,
     allow_credentials=_cors_allow_creds,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With", "X-Request-ID"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "X-Requested-With",
+        "X-Request-ID",
+    ],
 )
 if not _cors_allow_creds:
-
-    logger.info("CORS: allow_origins=* (development mode) — credentials cookies disabled")
+    logger.info(
+        "CORS: allow_origins=* (development mode) — credentials cookies disabled"
+    )
 else:
-    logger.info("CORS: restricted origins=%s with credentials enabled", _cors_allow_origins)
+    logger.info(
+        "CORS: restricted origins=%s with credentials enabled", _cors_allow_origins
+    )
 
 # 请求追踪中间件（整合性能监控：耗时记录 + 慢请求告警 + 静态资源过滤）
 app.add_middleware(RequestTrackingMiddleware)
@@ -137,8 +153,8 @@ async def biz_error_handler(request: Request, exc: BizError):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """万能兜底拦截器：捕获所有未处理异常，返回用户友好的错误信息"""
-    error_stack = traceback.format_exc()
-    
+    traceback.format_exc()
+
     # 只记录 traceback 的文件/行号/函数名，过滤变量值以防止凭据泄漏到日志
     tb = traceback.extract_tb(exc.__traceback__)
     sanitized_tb = "\n".join(
@@ -147,11 +163,13 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
     logger.critical(
         "系统未捕获异常 [%s %s] %s: %s\n%s",
-        request.method, request.url.path,
-        type(exc).__name__, exc,
+        request.method,
+        request.url.path,
+        type(exc).__name__,
+        exc,
         sanitized_tb,
     )
-    
+
     # 根据异常类型返回友好的错误信息
     friendly_messages = {
         "TimeoutError": "请求超时，请稍后重试",
@@ -166,10 +184,10 @@ async def global_exception_handler(request: Request, exc: Exception):
         "FileNotFoundError": "请求的资源不存在",
         "PermissionError": "权限不足，请联系管理员",
     }
-    
+
     exc_type_name = type(exc).__name__
     friendly_message = friendly_messages.get(exc_type_name, "服务器繁忙，请稍后重试")
-    
+
     # 开发环境显示更多信息
     if settings.is_production:
         return JSONResponse(
@@ -211,15 +229,17 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         503: "服务暂时不可用，请稍后重试",
         504: "网关超时，请重试",
     }
-    
+
     message = status_messages.get(exc.status_code, exc.detail or "请求处理失败")
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "code": f"HTTP_{exc.status_code}",
             "message": message,
-            "detail": str(exc.detail) if exc.detail and not settings.is_production else None,
+            "detail": str(exc.detail)
+            if exc.detail and not settings.is_production
+            else None,
             "data": None,
         },
     )
@@ -231,15 +251,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     errors = []
     for error in exc.errors():
         loc = " -> ".join(str(loc_item) for loc_item in error["loc"])
-        errors.append({
-            "field": loc,
-            "message": error["msg"],
-        })
-    
+        errors.append(
+            {
+                "field": loc,
+                "message": error["msg"],
+            }
+        )
+
     # 格式化友好消息
     error_fields = [e["field"].split(" -> ")[-1] for e in errors]
     friendly_message = f"参数错误: {', '.join(error_fields)}"
-    
+
     return JSONResponse(
         status_code=422,
         content={
@@ -266,7 +288,27 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     )
 
 
-from app.routers import auth, projects, members, categories, apis, environments, system, cases, scenes, scene_categories, reports, run, mock, import_export, search, debug_history, docs, data_schemas
+from app.routers import (
+    auth,
+    projects,
+    members,
+    categories,
+    apis,
+    environments,
+    system,
+    cases,
+    scenes,
+    scene_categories,
+    reports,
+    run,
+    mock,
+    import_export,
+    search,
+    debug_history,
+    docs,
+    data_schemas,
+)
+
 
 # ── 健康检查端点（负载均衡器 / K8s 探针 / 监控系统）────
 @app.get("/health", tags=["system"], summary="服务健康检查")
@@ -274,8 +316,8 @@ async def health_check():
     """返回服务状态、版本号、运行时间和数据库连通性。用于部署探活。"""
     db_status = "unknown"
     try:
-        async with engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
+        async with async_session_factory() as session:
+            await session.execute(text("SELECT 1"))
         db_status = "ok"
     except Exception:
         db_status = "error"
@@ -296,14 +338,21 @@ async def readiness_check():
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         pool_status = {
-            "size": engine.pool.status().size() if hasattr(engine.pool, 'status') else None,
-            "checked_in": engine.pool.status().checkedin() if hasattr(engine.pool, 'status') else None,
-            "checked_out": engine.pool.status().checkedout() if hasattr(engine.pool, 'status') else None,
+            "size": engine.pool.size() if hasattr(engine.pool, "size") else None,
+            "checked_in": engine.pool.checkedin()
+            if hasattr(engine.pool, "checkedin")
+            else None,
+            "checked_out": engine.pool.checkedout()
+            if hasattr(engine.pool, "checkedout")
+            else None,
         }
         return {"status": "ready", "database": "ok", "pool": pool_status}
     except Exception as exc:
         logger.error("Readiness check failed: %s", exc)
-        raise HTTPException(status_code=503, detail={"status": "not_ready", "reason": str(exc)})
+        raise HTTPException(
+            status_code=503, detail={"status": "not_ready", "reason": str(exc)}
+        )
+
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
@@ -330,20 +379,23 @@ app.include_router(data_schemas.router, prefix="/api/v1")
 
 # ── 阶段 3 新增路由 ──────────────────────────────────────────────────
 from app.routers import (
-    assertions,           # 断言库
-    variables,            # 5 层变量
+    assertions,  # 断言库
+    variables,  # 5 层变量
 )
 
 app.include_router(assertions.router, prefix="/api/v1")
 app.include_router(variables.router, prefix="/api/v1")
 from app.routers import tags
+
 app.include_router(tags.router, prefix="/api/v1")
 # 健康检查（无 v1 前缀）
 from app.routers import health
+
 app.include_router(health.router)
 # 电商 Mock 路由（模拟外部 API）：默认开启，测试环境直接可用
 if settings.MOCK_ECOMMERCE_ENABLED:
     from app.routers.mock_ecommerce import router as mock_ecommerce_router
+
     app.include_router(mock_ecommerce_router)
     logger.info("电商 Mock 路由已注册（MOCK_ECOMMERCE_ENABLED=true）")
 
@@ -351,8 +403,16 @@ if settings.MOCK_ECOMMERCE_ENABLED:
 # 调试路由（仅开发/测试环境，生产环境不注册）
 if not settings.is_production:
     from app.routers.debug import router as debug_router
+
     app.include_router(debug_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host=settings.API_HOST, port=settings.API_PORT, reload=not settings.is_production, server_header=False)
+
+    uvicorn.run(
+        "app.main:app",
+        host=settings.API_HOST,
+        port=settings.API_PORT,
+        reload=not settings.is_production,
+        server_header=False,
+    )

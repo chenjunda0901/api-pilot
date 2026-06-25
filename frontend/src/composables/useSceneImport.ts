@@ -302,7 +302,7 @@ export function useSceneImport(options: SceneImportOptions) {
         })
         pending.push(p)
       } else {
-        const caseId = item.id
+        const caseId = item.id as number
         const p = getCase(projectId, caseId).then((res) => {
           const d = (res.data ?? {}) as {
             name?: string

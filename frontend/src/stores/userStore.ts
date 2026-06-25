@@ -1,12 +1,12 @@
 import { defineStore } from "pinia"
 import { ref, computed } from "vue"
-import request, { setMemoryToken, getMemoryToken, refreshToken } from "../api/request"
+import request, { setMemoryToken, getMemoryToken, refreshToken } from "@/api/request"
 import { logger } from "@/utils/logger"
 import { register as apiRegister, login as apiLogin, logout as apiLogout, getMe } from "@/api/auth"
-import { markAuthReady } from "../router"
-import type { User, LoginResponse } from "../types"
+import { markAuthReady } from "@/router"
+import type { User, LoginResponse } from "@/types"
 
-import { STORAGE_KEYS } from "../constants/events"
+import { STORAGE_KEYS } from "@/constants/events"
 
 function safeGet<T>(key: string, fallback: T): T {
   try {
@@ -123,7 +123,7 @@ export const useUserStore = defineStore("user", () => {
 
   async function logout() {
     // 登出时标记正在登出，避免 401 刷新 token 的循环尝试
-    const { setLoggingOut, clearRefreshTokenCookie } = await import("../api/request")
+    const { setLoggingOut, clearRefreshTokenCookie } = await import("@/api/request")
     setLoggingOut(true)
     try {
       await apiLogout()
@@ -144,7 +144,7 @@ export const useUserStore = defineStore("user", () => {
       setLoggingOut(false)
       // 6. 重置路由守卫的认证缓存，防止刷新后自动重新认证
       try {
-        const { resetAuthState } = await import("../router")
+        const { resetAuthState } = await import("@/router")
         resetAuthState()
       } catch (e) {
         logger.error('[userStore] resetAuthState failed:', e)

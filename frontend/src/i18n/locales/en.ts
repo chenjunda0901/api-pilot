@@ -324,4 +324,12 @@ export default {
     nameRequired: 'Name is required',
     invalidJson: 'Invalid JSON',
   },
+  apis: {
+    sidebarBatchDeleteConfirm: 'Delete the selected {count} APIs? Deleted items can be recovered from the recycle bin.',
+    sidebarBatchDeleteTitle: 'Batch Delete',
+    sidebarBatchDeleteCount: 'Deleting {count} APIs...',
+    sidebarBatchDeleteDone: 'Deleted {count} APIs',
+    sidebarBatchDeleteFailed: 'Batch delete failed',
+    sidebarBatchMoveDone: 'Moved {count} APIs to target category',
+  },
 }

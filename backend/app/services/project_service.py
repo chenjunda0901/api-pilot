@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from sqlalchemy import select, func, update as sa_update, delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -169,7 +169,7 @@ class ProjectService:
             raise_biz(ErrorCodes.PROJECT_FORBIDDEN, "不能删除最后一个项目")
 
         async with transaction_scope(self.db):
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             # ── 1. 软删除：API、用例、场景、API分类 ──
             models_to_soft_delete = [

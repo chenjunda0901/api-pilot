@@ -11,7 +11,12 @@ from app.database import get_db
 from app.middleware.auth import get_current_user, get_optional_user
 from app.models.user import User
 from app.models.project import Project
-from app.schemas.mock import MockRuleCreate, MockRuleUpdate, MockTestRequest, SchemaMockRequest
+from app.schemas.mock import (
+    MockRuleCreate,
+    MockRuleUpdate,
+    MockTestRequest,
+    SchemaMockRequest,
+)
 from app.services.mock_service import MockService
 from app.services.permission_service import check_read_access, check_write_access
 from app.utils.json_helpers import safe_json_load
@@ -20,7 +25,11 @@ from app.utils.response import success, fail
 router = APIRouter(prefix="/projects/{project_id}/mock-rules", tags=["Mock Rules"])
 
 
-@router.post("/generate-from-api/{api_id}", summary="从 API 生成 Mock 规则", description="基于 API 定义自动生成 Mock 规则（响应示例、匹配路径）")
+@router.post(
+    "/generate-from-api/{api_id}",
+    summary="从 API 生成 Mock 规则",
+    description="基于 API 定义自动生成 Mock 规则（响应示例、匹配路径）",
+)
 async def generate_from_api(
     project_id: int,
     api_id: int,
@@ -32,7 +41,11 @@ async def generate_from_api(
     return success(s.to_dict(await s.generate_from_api(project_id, api_id)))
 
 
-@router.post("/batch-generate", summary="批量生成 Mock 规则", description="从项目所有（或指定）API 批量生成 Mock 规则，跳过已有规则的 API")
+@router.post(
+    "/batch-generate",
+    summary="批量生成 Mock 规则",
+    description="从项目所有（或指定）API 批量生成 Mock 规则，跳过已有规则的 API",
+)
 async def batch_generate(
     project_id: int,
     api_ids: list[int] | None = None,
@@ -110,10 +123,16 @@ async def list_call_logs(
 ):
     s = MockService(db)
     items, total = await s.list_call_logs(
-        project_id, rule_id=rule_id, start_date=start_date,
-        end_date=end_date, page=page, page_size=page_size,
+        project_id,
+        rule_id=rule_id,
+        start_date=start_date,
+        end_date=end_date,
+        page=page,
+        page_size=page_size,
     )
-    return success({"items": items, "total": total, "page": page, "page_size": page_size})
+    return success(
+        {"items": items, "total": total, "page": page, "page_size": page_size}
+    )
 
 
 @router.delete(
@@ -242,7 +261,11 @@ from app.limiter import limiter
 )
 @limiter.limit("60/minute")
 async def mock_entry(
-    project_id: int, path: str, request: Request, db: AsyncSession = Depends(get_db)
+    project_id: int,
+    path: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
 ):
     """Mock 请求入口（支持条件匹配 + 脚本响应）"""
     start_time = time.time()
@@ -250,41 +273,18 @@ async def mock_entry(
     if not project:
         return fail(404, "Project not found")
 
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        from app.middleware.auth import decode_token
+    # 用 get_optional_user 替代手动 Token 解析
+    if current_user:
+        from app.services.permission_service import PermissionService
 
-        token = auth_header[len("Bearer ") :]
-        payload = decode_token(token)
-        if payload and payload.get("type") == "access":
-            from sqlalchemy import select
-
-            user_id = int(payload["sub"])
-            from app.models.user import User as UserModel
-
-            user_result = await db.execute(
-                select(UserModel).where(UserModel.id == user_id)
+        try:
+            await PermissionService(db).check_project_access(
+                project_id, current_user, require_write=False
             )
-            user = user_result.scalar_one_or_none()
-            if user:
-                from app.services.permission_service import PermissionService
-
-                try:
-                    await PermissionService(db).check_project_access(
-                        project_id, user, require_write=False
-                    )
-                except (PermissionError, ValueError):
-                    return fail(403, "您没有该 Mock 项目的访问权限")
-            else:
-                # 用户不存在或 token 无效，私有项目拒绝访问
-                if not project.is_public:
-                    return fail(403, "私有项目的 Mock 服务需要认证")
-        else:
-            # token 无效或非 access 类型，私有项目拒绝访问
-            if not project.is_public:
-                return fail(403, "私有项目的 Mock 服务需要认证")
+        except (PermissionError, ValueError):
+            return fail(403, "您没有该 Mock 项目的访问权限")
     else:
-        # 未携带 Authorization 头
+        # 未认证用户，仅允许访问公开项目
         if not project.is_public:
             return fail(403, "私有项目的 Mock 服务需要认证")
 
@@ -300,7 +300,8 @@ async def mock_entry(
 
     # 提取请求头（排除内部头）
     request_headers = {
-        k: v for k, v in dict(request.headers).items()
+        k: v
+        for k, v in dict(request.headers).items()
         if k.lower() not in ("authorization", "host", "content-length")
     }
 
@@ -351,7 +352,11 @@ async def mock_entry(
     duration_ms = int((time.time() - start_time) * 1000)
 
     # 计算响应体哈希
-    resp_body_str = json.dumps(resp_body, ensure_ascii=False) if isinstance(resp_body, (dict, list)) else str(resp_body)
+    resp_body_str = (
+        json.dumps(resp_body, ensure_ascii=False)
+        if isinstance(resp_body, (dict, list))
+        else str(resp_body)
+    )
     resp_body_hash = hashlib.sha256(resp_body_str.encode()).hexdigest()
 
     # 记录命中日志
@@ -373,7 +378,7 @@ async def mock_entry(
 
     from fastapi.responses import JSONResponse, Response
 
-    content_type = headers.get("content-type", "") if isinstance(headers, dict) else ""
+    headers.get("content-type", "") if isinstance(headers, dict) else ""
 
     if isinstance(resp_body, dict):
         return JSONResponse(

@@ -16,7 +16,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -25,7 +25,7 @@ from starlette.responses import JSONResponse, Response
 logger = logging.getLogger("api_pilot.timeout")
 
 DEFAULT_TIMEOUT_SECONDS: float = 30.0
-MAX_TIMEOUT_SECONDS: float = 600.0  # 硬上限 10 分钟
+MAX_TIMEOUT_SECONDS: float = 120.0  # 硬上限 2 分钟
 HEADER_NAME: str = "X-Request-Timeout"
 
 # 默认跳过：探针 + 静态资源
@@ -88,7 +88,9 @@ class RequestTimeoutMiddleware(BaseHTTPMiddleware):
         except asyncio.TimeoutError:
             logger.warning(
                 "Request timeout after %.1fs: %s %s",
-                timeout, request.method, path,
+                timeout,
+                request.method,
+                path,
             )
             return JSONResponse(
                 status_code=504,

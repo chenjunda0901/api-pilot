@@ -3,7 +3,6 @@
 import json
 import logging
 import re
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
@@ -59,12 +58,12 @@ def _parse_mentions(content: str, db: AsyncSession, project_id: int) -> list[int
     if not candidates:
         return []
     # 仅查找项目成员
-    stmt = select(ProjectMember).where(ProjectMember.project_id == project_id)
+    select(ProjectMember).where(ProjectMember.project_id == project_id)
     # 这里用同步思路：先拿成员 user_ids，再按 username 过滤
     # 简化：所有匹配候选的用户名都查一遍
     from app.models.user import User as _User
     user_q = select(_User).where(_User.username.in_(candidates))
-    rows = db.execute(user_q) if False else None  # 同步占位，实际是 async
+    db.execute(user_q) if False else None  # 同步占位，实际是 async
     return []  # 实际见下方实现
 
 
@@ -89,7 +88,7 @@ async def list_comments(
     project_id: int = Query(..., ge=1, description="项目 ID"),
     resource_type: str = Query(..., description="api / case / scene / report"),
     resource_id: int = Query(..., ge=1),
-    status: Optional[str] = Query(None, description="open / resolved"),
+    status: str | None = Query(None, description="open / resolved"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),

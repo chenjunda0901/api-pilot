@@ -1,6 +1,5 @@
 """测试计划 / 测试计划步骤 Pydantic 模型。"""
 
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 
@@ -28,10 +27,10 @@ class TestPlanStepCreate(TestPlanStepBase):
 class TestPlanStepUpdate(BaseModel):
     """更新测试计划步骤。"""
 
-    step_type: Optional[str] = None
-    step_id: Optional[int] = Field(default=None, ge=1)
-    order_index: Optional[int] = Field(default=None, ge=0)
-    enabled: Optional[bool] = None
+    step_type: str | None = None
+    step_id: int | None = Field(default=None, ge=1)
+    order_index: int | None = Field(default=None, ge=0)
+    enabled: bool | None = None
 
 
 class TestPlanStepOut(TestPlanStepBase):
@@ -39,7 +38,7 @@ class TestPlanStepOut(TestPlanStepBase):
 
     id: int
     plan_id: int
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
 
 class TestPlanBase(BaseModel):
@@ -76,12 +75,12 @@ class TestPlanCreate(TestPlanBase):
 class TestPlanUpdate(BaseModel):
     """更新测试计划请求。"""
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    description: Optional[str] = None
-    concurrency: Optional[int] = Field(default=None, ge=1, le=50)
-    timeout_seconds: Optional[int] = Field(default=None, ge=1, le=3600)
-    failure_strategy: Optional[str] = None
-    status: Optional[str] = None
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = None
+    concurrency: int | None = Field(default=None, ge=1, le=50)
+    timeout_seconds: int | None = Field(default=None, ge=1, le=3600)
+    failure_strategy: str | None = None
+    status: str | None = None
 
 
 class TestPlanOut(TestPlanBase):
@@ -89,19 +88,19 @@ class TestPlanOut(TestPlanBase):
 
     id: int
     project_id: int
-    created_by: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_by: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
     steps: list[TestPlanStepOut] = Field(default_factory=list)
 
 
 class TestPlanCloneRequest(BaseModel):
     """测试计划克隆请求。"""
 
-    new_name: Optional[str] = Field(default=None, max_length=200, description="新计划名；为空则自动加 (副本)")
+    new_name: str | None = Field(default=None, max_length=200, description="新计划名；为空则自动加 (副本)")
 
 
 class TestPlanRunRequest(BaseModel):
     """立即执行测试计划请求。"""
 
-    env_id: Optional[int] = Field(default=None, description="环境 ID；为空则使用默认环境")
+    env_id: int | None = Field(default=None, description="环境 ID；为空则使用默认环境")

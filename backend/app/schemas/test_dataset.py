@@ -1,16 +1,15 @@
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
 class DatasetCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
+    description: str | None = None
     project_id: int
 
 
 class DatasetUpdate(BaseModel):
-    name: Optional[str] = Field(default=None, max_length=200)
-    description: Optional[str] = None
+    name: str | None = Field(default=None, max_length=200)
+    description: str | None = None
 
 
 class BatchRowsRequest(BaseModel):

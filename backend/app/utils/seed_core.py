@@ -5,7 +5,7 @@
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -262,7 +262,7 @@ async def _seed_fresh(db: AsyncSession):
         # ----------------------------------------
         # 10. 测试报告（6 条历史）
         # ----------------------------------------
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         reports = _build_reports(pid, admin.id, scene_map, env_map, api_map, now)
         for report_args, steps_data in reports:
             report = report_args
@@ -791,8 +791,8 @@ async def copy_project_to_user(
 
         # ── 13. 复制变量 ──
         # 需要使用新环境ID和新用例ID，而不是旧的
-        new_env_ids = set(env_map.values())
-        new_case_ids = set(case_map.values())
+        set(env_map.values())
+        set(case_map.values())
 
         var_result = await db.execute(
             select(Variable)

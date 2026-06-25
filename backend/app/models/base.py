@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, TypeVar
+from typing import TypeVar
 from sqlalchemy import DateTime, func, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -35,7 +35,7 @@ class SoftDeleteMixin:
         stmt = select(MyModel).where(MyModel.active_filter(), MyModel.name == "foo")
     """
 
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+    deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime, nullable=True, default=None
     )
 

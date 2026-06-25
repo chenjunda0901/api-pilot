@@ -1,6 +1,5 @@
 """评论 Pydantic 模型。"""
 
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 
@@ -11,7 +10,7 @@ class CommentBase(BaseModel):
     resource_type: str = Field(..., description="资源类型: api / case / scene / report")
     resource_id: int = Field(..., ge=1)
     content_md: str = Field(..., min_length=1, max_length=10000)
-    parent_id: Optional[int] = Field(default=None, ge=1, description="父评论 ID（回复场景）")
+    parent_id: int | None = Field(default=None, ge=1, description="父评论 ID（回复场景）")
 
     @field_validator("resource_type")
     @classmethod
@@ -29,7 +28,7 @@ class CommentCreate(BaseModel):
     resource_type: str
     resource_id: int = Field(..., ge=1)
     content_md: str = Field(..., min_length=1, max_length=10000)
-    parent_id: Optional[int] = Field(default=None, ge=1)
+    parent_id: int | None = Field(default=None, ge=1)
     mentions: list[int] = Field(default_factory=list, description="@ 提及的用户 ID 列表")
 
     @field_validator("resource_type")
@@ -58,9 +57,9 @@ class CommentOut(BaseModel):
     content_md: str
     mentions: list[int] = Field(default_factory=list)
     status: str = Field(default="open", description="状态: open / resolved")
-    parent_id: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    parent_id: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class MentionSearchResponse(BaseModel):

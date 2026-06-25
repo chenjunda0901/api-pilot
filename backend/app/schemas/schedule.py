@@ -1,6 +1,5 @@
 """定时任务 Pydantic 模型。"""
 
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 
@@ -33,16 +32,16 @@ class ScheduleCreate(ScheduleBase):
 class ScheduleUpdate(BaseModel):
     """更新定时任务请求。"""
 
-    cron_expression: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    timezone: Optional[str] = Field(default=None, max_length=50)
-    enabled: Optional[bool] = None
+    cron_expression: str | None = Field(default=None, min_length=1, max_length=100)
+    timezone: str | None = Field(default=None, max_length=50)
+    enabled: bool | None = None
 
 
 class ScheduleOut(ScheduleBase):
     """定时任务输出。"""
 
     id: int
-    last_run_at: Optional[datetime] = None
-    next_run_at: Optional[datetime] = None
-    created_by: Optional[int] = None
-    created_at: Optional[datetime] = None
+    last_run_at: datetime | None = None
+    next_run_at: datetime | None = None
+    created_by: int | None = None
+    created_at: datetime | None = None

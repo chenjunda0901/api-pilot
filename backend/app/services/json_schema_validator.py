@@ -67,7 +67,6 @@ class JSONSchemaValidator:
         except ImportError as exc:  # pragma: no cover
             raise JSONSchemaError("未安装 jsonschema") from exc
         # 优先 Draft 2020-12，回退到 Draft 7
-        cls: Any = Draft202012Validator
         try:
             validator_cls: Any = Draft202012Validator
         except Exception:  # noqa: BLE001

@@ -1,4 +1,3 @@
-from typing import Optional
 import logging
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select, delete
@@ -23,11 +22,11 @@ router = APIRouter(prefix="/projects/{project_id}/apis", tags=["API Definitions"
 
 
 @router.get("", summary="接口列表", description="获取项目下的所有接口定义，支持接口目录筛选")
-async def list_apis(project_id: int, category_id: Optional[int] = Query(None),
-    method: Optional[str] = Query(None, description="HTTP 方法筛选"),
-    status: Optional[str] = Query(None, description="状态筛选"),
-    keyword: Optional[str] = Query(None, description="名称/路径模糊搜索"),
-    tag: Optional[str] = Query(None, description="标签名称筛选"),
+async def list_apis(project_id: int, category_id: int | None = Query(None),
+    method: str | None = Query(None, description="HTTP 方法筛选"),
+    status: str | None = Query(None, description="状态筛选"),
+    keyword: str | None = Query(None, description="名称/路径模糊搜索"),
+    tag: str | None = Query(None, description="标签名称筛选"),
     page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
     current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
@@ -121,6 +120,7 @@ async def delete_api(project_id: int, api_id: int,
     await s.delete(api_id, project_id)
     return success(message="接口已移至回收站")
 
+
 @router.get("/recycle/list", summary="回收站列表", description="列出已软删除的接口")
 async def list_deleted_apis(project_id: int,
     current_user: User = Depends(get_current_user),
@@ -149,6 +149,7 @@ async def permanent_delete_api(project_id: int, api_id: int,
     await s.permanent_delete(api_id, project_id)
     return success(message="接口已永久删除")
 
+
 @router.post("/{api_id}/duplicate", summary="复制接口", description="快速复制已有接口的配置生成新接口")
 async def duplicate_api(project_id: int, api_id: int,
     current_user: User = Depends(get_current_user),
@@ -165,20 +166,14 @@ async def mark_api_as_seed(project_id: int, api_id: int,
     _project: Project = Depends(check_seed_mark_access),
     db: AsyncSession = Depends(get_db)):
     if current_user.role != "admin":
-        from app.core.exceptions import raise_biz, ErrorCodes
         raise_biz(ErrorCodes.PROJECT_FORBIDDEN, "仅管理员可标记种子数据")
-    from sqlalchemy import select
-    from app.models.api_definition import ApiDefinition
-    from app.models.project import Project
     result = await db.execute(select(ApiDefinition).where(ApiDefinition.id == api_id, ApiDefinition.project_id == project_id).limit(1))
     api = result.scalar_one_or_none()
     if not api:
-        from app.core.exceptions import raise_biz, ErrorCodes
         raise_biz(ErrorCodes.NOT_FOUND, "接口不存在")
     # 种子标记仅对全局种子项目（global_demo=1）有效
     project = await db.get(Project, api.project_id)
     if not project or project.global_demo != 1:
-        from app.core.exceptions import raise_biz, ErrorCodes
         raise_biz(ErrorCodes.PARAM_ERROR, "种子标记仅对全局种子项目生效")
     api.is_seed = 1 if api.is_seed == 0 else 0
     await db.flush()
@@ -250,7 +245,7 @@ async def test_api(project_id: int, api_id: int, req: ApiTestRequest,
             status = "success"
 
         # 获取接口信息
-        api = await s.get(api_id, project_id)
+        await s.get(api_id, project_id)
         url = result.get("request_url", "")
         method = result.get("request_method", "GET")
         duration = result.get("duration", 0)
@@ -329,6 +324,7 @@ async def batch_delete_apis(project_id: int, req: BatchIdsRequest,
         "deleted_ids": success_ids,
     }, message=f"成功删除 {len(success_ids)} 个接口" + (f"，{len(failed_items)} 个失败" if failed_items else ""))
 
+
 @router.post("/batch/move", summary="Batch move APIs")
 async def batch_move_apis(project_id: int, req: BatchMoveRequest,
     current_user: User = Depends(get_current_user),
@@ -368,10 +364,10 @@ async def export_api(
 async def get_api_test_history(
     project_id: int,
     api_id: int,
-    status: Optional[str] = Query(None, description="状态筛选：success/failed/error"),
-    env_id: Optional[int] = Query(None, description="环境ID筛选"),
-    start_date: Optional[str] = Query(None, description="开始日期 (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="结束日期 (YYYY-MM-DD)"),
+    status: str | None = Query(None, description="状态筛选：success/failed/error"),
+    env_id: int | None = Query(None, description="环境ID筛选"),
+    start_date: str | None = Query(None, description="开始日期 (YYYY-MM-DD)"),
+    end_date: str | None = Query(None, description="结束日期 (YYYY-MM-DD)"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     current_user: User | None = Depends(get_optional_user),
@@ -413,7 +409,7 @@ async def get_api_test_history(
             query = query.where(ApiTestHistory.created_at >= start_dt)
             count_query = count_query.where(ApiTestHistory.created_at >= start_dt)
         except ValueError:
-            raise_biz(ErrorCodes.INVALID_PARAM, "start_date 格式错误，应为 YYYY-MM-DD")
+            raise_biz(ErrorCodes.PARAM_ERROR, "start_date 格式错误，应为 YYYY-MM-DD")
     if end_date:
         try:
             # 结束日期包含当天，所以加一天
@@ -421,7 +417,7 @@ async def get_api_test_history(
             query = query.where(ApiTestHistory.created_at <= end_dt)
             count_query = count_query.where(ApiTestHistory.created_at <= end_dt)
         except ValueError:
-            raise_biz(ErrorCodes.INVALID_PARAM, "end_date 格式错误，应为 YYYY-MM-DD")
+            raise_biz(ErrorCodes.PARAM_ERROR, "end_date 格式错误，应为 YYYY-MM-DD")
 
     # 统计总数
     total = await db.scalar(count_query) or 0
@@ -525,7 +521,7 @@ async def _write_api_snapshot(
     db: AsyncSession,
     api: ApiDefinition,
     change_type: str,
-    user_id: Optional[int] = None,
+    user_id: int | None = None,
     change_summary: str = "",
 ) -> None:
     """写入一条 ApiSnapshot 记录（内部使用，不抛异常以免影响主流程）。"""
@@ -637,4 +633,3 @@ async def diff_api_versions(
         "summary": default_differ.summarize(ops),
         "breaking": default_differ.is_breaking_change(ops),
     })
-

@@ -1,5 +1,6 @@
 """URL 校验器——SSRF 防护：禁止内网/链路本地/CGNAT 地址，支持域名 DNS 解析校验"""
 
+import asyncio
 import socket
 from urllib.parse import urlparse
 import ipaddress
@@ -50,15 +51,17 @@ def validate_request_url(url: str) -> str:
     try:
         ip = ipaddress.ip_address(hostname)
     except ValueError:
-        # 域名场景：解析 DNS 并检查所有解析结果，防止 DNS rebinding
+        # 域名场景：异步 DNS 解析并检查所有解析结果，防止 DNS rebinding
         try:
-            addrinfo = socket.getaddrinfo(hostname, 80, type=socket.SOCK_STREAM)
+            addrinfo = await asyncio.to_thread(
+                socket.getaddrinfo, hostname, 80, type=socket.SOCK_STREAM
+            )
             resolved_ips = set()
             for _, _, _, _, sockaddr in addrinfo:
                 ip_str = sockaddr[0]
-                if "%" in ip_str:
+                if isinstance(ip_str, str) and "%" in ip_str:
                     ip_str = ip_str.split("%")[0]
-                resolved_ips.add(ip_str)
+                resolved_ips.add(str(ip_str))
             if not resolved_ips:
                 raise ValueError(
                     f"DNS resolution returned no addresses for: {hostname}"

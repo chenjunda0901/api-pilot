@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,7 +56,7 @@ async def transaction_scope(
     if nested:
         # SAVEPOINT：单条失败只回滚 SAVEPOINT，不影响主事务
         try:
-            async with db.begin_nested() as savepoint:
+            async with db.begin_nested():
                 yield db
             # 正常退出 → SAVEPOINT 释放
         except SQLAlchemyError as exc:

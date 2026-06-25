@@ -11,11 +11,12 @@
 超时处理：用户脚本在子进程中执行（由主进程通过进程存活状态判断超时）。
 """
 
+import asyncio
 import json
 import logging
 import multiprocessing
+import platform
 import threading
-from typing import Optional
 
 logger = logging.getLogger("script_executor")
 
@@ -36,6 +37,7 @@ def _get_js_engine():
     # 尝试 QuickJS
     try:
         import quickjs
+
         _JS_ENGINE = quickjs
         _JS_ENGINE_NAME = "quickjs"
         logger.info("使用 QuickJS 作为脚本执行引擎")
@@ -46,6 +48,7 @@ def _get_js_engine():
     # 回退到 Js2Py（纯 Python，跨平台）
     try:
         import js2py
+
         _JS_ENGINE = js2py
         _JS_ENGINE_NAME = "js2py"
         logger.info("使用 Js2Py 作为脚本执行引擎（纯 Python 实现，跨平台兼容）")
@@ -97,8 +100,14 @@ class UnifiedJSContext:
 
 def _set_limits():
     """子进程资源限制：CPU 时间、内存、文件大小。"""
+    if platform.system() == "Windows":
+        logger.warning(
+            "Windows: process resource limits unavailable, JS scripts run without CPU/memory restrictions"
+        )
+        return
     try:
         import resource
+
         # CPU 时间 10 秒
         resource.setrlimit(resource.RLIMIT_CPU, (10, 10))
         # 内存 128MB
@@ -106,17 +115,18 @@ def _set_limits():
         # 文件大小 1MB
         resource.setrlimit(resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024))
     except (ImportError, ValueError, OSError):
-        # Windows 不支持 resource 模块，跳过
-        pass
-
+        logger.warning("Failed to set process resource limits: %s")
 
 
 def _js_escape(s: str) -> str:
     """将 Python 字符串安全嵌入 JS 单引号字符串。
 
     使用 json.dumps 输出 JS 兼容字符串，天然转义所有特殊字符。
+    然后再转义单引号，防止嵌入单引号 JS 字符串时注入。
     """
-    return json.dumps(s)[1:-1]  # 去掉 json.dumps 外层的双引号
+    return json.dumps(s, ensure_ascii=False)[1:-1].replace(
+        "'", "\\'"
+    )  # 去掉外层双引号 + 转义单引号
 
 
 def _build_pm_js() -> str:
@@ -153,8 +163,9 @@ def _build_pm_js() -> str:
 """
 
 
-def _create_request_obj(method: str, path: str, headers: list, params: list,
-                        body: dict, auth: dict) -> str:
+def _create_request_obj(
+    method: str, path: str, headers: list, params: list, body: dict, auth: dict
+) -> str:
     """创建 JavaScript 中的 pm.request 对象（带脏检测）。"""
     h_json = _js_escape(json.dumps(headers))
     p_json = _js_escape(json.dumps(params))
@@ -192,11 +203,11 @@ def _create_response_obj(response: dict) -> str:
     status = response.get("response_status", 0)
     body_text = response.get("response_body", "")
     body_text_escaped = (
-        body_text.replace('\\', '\\\\')
-                 .replace('\'', '\\\'')
-                 .replace('\n', '\\n')
-                 .replace('\r', '\\r')
-                 .replace('\t', '\\t')
+        body_text.replace("\\", "\\\\")
+        .replace("'", "\\'")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
     )
     headers_json = json.dumps(response.get("response_headers", {}))
     return f"""
@@ -219,8 +230,9 @@ def _create_response_obj(response: dict) -> str:
 """
 
 
-def _pre_script_in_subprocess(args: dict, result_queue: multiprocessing.Queue,
-                               timeout_ms: int):
+def _pre_script_in_subprocess(
+    args: dict, result_queue: multiprocessing.Queue, timeout_ms: int
+):
     """在子进程中执行前置脚本（无超时保护，超时由主进程 kill 判断）。"""
     try:
         variables = args["variables"]
@@ -229,7 +241,11 @@ def _pre_script_in_subprocess(args: dict, result_queue: multiprocessing.Queue,
         console_errors: list[str] = []
 
         def js_get(key):
-            return modified_vars.get(key) if key in modified_vars else variables.get(key, "")
+            return (
+                modified_vars.get(key)
+                if key in modified_vars
+                else variables.get(key, "")
+            )
 
         def js_set(key, value):
             modified_vars[key] = value
@@ -245,22 +261,33 @@ def _pre_script_in_subprocess(args: dict, result_queue: multiprocessing.Queue,
         ctx.add_callable("js_set_var", js_set)
         ctx.add_callable("js_console_log", js_console_log)
         ctx.eval(_build_pm_js())
-        ctx.eval(_create_request_obj(
-            args["method"], args["path"],
-            args["headers"], args["params"],
-            args["body"], args["auth"],
-        ))
+        ctx.eval(
+            _create_request_obj(
+                args["method"],
+                args["path"],
+                args["headers"],
+                args["params"],
+                args["body"],
+                args["auth"],
+            )
+        )
         ctx.eval("this._saveOriginalSnapshot()")
 
         try:
             ctx.eval(args["script"])
         except Exception as e:  # noqa: BLE001 — 用户JS脚本可能抛出任意异常
-            result_queue.put({
-                "success": False,
-                "error": f"{type(e).__name__}: {e}",
-                "script_output": "\n".join(console_logs) if console_logs else None,
-                "script_error": "\n".join(console_errors + [f"{type(e).__name__}: {e}"]) if console_errors or True else None,
-            })
+            result_queue.put(
+                {
+                    "success": False,
+                    "error": f"{type(e).__name__}: {e}",
+                    "script_output": "\n".join(console_logs) if console_logs else None,
+                    "script_error": "\n".join(
+                        console_errors + [f"{type(e).__name__}: {e}"]
+                    )
+                    if console_errors or True
+                    else None,
+                }
+            )
             return
 
         is_dirty = ctx.eval("this._isDirtyDeep()")
@@ -270,11 +297,15 @@ def _pre_script_in_subprocess(args: dict, result_queue: multiprocessing.Queue,
             req_cache = json.loads(req_cache_raw)
             # 脱敏敏感 header，防止 token/cookie 泄漏到报告
             safe_headers = [
-                {**h, "value": "***"} if h.get("key", "").lower() in ("authorization", "cookie", "set-cookie") else h
+                {**h, "value": "***"}
+                if h.get("key", "").lower() in ("authorization", "cookie", "set-cookie")
+                else h
                 for h in (req_cache.get("_headers") or args["headers"])
             ]
             modified_request = {
-                "method": req_cache.get("_method") or req_cache.get("method") or args["method"],
+                "method": req_cache.get("_method")
+                or req_cache.get("method")
+                or args["method"],
                 "path": req_cache.get("_url") or args["path"],
                 "headers": safe_headers,
                 "params": req_cache.get("_params") or args["params"],
@@ -282,23 +313,28 @@ def _pre_script_in_subprocess(args: dict, result_queue: multiprocessing.Queue,
                 "auth": req_cache.get("_auth") or args["auth"],
             }
 
-        result_queue.put({
-            "success": True,
-            "is_dirty": is_dirty,
-            "modified_vars": dict(modified_vars),
-            "modified_request": modified_request,
-            "script_output": "\n".join(console_logs) if console_logs else None,
-            "script_error": "\n".join(console_errors) if console_errors else None,
-        })
+        result_queue.put(
+            {
+                "success": True,
+                "is_dirty": is_dirty,
+                "modified_vars": dict(modified_vars),
+                "modified_request": modified_request,
+                "script_output": "\n".join(console_logs) if console_logs else None,
+                "script_error": "\n".join(console_errors) if console_errors else None,
+            }
+        )
     except Exception as e:  # noqa: BLE001 — JS上下文可能抛出任意异常
-        result_queue.put({
-            "success": False,
-            "error": f"{type(e).__name__}: {e}",
-        })
+        result_queue.put(
+            {
+                "success": False,
+                "error": f"{type(e).__name__}: {e}",
+            }
+        )
 
 
-def _post_script_in_subprocess(args: dict, result_queue: multiprocessing.Queue,
-                                timeout_ms: int):
+def _post_script_in_subprocess(
+    args: dict, result_queue: multiprocessing.Queue, timeout_ms: int
+):
     """在子进程中执行后置脚本。"""
     try:
         variables = args["variables"]
@@ -328,25 +364,35 @@ def _post_script_in_subprocess(args: dict, result_queue: multiprocessing.Queue,
         try:
             ctx.eval(args["script"])
         except Exception as e:  # noqa: BLE001 — 用户JS脚本可能抛出任意异常
-            result_queue.put({
-                "success": False,
-                "error": f"{type(e).__name__}: {e}",
-                "script_output": "\n".join(console_logs) if console_logs else None,
-                "script_error": "\n".join(console_errors + [f"{type(e).__name__}: {e}"]) if console_errors or True else None,
-            })
+            result_queue.put(
+                {
+                    "success": False,
+                    "error": f"{type(e).__name__}: {e}",
+                    "script_output": "\n".join(console_logs) if console_logs else None,
+                    "script_error": "\n".join(
+                        console_errors + [f"{type(e).__name__}: {e}"]
+                    )
+                    if console_errors or True
+                    else None,
+                }
+            )
             return
 
-        result_queue.put({
-            "success": True,
-            "extracted": dict(extracted),
-            "script_output": "\n".join(console_logs) if console_logs else None,
-            "script_error": "\n".join(console_errors) if console_errors else None,
-        })
+        result_queue.put(
+            {
+                "success": True,
+                "extracted": dict(extracted),
+                "script_output": "\n".join(console_logs) if console_logs else None,
+                "script_error": "\n".join(console_errors) if console_errors else None,
+            }
+        )
     except Exception as e:  # noqa: BLE001 — JS上下文可能抛出任意异常
-        result_queue.put({
-            "success": False,
-            "error": f"{type(e).__name__}: {e}",
-        })
+        result_queue.put(
+            {
+                "success": False,
+                "error": f"{type(e).__name__}: {e}",
+            }
+        )
 
 
 def _run_with_limits(func, args, result_queue, timeout_ms):
@@ -368,6 +414,7 @@ def _run_with_timeout(func, args, timeout_sec: float):
         p.start()
 
         import time
+
         deadline = time.monotonic() + timeout_sec + 1.0
         while True:
             if not result_queue.empty():
@@ -389,9 +436,17 @@ def _run_with_timeout(func, args, timeout_sec: float):
             pass
 
 
-def execute_pre_script(script: str, method: str, path: str,
-                      headers: list, params: list, body: dict, auth: dict,
-                      variables: dict, timeout_sec: float = 10.0) -> Optional[dict]:
+async def execute_pre_script(
+    script: str,
+    method: str,
+    path: str,
+    headers: list,
+    params: list,
+    body: dict,
+    auth: dict,
+    variables: dict,
+    timeout_sec: float = 10.0,
+) -> dict | None:
     """执行前置操作脚本，返回修改后的请求参数（script 修改了才返回）。
 
     返回字典可能包含以下字段：
@@ -414,7 +469,9 @@ def execute_pre_script(script: str, method: str, path: str,
     }
 
     try:
-        result = _run_with_timeout(_pre_script_in_subprocess, args, timeout_sec)
+        result = await asyncio.to_thread(
+            _run_with_timeout, _pre_script_in_subprocess, args, timeout_sec
+        )
         if not result["success"]:
             err_str = result["error"]
             if "TimeoutError" in err_str or "timed out" in err_str.lower():
@@ -452,8 +509,9 @@ def execute_pre_script(script: str, method: str, path: str,
         return None
 
 
-def execute_post_script(script: str, response: dict,
-                        variables: dict, timeout_sec: float = 10.0) -> dict:
+async def execute_post_script(
+    script: str, response: dict, variables: dict, timeout_sec: float = 10.0
+) -> dict:
     """执行后置操作脚本，返回脚本设置的变量及脚本输出。
 
     返回字典可能包含以下字段：
@@ -471,7 +529,9 @@ def execute_post_script(script: str, response: dict,
     }
 
     try:
-        result = _run_with_timeout(_post_script_in_subprocess, args, timeout_sec)
+        result = await asyncio.to_thread(
+            _run_with_timeout, _post_script_in_subprocess, args, timeout_sec
+        )
         if not result["success"]:
             err_str = result["error"]
             if "TimeoutError" in err_str or "timed out" in err_str.lower():

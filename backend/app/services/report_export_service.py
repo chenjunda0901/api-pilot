@@ -252,13 +252,12 @@ th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
         if not report:
             raise ReportExportError("导出失败：报告数据不完整")
 
-        scene_name = ""
         if report.scene_id:
             from app.models.test_scene import TestScene
 
             scene = await self.db.get(TestScene, report.scene_id)
             if scene:
-                scene_name = scene.name
+                pass
 
         # 获取步骤详情
         steps_result = await self.db.execute(

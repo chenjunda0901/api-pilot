@@ -1,9 +1,9 @@
 import logging
-from typing import Optional
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy import select, delete
+from datetime import UTC
 
 logger = logging.getLogger("scheduler")
 
@@ -101,18 +101,20 @@ async def _clean_old_reports(days: int):
     async with async_session_factory() as db:
         from app.services.report_service import ReportService
         await ReportService(db).clean_old(days)
+
+
 async def _cleanup_expired_tokens():
     """
     清理超过 7 天的 RevokedToken 记录。
     RevokedToken 模型有 revoked_at 字段，用于判断过期时间。
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
     from app.database import async_session_factory
     from app.models.revoked_token import RevokedToken
     from sqlalchemy import delete
 
     async with async_session_factory() as session:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+        cutoff = datetime.now(UTC) - timedelta(days=7)
         result = await session.execute(
             delete(RevokedToken).where(RevokedToken.revoked_at < cutoff)
         )
@@ -120,7 +122,7 @@ async def _cleanup_expired_tokens():
         logger.info(f"Cleaned up {result.rowcount} expired revoked tokens")
 
 
-async def add_scene_job(scene_id: int, cron: str, env_id: Optional[int] = None) -> None:
+async def add_scene_job(scene_id: int, cron: str, env_id: int | None = None) -> None:
     """添加或更新场景的定时任务（运行时动态同步）"""
     if not scheduler.running:
         logger.warning("Scheduler 未运行，无法添加定时任务")
@@ -151,7 +153,7 @@ async def remove_scene_job(scene_id: int) -> None:
         logger.info(f"已移除场景 {scene_id} 的定时任务")
 
 
-async def sync_scene_schedule(scene_id: int, cron: str, enabled: bool, env_id: Optional[int] = None) -> None:
+async def sync_scene_schedule(scene_id: int, cron: str, enabled: bool, env_id: int | None = None) -> None:
     """统一的定时任务同步入口，根据 enabled 和 cron 决定 add 或 remove"""
     if enabled and cron:
         await add_scene_job(scene_id, cron, env_id)
@@ -164,13 +166,13 @@ async def _cleanup_recycle_bin():
 
     涉及模型：ApiDefinition、TestScene、TestCase。
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
     from app.database import async_session_factory
     from app.models.api_definition import ApiDefinition
     from app.models.test_scene import TestScene
     from app.models.test_case import TestCase
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=RECYCLE_RETENTION_DAYS)
+    cutoff = datetime.now(UTC) - timedelta(days=RECYCLE_RETENTION_DAYS)
 
     async with async_session_factory() as session:
         total = 0
@@ -198,7 +200,7 @@ async def _notify_expiring_resources():
 
     通知通过 Notification 模型写入，由 SSE 推送给用户。
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
     from app.database import async_session_factory
     from app.models.api_definition import ApiDefinition
     from app.models.test_scene import TestScene
@@ -206,7 +208,7 @@ async def _notify_expiring_resources():
     from app.models.project_member import ProjectMember
     from app.models.notification import Notification
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     warn_start = now + timedelta(days=RECYCLE_RETENTION_DAYS - RECYCLE_WARN_DAYS)
     warn_end = now + timedelta(days=RECYCLE_RETENTION_DAYS)
 

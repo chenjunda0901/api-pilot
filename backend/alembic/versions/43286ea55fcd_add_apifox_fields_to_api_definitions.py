@@ -23,8 +23,9 @@ def upgrade() -> None:
     _db = op.get_bind().engine.url.database.replace('+aiosqlite', '')
 
     def _col_exists(table: str, col: str) -> bool:
+        assert table.isidentifier(), f"Invalid table name: {table}"
         conn = _sqlite.connect(_db)
-        exists = col in [x[1] for x in conn.execute(f"PRAGMA table_info({table})").fetchall()]
+        exists = col in [x[1] for x in conn.execute(sa.text(f"PRAGMA table_info({table})")).fetchall()]
         conn.close()
         return exists
 

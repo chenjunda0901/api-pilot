@@ -18,8 +18,9 @@ def upgrade() -> None:
     import sqlite3 as _sqlite
     _db = op.get_bind().engine.url.database.replace('+aiosqlite', '')
     def _col_exists(t, c):
+        assert t.isidentifier(), f"Invalid table name: {t}"
         conn = _sqlite.connect(_db)
-        r = c in [x[1] for x in conn.execute(f"PRAGMA table_info({t})").fetchall()]
+        r = c in [x[1] for x in conn.execute(sa.text(f"PRAGMA table_info({t})")).fetchall()]
         conn.close()
         return r
     if not _col_exists("test_reports", "compare_with"):

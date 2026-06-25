@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -28,7 +27,7 @@ class ApiSnapshot(Base):
         comment="枚举: create / update / delete",
     )
     change_summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
-    changed_by: Mapped[Optional[int]] = mapped_column(
+    changed_by: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(

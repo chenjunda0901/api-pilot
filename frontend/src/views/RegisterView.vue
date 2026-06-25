@@ -16,10 +16,10 @@
         </div>
       </div>
       <div class="register-right">
+        <div class="form-wrapper">
         <div class="form-head">
           <span class="form-head-title" id="register-title">{{ $t('auth.createAccount') }}</span>
         </div>
-        <el-form
           :model="form"
           :rules="rules"
           ref="formRef"
@@ -103,6 +103,7 @@
         <p class="demo-hint">
           {{ $t('auth.hasAccount') }}<router-link to="/login" class="switch-link">{{ $t('auth.goToLogin') }}</router-link>
         </p>
+        </div>
       </div>
     </div>
   </div>
@@ -254,6 +255,7 @@ const rules = {
     },
   ],
   email: [{ required: false, validator: emailValidator, trigger: ["blur", "change"] }],
+  nickname: [],
 }
 
 async function handleRegister() {

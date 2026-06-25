@@ -54,26 +54,26 @@
 <script setup lang="ts">
 import { ref, computed, provide, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useTabsStore } from '../stores/tabsStore'
+import { useTabsStore } from '@/stores/tabsStore'
 import Sidebar from './Sidebar.vue'
 import TopBar from './TopBar.vue'
 import AppTabs from './AppTabs.vue'
 import StatusBar from './StatusBar.vue'
-import SearchDialog from '../components/SearchDialog.vue'
-import ShortcutHelp from '../components/ShortcutHelp.vue'
-import LoginHintBar from '../components/LoginHintBar.vue'
-import ReadOnlyBanner from '../components/common/ReadOnlyBanner.vue'
+import SearchDialog from '@/components/SearchDialog.vue'
+import ShortcutHelp from '@/components/ShortcutHelp.vue'
+import LoginHintBar from '@/components/LoginHintBar.vue'
+import ReadOnlyBanner from '@/components/common/ReadOnlyBanner.vue'
 import { msgWarning } from '@/utils/message'
-import { useEnvStore } from '../stores/envStore'
-import { useProjectStore } from '../stores/projectStore'
-import { useTheme } from '../composables/useTheme'
+import { useEnvStore } from '@/stores/envStore'
+import { useProjectStore } from '@/stores/projectStore'
+import { useTheme } from '@/composables/useTheme'
 
-import SidebarTree from "../components/SidebarTree.vue"
-import BreadcrumbNav from '../components/common/BreadcrumbNav.vue'
-import { useBreadcrumb } from '../composables/useBreadcrumb'
-import { useAppLoading } from '../composables/useAppLoading'
-import { useAppEvents } from '../composables/useAppEvents'
-import { useAppProjectWatcher } from '../composables/useAppProjectWatcher'
+import SidebarTree from "@/components/SidebarTree.vue"
+import BreadcrumbNav from '@/components/common/BreadcrumbNav.vue'
+import { useBreadcrumb } from '@/composables/useBreadcrumb'
+import { useAppLoading } from '@/composables/useAppLoading'
+import { useAppEvents } from '@/composables/useAppEvents'
+import { useAppProjectWatcher } from '@/composables/useAppProjectWatcher'
 
 // ── 职责拆分 composable ────────────────────────────────────────────
 const { pageLoading, showLoading, hideLoading } = useAppLoading()
@@ -201,11 +201,10 @@ onUnmounted(() => {
   height: 100vh;
   overflow: hidden;
   background: var(--surface-page);
-  border: 1px solid var(--border-subtle);
   color: var(--text-primary);
   position: relative;
   isolation: isolate;
-  gap: var(--space-4);
+  gap: 0;
 }
 
 .main-area {

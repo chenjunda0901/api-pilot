@@ -124,7 +124,7 @@ async def reset_seed_data(
     seed_scene_ids = [r[0] for r in await db.execute(
         text("SELECT id FROM test_scenes WHERE project_id = :pid AND is_seed = 1"), {"pid": pid}
     ).all()]
-    seed_cat_ids = [r[0] for r in await db.execute(
+    [r[0] for r in await db.execute(
         text("SELECT id FROM api_categories WHERE project_id = :pid AND is_seed = 1"), {"pid": pid}
     ).all()]
 

@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
@@ -26,7 +25,7 @@ class BatchMoveRequest(BaseModel):
 
     resource_type: str = Field(..., description="api / case / scene")
     resource_ids: list[int] = Field(..., min_length=1, max_length=200)
-    target_id: Optional[int] = Field(default=None, description="目标分类 ID")
+    target_id: int | None = Field(default=None, description="目标分类 ID")
 
 
 class BatchTagRequest(BaseModel):
@@ -46,7 +45,6 @@ class BatchStatusRequest(BaseModel):
     status: str = Field(..., description="draft / published / deprecated / active / archived")
 
 
-
 @router.get("", summary="项目列表", description="获取当前用户有权限访问的项目列表（公开项目未登录也可访问）")
 async def list_projects(
     page: int = Query(default=1, ge=1),
@@ -57,6 +55,8 @@ async def list_projects(
     service = ProjectService(db)
     items, total = await service.list_projects_with_scene_count(current_user, page, page_size)
     return success({"items": items, "total": total, "page": page, "page_size": page_size})
+
+
 @router.get("/{project_id}", summary="项目详情", description="获取指定项目的详细信息（公开项目未登录也可访问）")
 async def get_project(project_id: int, current_user: User | None = Depends(get_optional_user), _project: Project = Depends(check_read_access), db: AsyncSession = Depends(get_db)):
     service = ProjectService(db)
@@ -93,6 +93,7 @@ async def delete_project(project_id: int, current_user: User = Depends(get_curre
     service = ProjectService(db)
     await service.delete_project(project_id, current_user)
     return success(message="项目已删除")
+
 
 @router.get("/{project_id}/variables/{key}/references", summary="变量引用追踪", description="查找引用指定变量的场景步骤和测试用例")
 async def variable_references(
@@ -386,4 +387,3 @@ async def fork_seed_project(
         "is_new": True,
         "message": "Fork 成功，已为您创建私有副本",
     })
-

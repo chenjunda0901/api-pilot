@@ -1,6 +1,5 @@
 """API 文档发布路由 — 发布、分享、公开访问、文档编辑、版本管理"""
 
-from typing import Optional
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +22,7 @@ class DocPublishRequest(BaseModel):
     password: str = Field(default="", description="访问密码（可选）")
     expires_in_days: int = Field(default=0, description="过期天数，0 表示永不过期")
     include_categories: list[int] = Field(default=[], description="包含的接口目录 ID 列表，空=全部")
-    env_id: Optional[int] = Field(default=None, description="关联环境 ID（可选）")
+    env_id: int | None = Field(default=None, description="关联环境 ID（可选）")
 
 
 @router.post("/publish", summary="发布文档", description="将项目 API 发布为在线文档，生成分享链接")

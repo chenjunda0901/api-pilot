@@ -10,10 +10,9 @@
 import json
 import os
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 from app.utils.http_client import validate_request_url
-
 
 
 _MAX_RESPONSE_SIZE = 100 * 1024  # 100KB
@@ -28,15 +27,15 @@ def build_url(
     """组装完整 URL（base + path + query params），支持变量渲染。"""
     # 先渲染双花括号格式 {{variable}}
     rendered_path = _render_str(path, variables)
-    
+
     # 再渲染单花括号格式 {variable}（RESTful 路径参数）
     rendered_path = _render_path_params(rendered_path, variables)
 
     # URL 路径安全引用：对 base_url 和 rendered_path 分别进行 path 级 quote，
-    # 防止通过变量注入 ?、#、空格 等 URL 结构破坏字符。
-    # urllib.parse.quote 的 safe='/:@!' 保留 URL 路径必需字符，编码其余特殊字符。
-    safe_base = urllib.parse.quote(base_url, safe='/:@!')
-    safe_rendered_path = urllib.parse.quote(rendered_path, safe='/:@!')
+    # 防止通过变量注入 ?、#、@、: 等 URL 结构破坏字符（SSRF 防护）。
+    # 移除 @ 防止 credential 注入，移除 : 防止 port/scheme 注入。
+    safe_base = urllib.parse.quote(base_url, safe="/!")
+    safe_rendered_path = urllib.parse.quote(rendered_path, safe="/!")
     url = f"{safe_base}{safe_rendered_path}"
 
     # SSRF 防护：验证目标 URL 是否在白名单中
@@ -98,7 +97,7 @@ def _validate_file_path(file_path: str, base_dir: str = "") -> str:
 
     # 规则0：拒绝 URL 编码的路径遍历
     decoded = unquote(file_path)
-    if '..' in decoded.lower() or '%2e%2e' in decoded.lower():
+    if ".." in decoded.lower() or "%2e%2e" in decoded.lower():
         raise ValueError(f"不安全文件路径: {file_path}")
 
     # 规则1：使用 pathlib 规范化路径（解析 . 和 ..）
@@ -133,7 +132,9 @@ def _validate_file_path(file_path: str, base_dir: str = "") -> str:
     return real_path
 
 
-def parse_body(body_raw: str, variables: dict) -> tuple[Optional[str], Optional[dict], Optional[dict]]:
+def parse_body(
+    body_raw: str, variables: dict
+) -> tuple[str | None, dict | None, dict | None]:
     """解析 BodyEditor 格式 {type, content}，返回 (body_send, data_send, files_send)。
 
     Returns:
@@ -143,9 +144,8 @@ def parse_body(body_raw: str, variables: dict) -> tuple[Optional[str], Optional[
     - 文件路径经过路径遍历校验，仅允许项目目录下的文件
     - 打开的文件句柄由调用方负责关闭（见 linear_executor.py 的 files_send 清理逻辑）
     """
-    body_send: Optional[str] = None
-    data_send: Optional[dict] = None
-    files_send: Optional[dict] = None
+    data_send: dict | None = None
+    files_send: dict | None = None
 
     if not body_raw:
         return None, None, None
@@ -155,7 +155,11 @@ def parse_body(body_raw: str, variables: dict) -> tuple[Optional[str], Optional[
     except (json.JSONDecodeError, TypeError):
         return body_raw, None, None
 
-    if not (isinstance(body_obj, dict) and body_obj.get("type") and body_obj.get("content") is not None):
+    if not (
+        isinstance(body_obj, dict)
+        and body_obj.get("type")
+        and body_obj.get("content") is not None
+    ):
         return body_raw, None, None
 
     btype = body_obj.get("type", "")
@@ -227,27 +231,29 @@ def truncate_response(raw_bytes: bytes) -> tuple[str, Any]:
 def _render_str(text: str, variables: dict) -> str:
     """单行字符串变量渲染（供内部使用）。"""
     from app.services.executor.variable_renderer import render_template
+
     return render_template(text, variables)
 
 
 def _render_path_params(path: str, variables: dict) -> str:
     """渲染 RESTful 路径参数 {variable} 格式。
-    
+
     将路径中的 {key} 替换为 variables 中对应的值。
     例如：/api/users/{id} + {"id": 123} -> /api/users/123
-    
+
     Args:
         path: 包含 {variable} 占位符的路径字符串
         variables: 变量字典
-    
+
     Returns:
         替换后的路径字符串
     """
     import re
+
     # 匹配单花括号格式 {variable}，但不匹配双花括号 {{variable}}
     # 使用负向先行断言排除双花括号
     pattern = r"(?<!\{)\{(\w+)\}(?!\})"
-    
+
     def replacer(match):
         var_name = match.group(1)
         value = variables.get(var_name, "")
@@ -255,7 +261,7 @@ def _render_path_params(path: str, variables: dict) -> str:
         if isinstance(value, str) and "{{" in value:
             value = _render_str(value, variables)
         return str(value) if value else match.group(0)
-    
+
     return re.sub(pattern, replacer, path)
 
 

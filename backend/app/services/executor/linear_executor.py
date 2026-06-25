@@ -46,7 +46,6 @@ import logging
 import os
 import re
 import time
-from typing import Optional
 
 import httpx
 from sqlalchemy import select
@@ -65,7 +64,11 @@ from app.services.executor.variable_renderer import (
     find_undefined_variables,
     format_undefined_error,
 )
-from app.services.executor.assertion_engine import run_assertions, jsonpath_get, _safe_re_search
+from app.services.executor.assertion_engine import (
+    run_assertions,
+    jsonpath_get,
+    _safe_re_search,
+)
 from app.services.executor.request_builder import (
     build_url,
     build_headers,
@@ -391,7 +394,6 @@ class LinearExecutor:
         base_step_index = len(sequential_steps)
 
         # 失败策略：stop / continue / ignore
-        on_failure = scene.on_failure or "stop"
 
         # ── 场景级循环：重复执行整个步骤序列 scene_loop_count 次 ──
         scene_aborted = False
@@ -409,7 +411,9 @@ class LinearExecutor:
                         _TOTAL_TIMEOUT_SECONDS,
                     )
                     report.status = "timeout"
-                    report.error_message = f"执行总超时（超过 {_TOTAL_TIMEOUT_SECONDS} 秒）"
+                    report.error_message = (
+                        f"执行总超时（超过 {_TOTAL_TIMEOUT_SECONDS} 秒）"
+                    )
                     scene_aborted = True
                     break
 
@@ -424,7 +428,13 @@ class LinearExecutor:
                     async def _exec_one_parallel(pstep: SceneStep) -> dict:
                         pvars = copy.deepcopy(variables)
                         presult = await self._execute_step(
-                            pstep, pvars, env, env_headers, api_defs, case_defs, api_scripts
+                            pstep,
+                            pvars,
+                            env,
+                            env_headers,
+                            api_defs,
+                            case_defs,
+                            api_scripts,
                         )
                         return {"step": pstep, "result": presult}
 
@@ -458,7 +468,9 @@ class LinearExecutor:
                             "extracted"
                         ):
                             step_idx = parallel_step_indices.get(ps.id, 0)
-                            parallel_extracts.append((step_idx, result_dict["extracted"]))
+                            parallel_extracts.append(
+                                (step_idx, result_dict["extracted"])
+                            )
                         rs = self._create_report_step(report_id, ps, result_dict)
                         self.db.add(rs)
                         total_duration += result_dict.get("duration", 0)
@@ -466,14 +478,18 @@ class LinearExecutor:
                             total_passed += 1
                         else:
                             total_failed += 1
-                        step_has_failure_parallel = result_dict.get("status") != "success"
+                        step_has_failure_parallel = (
+                            result_dict.get("status") != "success"
+                        )
                         # 广播并行步骤完成
                         p_label = (
                             ps.label
                             or api_defs.get(ps.api_id, (None, None))[1]
                             or f"Step {ps.id}"
                         )
-                        step_completion_idx = parallel_step_indices.get(ps.id, parallel_step_index)
+                        step_completion_idx = parallel_step_indices.get(
+                            ps.id, parallel_step_index
+                        )
                         await ws_manager.broadcast_step_progress(
                             report_id=report_id,
                             step_index=base_step_index + step_completion_idx,
@@ -506,7 +522,9 @@ class LinearExecutor:
                 )
 
                 # 记录执行日志
-                logger.info("[场景%d] 开始执行步骤 %d: %s", scene_id, step.id, step_label)
+                logger.info(
+                    "[场景%d] 开始执行步骤 %d: %s", scene_id, step.id, step_label
+                )
 
                 if step.condition_expression:
                     if not self._eval(step.condition_expression, variables):
@@ -544,7 +562,13 @@ class LinearExecutor:
                             v = copy.deepcopy(variables)
                             v["__loop_index"] = i
                             return await self._execute_step(
-                                step, v, env, env_headers, api_defs, case_defs, api_scripts
+                                step,
+                                v,
+                                env,
+                                env_headers,
+                                api_defs,
+                                case_defs,
+                                api_scripts,
                             )
 
                     tasks = [_run_one(i) for i in range(loop_count)]
@@ -582,7 +606,9 @@ class LinearExecutor:
                         )
                         logger.debug(
                             "step result: step_id=%s status=%s extracted=%s",
-                            step.id, result_dict.get("status"), result_dict.get("extracted"),
+                            step.id,
+                            result_dict.get("status"),
+                            result_dict.get("extracted"),
                         )
 
                         rs = self._create_report_step(report_id, step, result_dict)
@@ -617,7 +643,10 @@ class LinearExecutor:
                                 existing = json.loads(report.metadata)
                                 if isinstance(existing, list):
                                     _loop_configs = existing
-                                elif isinstance(existing, dict) and "loop_configs" in existing:
+                                elif (
+                                    isinstance(existing, dict)
+                                    and "loop_configs" in existing
+                                ):
                                     _loop_configs = existing["loop_configs"]
                             except (json.JSONDecodeError, TypeError):
                                 pass
@@ -654,7 +683,9 @@ class LinearExecutor:
 
         # 变量持久化：将本次执行新增/修改的变量写回 environment 或 global
         try:
-            persist_target = getattr(scene, "var_persist_target", "environment") or "environment"
+            persist_target = (
+                getattr(scene, "var_persist_target", "environment") or "environment"
+            )
             if persist_target != "none":
                 # 计算变更集：新增或值发生变化的变量，过滤掉内部变量（以 __ 开头）
                 changed_vars = {
@@ -947,7 +978,7 @@ class LinearExecutor:
         self,
         step: SceneStep,
         variables: dict,
-        env: Optional[Environment],
+        env: Environment | None,
         env_headers: list,
         api_defs: dict[int, tuple[str, str]],
         case_defs: dict[int, dict] | None = None,
@@ -1032,12 +1063,12 @@ class LinearExecutor:
             # 确定 base_url：优先使用 env.base_url，其次从 services 获取
             base_url = ""
             if env:
-                if getattr(env, 'base_url', None):
+                if getattr(env, "base_url", None):
                     base_url = env.base_url
                 else:
                     services = safe_json_load(env.services, [])
                     base_url = services[0].get("url", "") if services else ""
-            
+
             # 对 base_url 进行变量渲染（支持 {{base_url}} 等变量引用）
             if base_url:
                 base_url = render_template(base_url, variables)
@@ -1077,7 +1108,7 @@ class LinearExecutor:
             )
 
             # 注入环境认证配置
-            if env and getattr(env, 'auth_config', None):
+            if env and getattr(env, "auth_config", None):
                 auth_config = env.auth_config
                 if isinstance(auth_config, dict):
                     auth_type = auth_config.get("type", "")
@@ -1085,13 +1116,12 @@ class LinearExecutor:
                         headers["Authorization"] = f"Bearer {auth_config['token']}"
                     elif auth_type == "basic" and auth_config.get("username"):
                         import base64
+
                         cred = (
                             f"{auth_config['username']}:"
                             f"{auth_config.get('password', '')}"
                         )
-                        encoded = base64.b64encode(
-                            cred.encode()
-                        ).decode()
+                        encoded = base64.b64encode(cred.encode()).decode()
                         headers["Authorization"] = f"Basic {encoded}"
                     elif auth_type == "apikey":
                         key_name = auth_config.get("key", "X-API-Key")
@@ -1104,7 +1134,7 @@ class LinearExecutor:
                             url = f"{url}{sep}{key_name}={key_value}"
 
             try:
-                validate_request_url(url)
+                await validate_request_url(url)
             except ValueError as e:
                 duration = time.time() - start
                 return {
@@ -1142,20 +1172,24 @@ class LinearExecutor:
                     pre_script = api_scripts[step.api_id].get("pre_script", "")
                 if pre_script.strip():
                     try:
-                        from app.services.executor.script_executor import execute_pre_script
+                        from app.services.executor.script_executor import (
+                            execute_pre_script,
+                        )
 
                         step_headers_list = safe_json_load(step.headers, [])
                         step_params_list = safe_json_load(step.query_params, [])
                         step_body = safe_json_load(
                             step.request_body or "", {"type": "none", "content": ""}
                         )
-                        # 在线程池中执行同步子进程调用，避免阻塞事件循环
-                        _loop = asyncio.get_event_loop()
-                        pre_result = await _loop.run_in_executor(
-                            None, execute_pre_script,
-                            pre_script, method, path,
-                            step_headers_list, step_params_list, step_body,
-                            {"type": "none"}, variables,
+                        pre_result = await execute_pre_script(
+                            pre_script,
+                            method,
+                            path,
+                            step_headers_list,
+                            step_params_list,
+                            step_body,
+                            {"type": "none"},
+                            variables,
                         )
                         if pre_result:
                             # 提取脚本输出
@@ -1173,7 +1207,10 @@ class LinearExecutor:
                                     )
                                 if modified_request.get("params"):
                                     url = build_url(
-                                        base_url, path, modified_request["params"], variables
+                                        base_url,
+                                        path,
+                                        modified_request["params"],
+                                        variables,
                                     )
                                 if modified_request.get("body"):
                                     new_body = modified_request["body"]
@@ -1182,8 +1219,8 @@ class LinearExecutor:
                                         if isinstance(new_body, dict)
                                         else str(new_body)
                                     )
-                                    body_report_send, data_send, files_send = parse_body(
-                                        body_report_raw, variables
+                                    body_report_send, data_send, files_send = (
+                                        parse_body(body_report_raw, variables)
                                     )
                                     body_report_report = (
                                         json.dumps(data_send)
@@ -1192,7 +1229,9 @@ class LinearExecutor:
                                     )
                     except Exception as e:  # noqa: BLE001 — 脚本执行失败不中断请求
                         logger.warning(
-                            "pre-script 执行失败（不中断请求）: %s: %s", type(e).__name__, e
+                            "pre-script 执行失败（不中断请求）: %s: %s",
+                            type(e).__name__,
+                            e,
                         )
                         pre_script_error = f"{type(e).__name__}: {e}"
 
@@ -1226,7 +1265,10 @@ class LinearExecutor:
                                 )
                             elif data_send is not None:
                                 resp = await self._client.request(
-                                    method=method, url=url, headers=headers, data=data_send
+                                    method=method,
+                                    url=url,
+                                    headers=headers,
+                                    data=data_send,
                                 )
                             else:
                                 json_data = None
@@ -1317,11 +1359,10 @@ class LinearExecutor:
                         "response_headers": dict(resp.headers),
                         "duration": duration,
                     }
-                    # 在线程池中执行同步子进程调用，避免阻塞事件循环
-                    _loop = asyncio.get_event_loop()
-                    script_vars = await _loop.run_in_executor(
-                        None, execute_post_script,
-                        post_script, script_response, variables,
+                    script_vars = await execute_post_script(
+                        post_script,
+                        script_response,
+                        variables,
                     )
                     # 提取脚本输出（非变量字段）
                     post_script_output = script_vars.pop("script_output", None)
@@ -1378,7 +1419,9 @@ class LinearExecutor:
             extract_rules = safe_json_load(step.extract_vars, [])
             logger.debug(
                 "extract: step_id=%s step.extract_vars=%r parsed=%s",
-                step.id, step.extract_vars, extract_rules,
+                step.id,
+                step.extract_vars,
+                extract_rules,
             )
             if not extract_rules and case_ref:
                 extract_rules = safe_json_load(case_ref.get("extract_vars", []), [])
@@ -1462,9 +1505,7 @@ class LinearExecutor:
         except Exception as e:  # noqa: BLE001 — 步骤执行需捕获所有异常以记录失败状态
             duration = time.time() - start
             sanitized_msg = _sanitize_error_message(e)
-            logger.warning(
-                "Step execution failed: %s", sanitized_msg, exc_info=True
-            )
+            logger.warning("Step execution failed: %s", sanitized_msg, exc_info=True)
             return {
                 "status": "error",
                 "duration": duration,
@@ -1506,8 +1547,8 @@ class LinearExecutor:
                 functions=None,  # 禁止所有函数调用
             )
             # 沙箱加固：禁止属性访问、类型遍历、方法调用
-            s.types = []           # 禁止类型引用（如 __class__）
-            s.max_call_depth = 0   # 禁止函数调用链
+            s.types = []  # 禁止类型引用（如 __class__）
+            s.max_call_depth = 0  # 禁止函数调用链
             return bool(s.eval(expression))
         except (
             NameNotDefined,
@@ -1526,7 +1567,7 @@ class LinearExecutor:
 
     async def _build_variables(
         self,
-        env: Optional[Environment],
+        env: Environment | None,
         project_id: int = None,
         _project_global_vars: dict = None,
     ) -> dict:

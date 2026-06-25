@@ -51,7 +51,6 @@ def _extract(*items) -> str:
     return json.dumps(items, ensure_ascii=False)
 
 
-
 def _vars(**kwargs) -> str:
     """创建变量列表"""
     return json.dumps([{"key": k, "value": v, "enabled": True} for k, v in kwargs.items()], ensure_ascii=False)
@@ -63,6 +62,7 @@ def _resp(code: int, message: str = "ok", data=None) -> str:
     if data is not None:
         obj["data"] = data
     return json.dumps(obj, ensure_ascii=False)
+
 
 def _build_api_definitions(pid: int, cat_map: dict) -> list:
     """构建演示接口定义"""
@@ -275,7 +275,6 @@ def _build_api_definitions(pid: int, cat_map: dict) -> list:
             }),
         },
     ]
-
 
 
 def _build_test_cases(pid: int, api_map: dict) -> list:

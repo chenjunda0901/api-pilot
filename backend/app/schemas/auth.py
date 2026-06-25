@@ -23,6 +23,7 @@ class RegisterRequest(BaseModel):
             raise ValueError('邮箱格式不正确')
         return v
 
+
 class LoginRequest(BaseModel):
     username: str = Field(..., min_length=1)
     password: str = Field(..., min_length=1)
@@ -55,10 +56,12 @@ class PasswordChange(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100)
 
+
 class ResetPasswordRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100)
     reset_code: str = Field(..., min_length=16, max_length=16)
     new_password: str = Field(..., min_length=6, max_length=200)
+
 
 class AdminResetPasswordRequest(BaseModel):
     """管理员重置用户密码"""

@@ -173,7 +173,6 @@ async def update_member_role(
     if req.role not in valid_roles:
         raise_biz(ErrorCodes.PARAM_ERROR, f"无效角色: {req.role}")
 
-    old_role = member.role
     member.role = req.role
     await db.flush()
 

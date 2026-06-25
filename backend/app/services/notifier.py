@@ -61,7 +61,9 @@ class BaseNotifier:
         self.secret = secret
         self.extra: dict[str, Any] = kwargs
 
-    async def send(self, payload: dict[str, Any], template_vars: dict[str, Any]) -> SendResult:
+    async def send(
+        self, payload: dict[str, Any], template_vars: dict[str, Any]
+    ) -> SendResult:
         """派发方法：子类一般只重写 ``_build_request``。"""
         start = time.perf_counter()
         try:
@@ -134,10 +136,17 @@ class FeishuNotifier(BaseNotifier):
         if self.secret:
             ts = str(int(time.time()))
             string_to_sign = f"{ts}\n{self.secret}"
-            digest = hmac.new(string_to_sign.encode("utf-8"), b"", hashlib.sha256).digest()
+            digest = hmac.new(
+                string_to_sign.encode("utf-8"), b"", hashlib.sha256
+            ).digest()
             body["timestamp"] = ts
             body["sign"] = base64.b64encode(digest).decode("utf-8")
-        return "POST", self.url, {"Content-Type": "application/json"}, json.dumps(body, ensure_ascii=False)
+        return (
+            "POST",
+            self.url,
+            {"Content-Type": "application/json"},
+            json.dumps(body, ensure_ascii=False),
+        )
 
 
 # ── 钉钉 ────────────────────────────────────────────────────────────────
@@ -159,11 +168,22 @@ class DingTalkNotifier(BaseNotifier):
         if self.secret:
             ts = str(round(time.time() * 1000))
             string_to_sign = f"{ts}\n{self.secret}"
-            digest = hmac.new(self.secret.encode("utf-8"), string_to_sign.encode("utf-8"), hashlib.sha256).digest()
+            digest = hmac.new(
+                self.secret.encode("utf-8"),
+                string_to_sign.encode("utf-8"),
+                hashlib.sha256,
+            ).digest()
+            b64_sig = base64.b64encode(digest).decode("utf-8")
             import urllib.parse
+
             body["timestamp"] = ts
-            body["sign"] = urllib.parse.quote_plus(digest)
-        return "POST", self.url, {"Content-Type": "application/json"}, json.dumps(body, ensure_ascii=False)
+            body["sign"] = urllib.parse.quote_plus(b64_sig)
+        return (
+            "POST",
+            self.url,
+            {"Content-Type": "application/json"},
+            json.dumps(body, ensure_ascii=False),
+        )
 
 
 # ── 企业微信 ────────────────────────────────────────────────────────────
@@ -183,10 +203,17 @@ class WeChatNotifier(BaseNotifier):
             raise NotifierError("WeChatNotifier.url 不能为空")
         body = {"msgtype": payload.get("msgtype", "markdown")}
         if body["msgtype"] == "markdown":
-            body["markdown"] = payload.get("markdown", {"content": payload.get("content", "")})
+            body["markdown"] = payload.get(
+                "markdown", {"content": payload.get("content", "")}
+            )
         else:
             body["text"] = payload.get("text", {"content": payload.get("content", "")})
-        return "POST", self.url, {"Content-Type": "application/json"}, json.dumps(body, ensure_ascii=False)
+        return (
+            "POST",
+            self.url,
+            {"Content-Type": "application/json"},
+            json.dumps(body, ensure_ascii=False),
+        )
 
 
 # ── Slack ───────────────────────────────────────────────────────────────
@@ -204,7 +231,12 @@ class SlackNotifier(BaseNotifier):
     ) -> tuple[str, str, dict[str, str], str]:
         if not self.url:
             raise NotifierError("SlackNotifier.url 不能为空")
-        return "POST", self.url, {"Content-Type": "application/json"}, json.dumps(payload, ensure_ascii=False)
+        return (
+            "POST",
+            self.url,
+            {"Content-Type": "application/json"},
+            json.dumps(payload, ensure_ascii=False),
+        )
 
 
 # ── 自定义 Webhook ──────────────────────────────────────────────────────
@@ -225,7 +257,11 @@ class CustomWebhookNotifier(BaseNotifier):
         headers = {"Content-Type": "application/json"}
         # HMAC 签名头
         if self.secret:
-            sig = hmac.new(self.secret.encode("utf-8"), json.dumps(payload, sort_keys=True).encode("utf-8"), hashlib.sha256).hexdigest()
+            sig = hmac.new(
+                self.secret.encode("utf-8"),
+                json.dumps(payload, sort_keys=True).encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
             headers["X-Webhook-Signature"] = f"sha256={sig}"
         return "POST", self.url, headers, json.dumps(payload, ensure_ascii=False)
 
@@ -257,7 +293,9 @@ class EmailNotifier(BaseNotifier):
         self.to_addrs: list[str] = list(kwargs.get("to_addrs", []))
         self.use_ssl: bool = bool(kwargs.get("use_ssl", True))
 
-    async def send(self, payload: dict[str, Any], template_vars: dict[str, Any]) -> SendResult:
+    async def send(
+        self, payload: dict[str, Any], template_vars: dict[str, Any]
+    ) -> SendResult:
         start = time.perf_counter()
         if not self.smtp_host or not self.to_addrs or not self.from_addr:
             return self._fail("SMTP 配置缺失 (smtp_host/to_addrs/from_addr)", start)
@@ -295,6 +333,7 @@ class EmailNotifier(BaseNotifier):
                     username=self.username or None,
                     password=self.password or None,
                     use_tls=True,
+                    timeout=self.DEFAULT_TIMEOUT,
                 )
             else:
                 await aiosmtplib.send(
@@ -304,6 +343,7 @@ class EmailNotifier(BaseNotifier):
                     username=self.username or None,
                     password=self.password or None,
                     start_tls=True,
+                    timeout=self.DEFAULT_TIMEOUT,
                 )
         except ImportError:
             await asyncio.to_thread(self._send_email_sync, msg)
@@ -312,12 +352,16 @@ class EmailNotifier(BaseNotifier):
         import smtplib
 
         if self.use_ssl:
-            with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, timeout=self.DEFAULT_TIMEOUT) as s:
+            with smtplib.SMTP_SSL(
+                self.smtp_host, self.smtp_port, timeout=self.DEFAULT_TIMEOUT
+            ) as s:
                 if self.username:
                     s.login(self.username, self.password)
                 s.send_message(msg)
         else:
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=self.DEFAULT_TIMEOUT) as s:
+            with smtplib.SMTP(
+                self.smtp_host, self.smtp_port, timeout=self.DEFAULT_TIMEOUT
+            ) as s:
                 if self.username:
                     s.starttls()
                     s.login(self.username, self.password)

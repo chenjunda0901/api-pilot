@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
@@ -24,8 +23,8 @@ ALLOWED_ASSERTION_TYPES = {
 
 
 @router.get("", summary="用例列表", description="获取项目下的测试用例列表，支持分页筛选")
-async def list_cases(project_id: int, api_id: Optional[int] = Query(None),
-    status: Optional[str] = Query(None), case_type: Optional[str] = Query(None),
+async def list_cases(project_id: int, api_id: int | None = Query(None),
+    status: str | None = Query(None), case_type: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     current_user: User | None = Depends(get_optional_user),
@@ -129,6 +128,7 @@ async def delete_case(project_id: int, case_id: int,
     await s.delete(case_id, project_id)
     return success(message="用例已移至回收站")
 
+
 @router.get("/recycle/list", summary="用例回收站", description="列出已软删除的测试用例")
 async def list_deleted_cases(project_id: int,
     current_user: User = Depends(get_current_user),
@@ -156,6 +156,7 @@ async def permanent_delete_case(project_id: int, case_id: int,
     s = CaseService(db)
     await s.permanent_delete(case_id, project_id)
     return success(message="用例已永久删除")
+
 
 @router.put("/batch/update", summary="批量更新用例", description="批量更新用例的优先级和标签")
 async def batch_update_cases(project_id: int, req: BatchIdsRequest,
@@ -233,8 +234,8 @@ class CasesToSceneRequest(BaseModel):
     """用例转场景请求"""
     case_ids: list[int] = Field(..., description="用例ID列表", min_length=1)
     scene_name: str = Field(..., description="新场景名称", min_length=1, max_length=200)
-    scene_description: Optional[str] = Field(None, description="场景描述")
-    target_scene_id: Optional[int] = Field(None, description="目标场景ID（为空则创建新场景）")
+    scene_description: str | None = Field(None, description="场景描述")
+    target_scene_id: int | None = Field(None, description="目标场景ID（为空则创建新场景）")
 
 
 @router.post("/batch/to-scene", summary="用例转场景", description="将选中的测试用例批量转换为场景步骤")
@@ -250,7 +251,7 @@ async def cases_to_scene(
     from app.models.test_scene import TestScene
     from app.models.scene_step import SceneStep
 
-    service = CaseService(db)
+    CaseService(db)
 
     # 验证用例存在且属于项目
     result = await db.execute(

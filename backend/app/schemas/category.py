@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 _NAME_PATTERN = re.compile(r'^[\u4e00-\u9fff\w\- ]+$')
@@ -25,7 +24,7 @@ class CategoryCreate(BaseModel):
 
 class CategoryUpdate(BaseModel):
     name: str = Field(default="", max_length=100)
-    parent_id: Optional[int] = None
+    parent_id: int | None = None
     sort_order: int = Field(default=0)
 
     @field_validator("name")

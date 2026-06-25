@@ -6,7 +6,7 @@ HTTP 客户端工具 - 带重试、熔断、超时控制
 import asyncio
 import ipaddress
 import logging
-from typing import Optional, Dict, Any
+from typing import Any
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -23,7 +23,6 @@ logger = logging.getLogger("api_pilot.http")
 DEFAULT_TIMEOUT = 30.0       # 默认超时 30 秒
 CONNECT_TIMEOUT = 10.0        # 连接超时 10 秒
 READ_TIMEOUT = 60.0          # 读取超时 60 秒
-
 
 
 def validate_request_url(url: str) -> str:
@@ -76,8 +75,6 @@ def validate_request_url(url: str) -> str:
     )
 
 
-
-
 class CircuitState(Enum):
     """熔断器状态"""
     CLOSED = "closed"         # 正常状态，请求通过
@@ -99,7 +96,7 @@ class CircuitBreaker:
     config: CircuitBreakerConfig = field(default_factory=CircuitBreakerConfig)
     state: CircuitState = CircuitState.CLOSED
     failure_count: int = 0
-    last_failure_time: Optional[datetime] = None
+    last_failure_time: datetime | None = None
     half_open_calls: int = 0
     
     def record_success(self):
@@ -175,8 +172,8 @@ class HTTPClient:
     def __init__(
         self,
         timeout: float = DEFAULT_TIMEOUT,
-        retry_config: Optional[RetryConfig] = None,
-        circuit_breaker: Optional[CircuitBreaker] = None,
+        retry_config: RetryConfig | None = None,
+        circuit_breaker: CircuitBreaker | None = None,
     ):
         self.timeout = timeout
         self.retry_config = retry_config or RetryConfig()
@@ -204,13 +201,13 @@ class HTTPClient:
         self,
         method: str,
         url: str,
-        headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
-        data: Optional[Any] = None,
-        files: Optional[Any] = None,
-        content: Optional[bytes] = None,
-        timeout: Optional[float] = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+        data: Any | None = None,
+        files: Any | None = None,
+        content: bytes | None = None,
+        timeout: float | None = None,
         skip_retry: bool = False,
     ) -> httpx.Response:
         """
@@ -257,7 +254,7 @@ class HTTPClient:
                 self.circuit_breaker.record_success()
                 return response
                 
-            except (httpx.TimeoutException, httpx.ConnectError, RetryableError) as e:
+            except (httpx.TimeoutException, httpx.ConnectError, RetryableError):
                 self.circuit_breaker.record_failure()
                 raise
         
@@ -296,7 +293,7 @@ class HTTPClient:
         """关闭客户端，释放连接"""
         await self._client.aclose()
     
-    def get_circuit_status(self) -> Dict[str, Any]:
+    def get_circuit_status(self) -> dict[str, Any]:
         """获取熔断器状态"""
         return {
             "state": self.circuit_breaker.state.value,
@@ -307,14 +304,14 @@ class HTTPClient:
 
 class RetryableError(Exception):
     """可重试的错误"""
-    def __init__(self, message: str, status_code: Optional[int] = None):
+    def __init__(self, message: str, status_code: int | None = None):
         super().__init__(message)
         self.status_code = status_code
 
 
 class HTTPClientError(Exception):
     """HTTP 客户端错误"""
-    def __init__(self, message: str, status_code: Optional[int] = None, retry_after: Optional[int] = None):
+    def __init__(self, message: str, status_code: int | None = None, retry_after: int | None = None):
         super().__init__(message)
         self.status_code = status_code
         self.retry_after = retry_after
@@ -322,7 +319,7 @@ class HTTPClientError(Exception):
 
 # 全局 HTTP 客户端实例（单例）
 _client_lock = threading.Lock()
-_global_client: Optional[HTTPClient] = None
+_global_client: HTTPClient | None = None
 
 
 def get_http_client() -> HTTPClient:

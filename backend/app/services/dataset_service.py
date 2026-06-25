@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.test_dataset import TestDataset, TestDatasetRow
@@ -38,14 +37,14 @@ class DatasetService:
             })
         return items
 
-    async def create(self, project_id: int, name: str, description: Optional[str] = None) -> TestDataset:
+    async def create(self, project_id: int, name: str, description: str | None = None) -> TestDataset:
         ds = TestDataset(project_id=project_id, name=name, description=description)
         self.db.add(ds)
         await self.db.flush()
         await self.db.refresh(ds)
         return ds
 
-    async def update(self, dataset_id: int, name: Optional[str] = None, description: Optional[str] = None):
+    async def update(self, dataset_id: int, name: str | None = None, description: str | None = None):
         ds = await self.get(dataset_id)
         if name is not None:
             ds.name = name
@@ -81,7 +80,7 @@ class DatasetService:
         await self.db.flush()
         return len(rows_data)
 
-    async def update_row(self, row_id: int, data: Optional[str] = None, is_enabled: Optional[bool] = None):
+    async def update_row(self, row_id: int, data: str | None = None, is_enabled: bool | None = None):
         result = await self.db.execute(select(TestDatasetRow).where(TestDatasetRow.id == row_id))
         row = result.scalar_one_or_none()
         if not row:

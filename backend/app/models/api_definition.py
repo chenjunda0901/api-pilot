@@ -1,4 +1,3 @@
-from typing import Optional
 from sqlalchemy import (
     String,
     Text,
@@ -68,6 +67,6 @@ class ApiDefinition(Base, TimestampMixin, SoftDeleteMixin):
     )
     status: Mapped[str] = mapped_column(String(20), default="draft", nullable=False)
     version: Mapped[str] = mapped_column(String(20), default="v1.0", nullable=False)
-    created_by: Mapped[Optional[int]] = mapped_column(
+    created_by: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
     )

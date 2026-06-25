@@ -1,11 +1,10 @@
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
 class CategoryCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    parent_id: Optional[int] = None
+    parent_id: int | None = None
 
 
 class CategoryUpdate(BaseModel):
-    name: Optional[str] = Field(default=None, max_length=100)
+    name: str | None = Field(default=None, max_length=100)

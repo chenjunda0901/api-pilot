@@ -114,6 +114,33 @@ class IdempotencyStore:
         async with self._lock:
             self.delete(key)
 
+    async def aget_or_set(self, key: str, fingerprint: str) -> tuple[bool, Any | None]:
+        """原子检查并设置幂等性键（防止 TOCTOU 竞态）。
+
+        返回 (is_new, cached_or_None):
+          - is_new=True: 首次设置，调用方应执行业务逻辑
+          - is_new=False: 已缓存，返回上次结果
+        """
+        async with self._lock:
+            cached = self.get(key)
+            if cached is not None:
+                cached_hash = cached.get("fingerprint", "")
+                if cached_hash != fingerprint:
+                    raise IdempotencyError("fingerprint mismatch")
+                return False, cached
+            # 占位标记：写入临时值防止并发冲突
+            self.set(
+                key,
+                {
+                    "status_code": 0,
+                    "body": b"",
+                    "fingerprint": fingerprint,
+                    "content_type": "application/json",
+                },
+                ttl_seconds=60,
+            )
+            return True, None
+
 
 # ── 全局默认实例（线程/协程内共享） ───────────────────────────────
 

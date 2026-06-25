@@ -4,7 +4,7 @@
 
 import re
 import html
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -40,7 +40,7 @@ DANGEROUS_PATTERNS = {
 class ValidationResult:
     """验证结果"""
     valid: bool
-    errors: List[str]
+    errors: list[str]
     sanitized_value: Any = None
 
 
@@ -82,7 +82,7 @@ class InputValidator:
         value: Any,
         min_length: int = 0,
         max_length: int = 65535,
-        pattern: Optional[str] = None,
+        pattern: str | None = None,
         allow_empty: bool = False,
     ) -> ValidationResult:
         """验证字符串"""
@@ -142,8 +142,8 @@ class InputValidator:
     @staticmethod
     def validate_integer(
         value: Any,
-        min_value: Optional[int] = None,
-        max_value: Optional[int] = None,
+        min_value: int | None = None,
+        max_value: int | None = None,
     ) -> ValidationResult:
         """验证整数"""
         errors = []
@@ -274,7 +274,7 @@ class InputValidator:
             return ValidationResult(False, [f"Invalid JSON: {e}"], None)
     
     @staticmethod
-    def validate_dict(data: Any, required_fields: List[str], optional_fields: Optional[List[str]] = None) -> ValidationResult:
+    def validate_dict(data: Any, required_fields: list[str], optional_fields: list[str] | None = None) -> ValidationResult:
         """验证字典数据"""
         errors = []
         validated_data = {}
@@ -316,7 +316,7 @@ class InputValidator:
         return html.escape(value)
     
     @staticmethod
-    def validate_request_data(data: Dict[str, Any], schema: Dict[str, type]) -> ValidationResult:
+    def validate_request_data(data: dict[str, Any], schema: dict[str, type]) -> ValidationResult:
         """验证请求数据"""
         errors = []
         validated = {}

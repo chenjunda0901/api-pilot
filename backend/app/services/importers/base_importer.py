@@ -136,7 +136,7 @@ class BaseApiImporter(ABC):
         Returns:
             预览树结构
         """
-        cat_map = {c["id"]: c for c in categories if isinstance(c, dict) and c.get("id")}
+        {c["id"]: c for c in categories if isinstance(c, dict) and c.get("id")}
 
         # 构建分类树
         tree = []

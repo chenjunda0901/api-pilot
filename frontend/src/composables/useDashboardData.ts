@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
-import request from '../api/request'
-import type { Environment, TestReport } from '../types'
+import request from '@/api/request'
+import type { Environment, TestReport } from '@/types'
 import { Globe, Shield, FlaskConical, ChartBar } from 'lucide-vue-next'
 import { msgWarning } from '@/utils/message'
 

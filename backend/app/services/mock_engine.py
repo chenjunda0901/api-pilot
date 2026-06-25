@@ -800,6 +800,7 @@ class SmartMockEngine:
 _default_engine: SmartMockEngine | None = None
 _default_engine_lock = threading.Lock()
 
+
 def get_default_engine() -> SmartMockEngine:
     global _default_engine
     if _default_engine is None:

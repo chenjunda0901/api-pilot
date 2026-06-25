@@ -314,10 +314,10 @@ async function loadReport(password?: string) {
   loading.value = true
   error.value = ''
   try {
-    const url = password
-      ? `/reports/shared/${token.value}?password=${encodeURIComponent(password)}`
-      : `/reports/shared/${token.value}`
-    const res = await request.get(url)
+    const url = `/reports/shared/${token.value}`
+    const res = password
+      ? await request.post(url, { password })
+      : await request.get(url)
     const payload = res.data
     if (payload) {
       const stepsData = Array.isArray(payload.steps) ? payload.steps : []

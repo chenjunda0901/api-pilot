@@ -1,5 +1,5 @@
-from typing import Optional
 from fastapi import APIRouter, Depends, Query, Request
+from pydantic import BaseModel
 from sqlalchemy import select
 from fastapi.responses import Response, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +17,7 @@ from app.utils.response import success
 from app.utils.export import export_report_excel, export_report_pdf
 from app.core.exceptions import ErrorCodes
 from app.core.exceptions import raise_biz
+from datetime import UTC
 
 router = APIRouter(prefix="/projects/{project_id}/reports", tags=["Test Reports"])
 logger = logging.getLogger("api_pilot.routers.reports")
@@ -25,11 +26,11 @@ logger = logging.getLogger("api_pilot.routers.reports")
 @router.get("", summary="报告列表", description="获取项目的测试报告列表，支持分页筛选")
 async def list_reports(
     project_id: int,
-    scene_id: Optional[int] = Query(None),
-    status: Optional[str] = Query(None),
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None),
-    keyword: Optional[str] = Query(None),
+    scene_id: int | None = Query(None),
+    status: str | None = Query(None),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
+    keyword: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     current_user: User | None = Depends(get_optional_user),
@@ -49,15 +50,15 @@ async def list_reports(
 async def get_report_trend(
     project_id: int,
     days: int = 30,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
     from app.models.test_report import TestReport
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
     from collections import defaultdict
 
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
     result = await db.execute(
         select(TestReport)
         .where(TestReport.project_id == project_id, TestReport.created_at >= since)
@@ -83,7 +84,7 @@ async def get_report_trend(
     # 填充缺失的日期
     trend_list = []
     for d in range(days):
-        date = (datetime.now(timezone.utc) - timedelta(days=days - 1 - d)).strftime("%Y-%m-%d")
+        date = (datetime.now(UTC) - timedelta(days=days - 1 - d)).strftime("%Y-%m-%d")
         entry = daily_data.get(date, {"total": 0, "passed": 0, "failed": 0})
         trend_list.append({
             "date": date,
@@ -144,7 +145,7 @@ async def delete_report(
 async def compare_report(
     project_id: int,
     report_id: int,
-    compare_with: Optional[int] = Query(None, description="指定要对比的报告ID，为空则自动查找上一个报告"),
+    compare_with: int | None = Query(None, description="指定要对比的报告ID，为空则自动查找上一个报告"),
     current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
@@ -182,7 +183,7 @@ async def create_share_report(
     report_id: int,
     project_id: int,
     expires_in_days: int = Query(7, ge=0, le=365, description="过期天数，默认7天，0表示永不过期"),
-    password: Optional[str] = Query(None, max_length=64, description="访问密码（可选）"),
+    password: str | None = Query(None, max_length=64, description="访问密码（可选）"),
     current_user: User = Depends(get_current_user),
     _project: Project = Depends(check_write_access),
     db: AsyncSession = Depends(get_db),
@@ -217,7 +218,6 @@ async def revoke_share_report(
     return success(message="分享已撤销")
 
 
-
 @router.get(
     "/{report_id}/export/excel",
     summary="导出 Excel",
@@ -226,7 +226,7 @@ async def revoke_share_report(
 async def export_report_excel_endpoint(
     project_id: int,
     report_id: int,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
@@ -257,7 +257,7 @@ async def export_report_excel_endpoint(
 async def export_report_pdf_endpoint(
     project_id: int,
     report_id: int,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
@@ -283,7 +283,7 @@ async def export_report(
     project_id: int,
     report_id: int,
     format: str = "markdown",
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
@@ -362,7 +362,7 @@ async def export_report(
 async def export_report_csv(
     project_id: int,
     report_id: int,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
@@ -391,7 +391,7 @@ async def export_report_csv(
 async def export_report_junit(
     report_id: int,
     project_id: int,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
@@ -420,7 +420,7 @@ async def export_report_junit(
 async def export_report_csv_summary(
     project_id: int,
     report_id: int,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User | None = Depends(get_optional_user),
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
@@ -447,7 +447,7 @@ async def _validate_shared_report(
     db: AsyncSession,
 ) -> "TestReport":
     """Validate and return a shared report, checking expiry and password."""
-    from datetime import datetime, timezone
+    from datetime import datetime
     import hashlib
 
     result = await db.execute(
@@ -463,8 +463,8 @@ async def _validate_shared_report(
     if report.share_token_expire_at:
         expire_at = report.share_token_expire_at
         if expire_at.tzinfo is None:
-            expire_at = expire_at.replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) > expire_at:
+            expire_at = expire_at.replace(tzinfo=UTC)
+        if datetime.now(UTC) > expire_at:
             raise_biz(ErrorCodes.REPORT_LINK_EXPIRED, "分享链接已过期")
 
     # 检查密码
@@ -482,7 +482,7 @@ async def _validate_shared_report(
 @limiter.limit("60/minute")
 async def get_shared_report(
     project_id: int, token: str, request: Request,
-    password: Optional[str] = Query(None, description="访问密码（如果设置了的话）"),
+    password: str | None = Query(None, description="访问密码（如果设置了的话）"),
     db: AsyncSession = Depends(get_db),
 ):
     report = await _validate_shared_report(token, password, db)
@@ -552,12 +552,30 @@ def _sanitize_report_data(data):
 @limiter.limit("60/minute")
 async def get_shared_report_public(
     token: str, request: Request,
-    password: Optional[str] = Query(None, description="访问密码（如果设置了的话）"),
+    password: str | None = Query(None, description="访问密码（如果设置了的话）"),
     db: AsyncSession = Depends(get_db),
 ):
     """公开的分享报告接口，无需登录和 project_id"""
     report = await _validate_shared_report(token, password, db)
 
     # 返回完整步骤数据（含 steps 详情），但过滤敏感 header
+    detail = await ReportService(db).get_detail(report.id)
+    return success(_sanitize_report_data(detail))
+
+
+class _SharedReportPasswordBody(BaseModel):
+    password: str | None = None
+
+
+@public_router.post("/shared/{token}", summary="获取分享报告数据（通过 POST body 传密码）")
+@limiter.limit("60/minute")
+async def get_shared_report_public_post(
+    token: str, request: Request,
+    body: _SharedReportPasswordBody,
+    db: AsyncSession = Depends(get_db),
+):
+    """公开的分享报告接口（POST），密码通过 request body 传递，避免 URL 泄露"""
+    report = await _validate_shared_report(token, body.password, db)
+
     detail = await ReportService(db).get_detail(report.id)
     return success(_sanitize_report_data(detail))

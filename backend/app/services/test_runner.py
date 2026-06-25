@@ -17,8 +17,9 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Awaitable, Callable
+from datetime import datetime, UTC
+from typing import Any
+from collections.abc import Awaitable, Callable
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -122,8 +123,8 @@ class TestRunner:
             return TestReport(
                 report_id=None,
                 plan_id=plan_id,
-                started_at=datetime.utcnow(),
-                finished_at=datetime.utcnow(),
+                started_at=datetime.now(UTC),
+                finished_at=datetime.now(UTC),
                 status="passed",
                 duration_ms=0.0,
             )
@@ -152,7 +153,7 @@ class TestRunner:
         report = TestReport(
             report_id=report_row.id,
             plan_id=plan_id,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC),
             total_count=len(plan_steps),
         )
 
@@ -180,7 +181,7 @@ class TestRunner:
             report.status = "failed"
 
         # 汇总
-        report.finished_at = datetime.utcnow()
+        report.finished_at = datetime.now(UTC)
         report.duration_ms = (report.finished_at - report.started_at).total_seconds() * 1000
         if report.status != "failed":
             report.status = "passed" if report.fail_count == 0 else "failed"
@@ -212,7 +213,7 @@ class TestRunner:
         report = TestReport(
             report_id=None,
             plan_id=ps.plan_id,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC),
         )
         result = await self._run_step_inner(ps, db, report)
         report.step_results = [result]

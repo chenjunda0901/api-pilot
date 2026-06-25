@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from app.database import get_db
 from app.middleware.auth import get_current_user, get_optional_user
@@ -222,7 +222,7 @@ async def delete_category(project_id: int, cat_id: int,
             ApiDefinition.project_id == project_id,
             ApiDefinition.deleted_at.is_(None),
         )
-        .values(deleted_at=datetime.now(timezone.utc))
+        .values(deleted_at=datetime.now(UTC))
     )
 
     # 软删除当前目录及其所有子孙目录（递归处理，与接口软删除一致）
@@ -232,7 +232,7 @@ async def delete_category(project_id: int, cat_id: int,
             ApiCategory.id.in_(all_cat_ids),
             ApiCategory.project_id == project_id,
         )
-        .values(deleted_at=datetime.now(timezone.utc))
+        .values(deleted_at=datetime.now(UTC))
     )
     await db.flush()
     return success(message="目录及下属接口已删除")

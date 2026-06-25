@@ -1,6 +1,6 @@
 """CI 集成 Pydantic 模型。"""
 
-from typing import Optional, Any
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -8,7 +8,7 @@ class CiTriggerRequest(BaseModel):
     """CI 触发测试计划请求。"""
 
     plan_id: int = Field(..., ge=1, description="测试计划 ID")
-    ref: Optional[str] = Field(default=None, description="代码 ref（分支/tag/sha）")
+    ref: str | None = Field(default=None, description="代码 ref（分支/tag/sha）")
     idempotency_key: str = Field(..., min_length=1, max_length=200, description="幂等性键（24h 内不重复执行）")
 
 
@@ -26,9 +26,9 @@ class CiWebhookEvent(BaseModel):
 
     source: str = Field(..., description="事件源: github / gitlab / jenkins / custom")
     event: str = Field(..., description="事件名：push / pull_request / build ...")
-    ref: Optional[str] = None
-    commit_sha: Optional[str] = None
-    plan_id: Optional[int] = Field(default=None, description="可选：直接指定要执行的计划")
+    ref: str | None = None
+    commit_sha: str | None = None
+    plan_id: int | None = Field(default=None, description="可选：直接指定要执行的计划")
     payload: dict[str, Any] = Field(default_factory=dict, description="原始 payload")
 
 
@@ -42,15 +42,15 @@ class CiRunStatus(BaseModel):
     passed: int = 0
     failed: int = 0
     duration_ms: float = 0.0
-    started_at: Optional[str] = None
-    finished_at: Optional[str] = None
+    started_at: str | None = None
+    finished_at: str | None = None
 
 
 class CiConfigUpdate(BaseModel):
     """CI 配置更新请求。"""
 
     regenerate_token: bool = Field(default=False, description="是否重新生成 CI Token")
-    plan_ids: Optional[list[int]] = Field(default=None, description="关联的测试计划 ID 列表")
+    plan_ids: list[int] | None = Field(default=None, description="关联的测试计划 ID 列表")
 
 
 class CiConfigResponse(BaseModel):

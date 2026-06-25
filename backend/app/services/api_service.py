@@ -1,29 +1,21 @@
 from __future__ import annotations
-import asyncio
-import logging
+
 import json
-from datetime import datetime
+from datetime import datetime, UTC
 from app.utils.json_helpers import safe_json_load
 
-from typing import Optional
 
 from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import raise_biz, ErrorCodes
+from app.core.exceptions import ErrorCodes
 from app.utils.url_validator import validate_request_url
 from app.services.executor.variable_renderer import render_template
 from app.models.api_definition import ApiDefinition
 from app.schemas.api import ApiCreate, ApiUpdate
+from app.services.base import BaseService
 
 
-logger = logging.getLogger("api_pilot.services.api_service")
-
-
-class ApiService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
-
+class ApiService(BaseService):
     async def get(self, api_id: int, project_id: int | None = None) -> ApiDefinition:
         from sqlalchemy import and_
 
@@ -33,7 +25,7 @@ class ApiService:
         result = await self.db.execute(select(ApiDefinition).where(and_(*conditions)))
         api = result.scalar_one_or_none()
         if not api:
-            raise_biz(ErrorCodes.API_NOT_FOUND)
+            self._raise(ErrorCodes.API_NOT_FOUND)
         return api
 
     async def get_include_deleted(self, api_id: int) -> ApiDefinition:
@@ -43,7 +35,7 @@ class ApiService:
         )
         api = result.scalar_one_or_none()
         if not api:
-            raise_biz(ErrorCodes.API_NOT_FOUND)
+            self._raise(ErrorCodes.API_NOT_FOUND)
         return api
 
     def to_dict(self, api: ApiDefinition) -> dict:
@@ -86,13 +78,13 @@ class ApiService:
     async def list(
         self,
         project_id: int,
-        category_id: Optional[int] = None,
+        category_id: int | None = None,
         page: int = 1,
         page_size: int = 20,
-        method: Optional[str] = None,
-        status: Optional[str] = None,
-        keyword: Optional[str] = None,
-        tag: Optional[str] = None,
+        method: str | None = None,
+        status: str | None = None,
+        keyword: str | None = None,
+        tag: str | None = None,
     ) -> tuple:
         query = select(ApiDefinition).where(
             ApiDefinition.project_id == project_id, ApiDefinition.deleted_at.is_(None)
@@ -218,7 +210,7 @@ class ApiService:
         # 乐观锁：检查版本号（使用完整时间戳，不截断微秒）
         if req.updated_at and api.updated_at:
             if req.updated_at != api.updated_at:
-                raise_biz(ErrorCodes.CONFLICT, "数据已被其他人修改，请刷新后重试")
+                self._raise(ErrorCodes.CONFLICT, "数据已被其他人修改，请刷新后重试")
 
         api.name = req.name or api.name
         api.method = req.method or api.method
@@ -263,7 +255,7 @@ class ApiService:
                 )
             )
             if name_dup.scalar_one_or_none():
-                raise_biz(ErrorCodes.API_NAME_DUPLICATE, "该目录下已存在同名接口")
+                self._raise(ErrorCodes.API_NAME_DUPLICATE, "该目录下已存在同名接口")
 
         # 路径+方法唯一性校验（仅当路径或方法被修改时）
         if req.path or req.method:
@@ -278,7 +270,9 @@ class ApiService:
                 )
             )
             if path_dup.scalar_one_or_none():
-                raise_biz(ErrorCodes.API_PATH_DUPLICATE, "该目录下已存在相同路径和方法的接口")
+                self._raise(
+                    ErrorCodes.API_PATH_DUPLICATE, "该目录下已存在相同路径和方法的接口"
+                )
 
         await self.db.flush()
         await self.db.refresh(api)
@@ -286,7 +280,9 @@ class ApiService:
         if req.tags is not None:
             await self._sync_tags(api.project_id, api.id, req.tags)
         # 自动落盘快照
-        await self._write_snapshot(api, change_type="update", user_id=getattr(req, "created_by", None))
+        await self._write_snapshot(
+            api, change_type="update", user_id=getattr(req, "created_by", None)
+        )
         return api
 
     async def _sync_tags(
@@ -327,15 +323,18 @@ class ApiService:
         self,
         api: ApiDefinition,
         change_type: str,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         change_summary: str = "",
     ) -> None:
         """写入一条 ApiSnapshot 记录（内部使用，不抛异常以免影响主流程）。"""
         try:
             from app.models.api_snapshot import ApiSnapshot
+
             snap = ApiSnapshot(
                 api_id=api.id,
-                snapshot_data=json.dumps(self.to_dict(api), ensure_ascii=False, default=str),
+                snapshot_data=json.dumps(
+                    self.to_dict(api), ensure_ascii=False, default=str
+                ),
                 change_type=change_type,
                 change_summary=change_summary,
                 changed_by=user_id,
@@ -343,14 +342,16 @@ class ApiService:
             self.db.add(snap)
             await self.db.flush()
         except Exception as exc:
-            logger.warning("写入 api 快照失败（不影响主流程）: %s: %s", type(exc).__name__, exc)
+            self.logger.warning(
+                "写入 api 快照失败（不影响主流程）: %s: %s", type(exc).__name__, exc
+            )
 
     async def delete(self, api_id: int, project_id: int | None = None):
         """软删除：标记 deleted_at 而非物理删除"""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         api = await self.get(api_id, project_id)
-        api.deleted_at = datetime.now(timezone.utc)
+        api.deleted_at = datetime.now(UTC)
         await self.db.flush()
 
     async def list_deleted(self, project_id: int) -> list:
@@ -376,7 +377,7 @@ class ApiService:
         """恢复软删除的接口，同时恢复关联的测试用例"""
         api = await self.get_include_deleted(api_id)
         if api.project_id != project_id:
-            raise_biz(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
+            self._raise(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
         if api.deleted_at is None:
             return  # already restored
 
@@ -384,6 +385,7 @@ class ApiService:
         parent_exists = True
         if api.category_id:
             from app.models.api_category import ApiCategory
+
             cat_result = await self.db.execute(
                 select(ApiCategory).where(ApiCategory.id == api.category_id)
             )
@@ -397,6 +399,7 @@ class ApiService:
 
         # 同时恢复关联的已删除测试用例
         from app.models.test_case import TestCase
+
         case_result = await self.db.execute(
             select(TestCase).where(
                 TestCase.api_id == api_id,
@@ -415,7 +418,7 @@ class ApiService:
         """永久物理删除"""
         api = await self.get_include_deleted(api_id)
         if api.project_id != project_id:
-            raise_biz(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
+            self._raise(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
         await self.db.delete(api)
         await self.db.flush()
 
@@ -470,7 +473,7 @@ class ApiService:
 
         return new
 
-    async def move(self, api_id: int, category_id: Optional[int]):
+    async def move(self, api_id: int, category_id: int | None):
         api = await self.get(api_id)
         api.category_id = category_id
         await self.db.flush()
@@ -496,7 +499,6 @@ class ApiService:
         base_url = ""
         variables = {}
         global_headers_extra: list = []
-        user_id = None  # 将在后续获取当前用户
 
         # 加载项目全局变量（环境变量会覆盖同名全局变量）
         try:
@@ -530,7 +532,7 @@ class ApiService:
                             ):
                                 global_headers_extra.append(h)
         except (ValueError, KeyError, TypeError) as e:
-            logger.warning("全局请求头解析失败: %s: %s", type(e).__name__, e)
+            self.logger.warning("全局请求头解析失败: %s: %s", type(e).__name__, e)
 
         headers_list = self._safe_json(api.headers, []) + global_headers_extra
         if env:
@@ -578,7 +580,7 @@ class ApiService:
                 try:
                     req_body = _json.loads(body_override)
                 except (_json.JSONDecodeError, TypeError) as e:
-                    logger.warning(
+                    self.logger.warning(
                         "请求体重写JSON解析失败: %s: %s", type(e).__name__, e
                     )
             else:
@@ -604,7 +606,7 @@ class ApiService:
         url = f"{base_url}{path}"
         # SSRF 防护：校验 URL 安全性
         try:
-            validate_request_url(url)
+            await validate_request_url(url)
         except ValueError as e:
             result = {
                 "request_url": url,
@@ -627,9 +629,7 @@ class ApiService:
         if pre_script.strip():
             from app.services.executor.script_executor import execute_pre_script
 
-            pre_result = await asyncio.get_event_loop().run_in_executor(
-                None,
-                execute_pre_script,
+            pre_result = await execute_pre_script(
                 pre_script,
                 api_method,
                 api_path,
@@ -702,9 +702,7 @@ class ApiService:
         if post_script.strip():
             from app.services.executor.script_executor import execute_post_script
 
-            script_vars = await asyncio.get_event_loop().run_in_executor(
-                None,
-                execute_post_script,
+            script_vars = await execute_post_script(
                 post_script,
                 result,
                 variables,
@@ -738,7 +736,7 @@ class ApiService:
                             self.db.flush()
                         )  # flush 即可，事务由 FastAPI get_db 依赖统一 commit
                 except (ValueError, KeyError, TypeError) as e:
-                    logger.warning("局部变量更新失败: %s: %s", type(e).__name__, e)
+                    self.logger.warning("局部变量更新失败: %s: %s", type(e).__name__, e)
                 # 也更新全局变量
                 try:
                     from app.models.project import Project
@@ -762,7 +760,7 @@ class ApiService:
                             self.db.flush()
                         )  # flush 即可，事务由 FastAPI get_db 依赖统一 commit
                 except (ValueError, KeyError, TypeError) as e:
-                    logger.warning("全局变量更新失败: %s: %s", type(e).__name__, e)
+                    self.logger.warning("全局变量更新失败: %s: %s", type(e).__name__, e)
         # 自动提取变量
         extracted = self._extract_variables(extract_vars or [], result, env)
         if extracted:
@@ -786,7 +784,7 @@ class ApiService:
             try:
                 response_body = _json.loads(response_body_raw)
             except (_json.JSONDecodeError, TypeError) as e:
-                logger.warning(
+                self.logger.warning(
                     "响应体JSON解析失败，使用原始文本: %s: %s", type(e).__name__, e
                 )
                 response_body = response_body_raw
@@ -849,7 +847,7 @@ class ApiService:
             try:
                 self.db.flush()
             except (OSError, ValueError) as e:
-                logger.warning("变量提取保存失败: %s: %s", type(e).__name__, e)
+                self.logger.warning("变量提取保存失败: %s: %s", type(e).__name__, e)
 
         return extracted
 
@@ -864,7 +862,7 @@ class ApiService:
                     api.category_id = target_category_id
                     moved += 1
             except (BizError, Exception) as e:
-                logger.warning("batch_move: 跳过 API %s: %s", aid, e)
+                self.logger.warning("batch_move: 跳过 API %s: %s", aid, e)
                 continue
         if moved:
             await self.db.flush()
@@ -900,7 +898,7 @@ class ApiService:
                     self.db.add(new)
                     copied += 1
             except (BizError, Exception) as e:
-                logger.warning("batch_copy: 跳过 API %s: %s", aid, e)
+                self.logger.warning("batch_copy: 跳过 API %s: %s", aid, e)
                 continue
         if copied:
             await self.db.flush()
@@ -945,13 +943,13 @@ class ApiService:
                 response_body=result.get("response_body", ""),
             )
         except (OSError, ValueError) as e:
-            logger.warning("调试历史保存失败: %s: %s", type(e).__name__, e)
+            self.logger.warning("调试历史保存失败: %s: %s", type(e).__name__, e)
 
     async def _save_test_history(
         self,
         api,
         env_id: int,
-        user_id: Optional[int],
+        user_id: int | None,
         url: str,
         method: str,
         headers: dict,
@@ -1003,11 +1001,11 @@ class ApiService:
             )
             self.db.add(history)
             await self.db.flush()
-            logger.info(
+            self.logger.info(
                 "接口测试历史已保存: api_id=%s, status=%s, duration=%.3fs",
                 api.id,
                 status,
                 duration,
             )
         except (OSError, ValueError) as e:
-            logger.warning("保存接口测试历史失败: %s: %s", type(e).__name__, e)
+            self.logger.warning("保存接口测试历史失败: %s: %s", type(e).__name__, e)

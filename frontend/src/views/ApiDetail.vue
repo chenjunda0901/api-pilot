@@ -31,11 +31,11 @@
           <div class="api-hero-summary-row">
             <code class="api-hero-path-code">{{ apiData.path || '/' }}</code>
             <span class="api-hero-meta-inline">
-              <span v-if="apiData.status" class="api-status-badge" :class="(apiData.status as string) || 'draft'">{{ statusLabel }}</span>
+              <span v-if="apiData.status" class="api-status-badge" :class="apiData.status || 'draft'">{{ statusLabel }}</span>
               <span v-if="apiData.auth?.type && apiData.auth.type !== 'none'">{{ apiData.auth.type }}</span>
             </span>
-            <span v-if="apiData.tags && (apiData.tags as string[]).length > 0" class="api-hero-tags">
-              <span v-for="tagName in (apiData.tags as string[])" :key="tagName" class="api-hero-tag">{{ tagName }}</span>
+            <span v-if="apiData.tags && apiData.tags.length > 0" class="api-hero-tags">
+              <span v-for="tagName in apiData.tags" :key="tagName" class="api-hero-tag">{{ tagName }}</span>
             </span>
           </div>
         </div>
@@ -168,18 +168,18 @@
           <!-- 设置 → 使用 ApiSettingsPanel 组件 -->
           <ApiSettingsPanel
             v-else-if="activeParamTab === 'settings'"
-            :description-md="apiData.description_md as string"
-            :tags="apiData.tags as string[]"
+            :description-md="apiData.description_md"
+            :tags="apiData.tags"
             :project-tags="projectTags"
-            :settings="apiData.settings as Record<string, unknown>"
+            :settings="apiData.settings"
             @update:description-md="apiData.description_md = $event"
             @update:tags="apiData.tags = $event"
-            @update:setting="(key, value) => { apiData.settings = { ...apiData.settings as Record<string, unknown>, [key]: value } }"
+            @update:setting="(key, value) => { apiData.settings = { ...apiData.settings, [key]: value } }"
           />
           <!-- 前置操作 -->
           <ApiScriptPanel
             v-else-if="activeParamTab === 'pre-script'"
-            :model-value="apiData.pre_script as string"
+            :model-value="apiData.pre_script"
             :title="t('apiDetail.preScript')"
             :description="t('apiDetail.preScriptDesc')"
             :placeholder="preScriptPlaceholder"
@@ -194,7 +194,7 @@
           <!-- 后置操作 -->
           <ApiScriptPanel
             v-else-if="activeParamTab === 'post-script'"
-            :model-value="apiData.post_script as string"
+            :model-value="apiData.post_script"
             :title="t('apiDetail.postScript')"
             :description="t('apiDetail.postScriptDesc')"
             :placeholder="postScriptPlaceholder"
@@ -320,7 +320,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import { ElMessageBox, ElMessage } from "element-plus"
-import { getApi, testApi, createApi, updateApi, listApiCases, duplicateApi } from "../api/apis"
+import { getApi, testApi, createApi, updateApi, listApiCases, duplicateApi, type ApiDetail, type ApiTestResult } from "../api/apis"
 import { getCase, deleteCase as deleteCaseApi, runCase as runCaseApi, createApiCase } from "../api/cases"
 import { runPreScript, runPostScript } from "../utils/scriptRunner"
 import { useEditorStore } from "../stores/editorStore"
@@ -403,29 +403,46 @@ const isNewApi = computed(() => !route.params.apiId || route.params.apiId === "n
 
 const breadcrumbItems = computed<BreadcrumbItem[]>(() => [
   { label: t('nav.apis'), to: `/projects/${projectId}/apis` },
-  { label: (apiData.value.name as string) || t('api.newApi') },
+  { label: apiData.value.name || t('api.newApi') },
 ])
 
 const isLoadingApi = ref(false)
-const apiData = ref<Record<string, unknown>>({
+interface ApiDetailFormData extends ApiDetail {
+  assertions: Array<{ expression: string; expected: string; comparator: string; description?: string; enabled?: boolean }>
+}
+const apiData = ref<ApiDetailFormData>({
+  id: 0,
+  project_id: 0,
   name: t('api.newApi'),
   method: "GET",
   path: "",
-  headers: [] as Record<string, unknown>[],
-  params: [] as Record<string, unknown>[],
+  headers: [],
+  params: [],
   body: { type: "none", content: "" },
-  cookies: [] as Record<string, unknown>[],
+  cookies: [],
   auth: { type: "none" },
+  auth_type: "none",
   pre_script: "",
   post_script: "",
-  assertions: [] as Record<string, unknown>[],
-  extract_vars: [] as Record<string, unknown>[],
+  assertions: [],
+  extract_vars: [],
+  description: "",
   description_md: "",
-  tags: [] as string[],
+  tags: [],
   settings: { follow_redirects: true, verify_ssl: true, timeout: 30 },
+  category_id: null,
+  response_schema: "",
+  response_examples: [],
+  status: "draft",
+  is_starred: false,
+  sort_order: 0,
+  case_count: 0,
+  created_by: 0,
+  created_at: "",
+  updated_at: "",
 })
 const pageLoading = ref(true)
-const responseData = ref<Record<string, unknown> | null>(null)
+const responseData = ref<ApiTestResult | null>(null)
 const sending = ref(false)
 const editorStore = useEditorStore()
 const envStore = useEnvStore()
@@ -438,7 +455,7 @@ const editingNameValue = ref("")
 const nameInputRef = ref<HTMLInputElement | null>(null)
 
 function startEditName() {
-  editingNameValue.value = (apiData.value.name as string) || ""
+  editingNameValue.value = apiData.value.name || ""
   editingName.value = true
   void nextTick(() => {
     nameInputRef.value?.focus()
@@ -505,7 +522,7 @@ const _requestExpressions = computed(() => {
 })
 
 const statusLabel = computed(() => {
-  const s = (apiData.value.status as string) || "draft"
+  const s = apiData.value.status || "draft"
   const map: Record<string, string> = {
     published: t('apiDetail.statusPublished'),
     draft: t('apiDetail.statusDraft'),
@@ -577,7 +594,7 @@ const apiCases = ref<{ id: number; name: string }[]>([])
 const casesLoading = ref(false)
 const selectedCaseId = ref<number | null>(null)
 
-function detectDefaultTab(api: Record<string, unknown>): string {
+function detectDefaultTab(api: ApiDetailFormData): string {
   // 有 body 内容（JSON/form/text 等非 none）→ 优先显示 body
   if (api?.body && api.body.type !== "none") return "body"
   if (api?.params?.length > 0) return "params"
@@ -669,7 +686,7 @@ async function loadApiData() {
           // 确保每个参数都有 type 字段
           if (Array.isArray(d.params)) {
             const validTypes = ['string', 'number', 'boolean']
-            d.params = d.params.map((p: Record<string, unknown>) => ({
+            d.params = d.params.map((p) => ({
               enabled: p.enabled !== false,
               key: p.key || '',
               value: p.value || '',
@@ -896,7 +913,7 @@ function stopResize() {
   localStorage.setItem("api-detail-split-v", String(topHeight.value))
 }
 
-async function applyExtractRules(respData: Record<string, unknown>) {
+async function applyExtractRules(respData: ApiTestResult) {
   try {
     const bodyRaw = respData?.response_body
     const bodyStr: string = typeof bodyRaw === 'string' ? bodyRaw : ""
@@ -948,7 +965,7 @@ async function applyExtractRules(respData: Record<string, unknown>) {
 function onAddExtractRule(rule: { variable: string; source: string; type: string; expression: string }) {
   const rules = apiData.value.extract_vars || []
   // 如果已有同名变量的规则，更新表达式；否则新增
-  const idx = rules.findIndex((r: Record<string, unknown>) => r.variable === rule.variable)
+  const idx = rules.findIndex((r) => r.variable === rule.variable)
   if (idx >= 0) {
     rules[idx] = { ...rules[idx], ...rule, scope: rules[idx].scope || 'env' }
   } else {
@@ -1140,7 +1157,7 @@ async function onSend() {
       )
     }
     // 自动提取变量：根据已保存的提取规则从响应中提取并更新
-    if (apiData.value.extract_vars && (apiData.value.extract_vars as unknown[]).length > 0) {
+    if (apiData.value.extract_vars && apiData.value.extract_vars.length > 0) {
       await applyExtractRules(res.data)
     }
     // 域名不可达 → 重定向到项目设置页（仅在真正的连接失败时，如 DNS 解析失败、连接拒绝）
@@ -1193,8 +1210,14 @@ async function onSend() {
     }
 
     responseData.value = {
+      request_url: '',
+      request_method: '',
+      request_headers: {},
+      request_body: '',
       response_status: errorStatus,
+      response_headers: {},
       response_body: JSON.stringify({ error: errorMessage }),
+      duration: 0,
     }
     try {
       sessionStorage.setItem(`resp_${projectId}_${apiIdParam.value}`, JSON.stringify(responseData.value))

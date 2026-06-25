@@ -39,8 +39,19 @@ export interface ApiDetail {
     fields?: Array<{ key: string; value: string; enabled?: boolean; type?: string }>
   }
   auth: Record<string, unknown>
+  auth_type: string
   settings: Record<string, unknown>
   tags: string[]
+  cookies: Array<{ key: string; value: string; enabled?: boolean; description?: string }>
+  pre_script: string
+  post_script: string
+  extract_vars: Array<{ variable: string; expression: string; source: string }>
+  response_schema: string
+  response_examples: unknown[]
+  status: string
+  is_starred: boolean
+  sort_order: number
+  case_count: number
   created_by: number
   created_at: string
   updated_at: string

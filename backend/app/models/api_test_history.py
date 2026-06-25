@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from sqlalchemy import String, Text, Integer, Float, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
@@ -26,17 +25,17 @@ class ApiTestHistory(Base):
     # 请求信息
     request_url: Mapped[str] = mapped_column(String(500), default="", nullable=False)
     request_method: Mapped[str] = mapped_column(String(10), nullable=False, default="GET")
-    request_headers: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)
-    request_body: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)
+    request_headers: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    request_body: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
 
     # 响应信息
     response_status: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    response_headers: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)
-    response_body: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)
+    response_headers: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    response_body: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
 
     # 执行信息
     duration: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)  # 耗时（秒）
-    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)  # 错误信息
+    error: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)  # 错误信息
 
     # 断言结果（用于快速判断测试是否通过）
     status: Mapped[str] = mapped_column(String(20), default="unknown", nullable=False, index=True)

@@ -1,22 +1,20 @@
-from datetime import datetime, timezone
-from typing import Optional, List
+from datetime import datetime, UTC
 import re
 
 from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import raise_biz, ErrorCodes
+from app.core.exceptions import ErrorCodes
 from app.utils.json_helpers import safe_json_load
 from app.models.test_scene import TestScene
 from app.models.scene_step import SceneStep
 from app.models.scene_edge import SceneEdge
 from app.models.api_definition import ApiDefinition
 from app.schemas.scene import SceneCreate, SceneUpdate
+from app.services.base import BaseService
+import builtins
 
 
-class SceneService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+class SceneService(BaseService):
 
     def to_dict(self, scene: TestScene) -> dict:
         return {
@@ -51,7 +49,7 @@ class SceneService:
         result = await self.db.execute(select(TestScene).where(and_(*conditions)))
         scene = result.scalar_one_or_none()
         if not scene:
-            raise_biz(ErrorCodes.SCENE_NOT_FOUND)
+            self._raise(ErrorCodes.SCENE_NOT_FOUND)
         return scene
 
     async def get_include_deleted(self, scene_id: int) -> TestScene:
@@ -60,13 +58,13 @@ class SceneService:
         )
         scene = result.scalar_one_or_none()
         if not scene:
-            raise_biz(ErrorCodes.SCENE_NOT_FOUND)
+            self._raise(ErrorCodes.SCENE_NOT_FOUND)
         return scene
 
     async def list(
         self,
         project_id: int,
-        keyword: Optional[str] = None,
+        keyword: str | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple:
@@ -168,7 +166,7 @@ class SceneService:
             )
         )
         if name_dup.scalar_one_or_none():
-            raise_biz(ErrorCodes.SCENE_NAME_DUPLICATE, "场景名称已存在")
+            self._raise(ErrorCodes.SCENE_NAME_DUPLICATE, "场景名称已存在")
 
         scene = TestScene(
             project_id=project_id,
@@ -208,7 +206,7 @@ class SceneService:
                 )
             )
             if name_dup.scalar_one_or_none():
-                raise_biz(ErrorCodes.SCENE_NAME_DUPLICATE, "场景名称已存在")
+                self._raise(ErrorCodes.SCENE_NAME_DUPLICATE, "场景名称已存在")
             scene.name = req.name
         if req.description is not None:
             scene.description = req.description
@@ -250,7 +248,7 @@ class SceneService:
             missing_ids = api_ids - existing_ids
             if missing_ids:
                 missing_str = ", ".join(str(aid) for aid in sorted(missing_ids))
-                raise_biz(ErrorCodes.API_NOT_FOUND, f"API ID {missing_str} 不存在")
+                self._raise(ErrorCodes.API_NOT_FOUND, f"API ID {missing_str} 不存在")
         for i, s in enumerate(steps):
             self.db.add(
                 SceneStep(
@@ -301,7 +299,7 @@ class SceneService:
         from sqlalchemy import update
 
         scene = await self.get(scene_id, project_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         scene.deleted_at = now
         await self.db.execute(
             update(SceneStep)
@@ -332,7 +330,7 @@ class SceneService:
 
         scene = await self.get_include_deleted(scene_id)
         if scene.project_id != project_id:
-            raise_biz(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
+            self._raise(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
         if scene.deleted_at is None:
             return
 
@@ -361,12 +359,12 @@ class SceneService:
     async def permanent_delete(self, scene_id: int, project_id: int):
         scene = await self.get_include_deleted(scene_id)
         if scene.project_id != project_id:
-            raise_biz(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
+            self._raise(ErrorCodes.PROJECT_FORBIDDEN, "资源不属于该项目")
         await self.db.delete(scene)
         await self.db.flush()
 
     async def update_schedule(
-        self, scene_id: int, cron: str, enabled: bool, env_id: Optional[int] = None
+        self, scene_id: int, cron: str, enabled: bool, env_id: int | None = None
     ):
         scene = await self.get(scene_id)
         scene.schedule_cron = cron
@@ -427,13 +425,13 @@ class SceneService:
                 conflicting_steps = [
                     step_label for v, step_label in all_vars if v == var_name
                 ]
-                raise_biz(
+                self._raise(
                     ErrorCodes.SCENE_VARIABLE_DUPLICATE,
                     detail=f"变量名 '{var_name}' 在以下步骤中重复: {', '.join(conflicting_steps)}",
                 )
 
     async def batch_copy_steps(
-        self, target_scene_id: int, steps: List[dict], user_id: int, project_id: int
+        self, target_scene_id: int, steps: builtins.list[dict], user_id: int, project_id: int
     ) -> dict:
         """批量复制步骤到目标场景"""
         from app.models.scene_step import SceneStep
@@ -444,7 +442,7 @@ class SceneService:
         )
         scene = result.scalar_one_or_none()
         if not scene:
-            raise_biz("SCENE_NOT_FOUND", detail=f"场景 {target_scene_id} 不存在")
+            self._raise(ErrorCodes.SCENE_NOT_FOUND, detail=f"场景 {target_scene_id} 不存在")
         # project_id 权限由 router 层 check_write_access 校验
 
         # 创建步骤
@@ -484,11 +482,11 @@ class SceneService:
         return {"count": len(created_ids), "step_ids": created_ids}
 
     async def batch_delete_steps(
-        self, scene_id: int, step_ids: List[int], user_id: int, project_id: int
+        self, scene_id: int, step_ids: builtins.list[int], user_id: int, project_id: int
     ) -> dict:
         """批量删除场景步骤（软删除）"""
         from app.models.scene_step import SceneStep
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         if not step_ids:
             raise ValueError("step_ids 不能为空")
@@ -511,12 +509,12 @@ class SceneService:
         )
         scene = scene_result.scalar_one_or_none()
         if not scene or scene.project_id != project_id:
-            raise_biz(ErrorCodes.SCENE_NOT_FOUND, detail=f"场景 {scene_id} 不存在")
+            self._raise(ErrorCodes.SCENE_NOT_FOUND, detail=f"场景 {scene_id} 不存在")
 
         # 软删除
         deleted_ids = []
         for step in steps:
-            step.deleted_at = datetime.now(timezone.utc)
+            step.deleted_at = datetime.now(UTC)
             deleted_ids.append(step.id)
 
         await self.db.flush()
@@ -525,7 +523,7 @@ class SceneService:
     async def batch_toggle_steps(
         self,
         scene_id: int,
-        step_ids: List[int],
+        step_ids: builtins.list[int],
         enabled: bool,
         user_id: int,
         project_id: int,
@@ -554,7 +552,7 @@ class SceneService:
         )
         scene = scene_result.scalar_one_or_none()
         if not scene or scene.project_id != project_id:
-            raise_biz(ErrorCodes.SCENE_NOT_FOUND, detail=f"场景 {scene_id} 不存在")
+            self._raise(ErrorCodes.SCENE_NOT_FOUND, detail=f"场景 {scene_id} 不存在")
 
         # 批量更新
         updated_ids = []

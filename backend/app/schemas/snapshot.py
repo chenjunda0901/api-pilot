@@ -1,6 +1,6 @@
 """快照 / Diff Pydantic 模型。"""
 
-from typing import Optional, Any
+from typing import Any
 from datetime import datetime
 from pydantic import BaseModel, Field
 
@@ -12,8 +12,8 @@ class ApiSnapshotOut(BaseModel):
     api_id: int
     change_type: str = Field(..., description="枚举: create / update / delete")
     change_summary: str = ""
-    changed_by: Optional[int] = None
-    created_at: Optional[datetime] = None
+    changed_by: int | None = None
+    created_at: datetime | None = None
 
 
 class ApiSnapshotDetail(ApiSnapshotOut):

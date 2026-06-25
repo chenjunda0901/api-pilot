@@ -9,8 +9,7 @@
 import re
 import bcrypt
 
-# 密码强度：至少 6 位任意字符
-_PASSWORD_PATTERN = re.compile(r"^.{6,}$")
+_PASSWORD_MIN_LENGTH = 8
 
 
 def hash_password(password: str) -> str:
@@ -46,5 +45,13 @@ def needs_rehash(hashed_password: str) -> bool:
 
 
 def validate_password_strength(password: str) -> bool:
-    """校验密码强度：至少 6 位任意字符。"""
-    return bool(_PASSWORD_PATTERN.match(password))
+    """校验密码强度：至少 8 位，包含大写、小写和数字。"""
+    if len(password) < _PASSWORD_MIN_LENGTH:
+        return False
+    if not re.search(r"[A-Z]", password):
+        return False
+    if not re.search(r"[a-z]", password):
+        return False
+    if not re.search(r"\d", password):
+        return False
+    return True

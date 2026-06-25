@@ -675,31 +675,31 @@ import { ref, computed, onMounted, onActivated, watch, defineAsyncComponent } fr
 import { useRouter, useRoute } from "vue-router"
 import { ElMessageBox } from "element-plus"
 import { useI18n } from "vue-i18n"
-import { msgSuccess, msgWarning, msgError } from "../utils/message"
-import { logger, isSilentAuthError } from "../utils/logger"
-import type { Environment, SceneStep, TestScene } from "../types"
-import type { ApiError } from "../types/common"
-import SortableList from "../components/SortableList.vue"
-import VariablePreview from "../components/VariablePreview.vue"
-import EmptyState from "../components/EmptyState.vue"
-import SkeletonTable from "../components/SkeletonTable.vue"
-import request from "../api/request"
-import { useEnvStore } from "../stores/envStore"
-import { useTabsStore } from "../stores/tabsStore"
-import { useRequireLogin } from "../composables/useRequireLogin"
-import { useProjectPermission } from "../composables/useProjectPermission"
-import { useSubmitLock } from "../composables/useSubmitLock"
-import { useEventBus } from "../composables/useEventBus"
-import { useSceneExecution, type AssertionSummary } from "../composables/useSceneExecution"
-import { useStepEditor } from "../composables/useStepEditor"
-import { useSceneImport } from "../composables/useSceneImport"
+import { msgSuccess, msgWarning, msgError } from "@/utils/message"
+import { logger, isSilentAuthError } from "@/utils/logger"
+import type { Environment, SceneStep, TestScene } from "@/types"
+import type { ApiError } from "@/types/common"
+import SortableList from "@/components/SortableList.vue"
+import VariablePreview from "@/components/VariablePreview.vue"
+import EmptyState from "@/components/EmptyState.vue"
+import SkeletonTable from "@/components/SkeletonTable.vue"
+import request from "@/api/request"
+import { useEnvStore } from "@/stores/envStore"
+import { useTabsStore } from "@/stores/tabsStore"
+import { useRequireLogin } from "@/composables/useRequireLogin"
+import { useProjectPermission } from "@/composables/useProjectPermission"
+import { useSubmitLock } from "@/composables/useSubmitLock"
+import { useEventBus } from "@/composables/useEventBus"
+import { useSceneExecution, type AssertionSummary } from "@/composables/useSceneExecution"
+import { useStepEditor } from "@/composables/useStepEditor"
+import { useSceneImport } from "@/composables/useSceneImport"
 import { useDebounce } from "@/composables/useDebounce"
-import { useSceneSchedule } from "../composables/useSceneSchedule"
-import PageLayout from "../components/common/PageLayout.vue"
+import { useSceneSchedule } from "@/composables/useSceneSchedule"
+import PageLayout from "@/components/common/PageLayout.vue"
 
-import { exportSceneToJson, downloadSceneJson } from "../utils/sceneExporter"
-import SceneTree from "../components/SceneTree.vue"
-import ExecutionProgress from "../components/ExecutionProgress.vue"
+import { exportSceneToJson, downloadSceneJson } from "@/utils/sceneExporter"
+import SceneTree from "@/components/SceneTree.vue"
+import ExecutionProgress from "@/components/ExecutionProgress.vue"
 import {
   Settings2,
   Play,
@@ -761,7 +761,7 @@ interface SceneListItem {
 }
 
 const scene = ref<Record<string, unknown> | null>(null)
-const StepDetailDialog = defineAsyncComponent(() => import("../components/StepDetailDialog.vue"))
+const StepDetailDialog = defineAsyncComponent(() => import("@/components/StepDetailDialog.vue"))
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()

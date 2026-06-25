@@ -83,6 +83,7 @@ TRACKING = {
 # 商品接口
 # ════════════════════════════════════════
 
+
 @router.get("/api/v1/products")
 async def list_products(page: int = 1, page_size: int = 10, category_id: int = None, keyword: str = ""):
     filtered = PRODUCTS

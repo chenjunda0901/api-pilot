@@ -16,6 +16,7 @@ from app.models.api_category import ApiCategory
 from app.models.api_definition import ApiDefinition
 from app.models.test_case import TestCase
 from app.utils.json_helpers import safe_json_load
+from datetime import UTC
 
 logger = logging.getLogger("api_pilot.routers.import_export")
 
@@ -181,7 +182,7 @@ async def export_full_zip(
     import io
     import json as _json
     import zipfile
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from fastapi.responses import StreamingResponse
 
@@ -371,7 +372,7 @@ async def export_full_zip(
 
     project_name = proj.name or f"project-{project_id}"
     safe_name = "".join(c if (c.isascii() and c.isalnum()) or c in "-_" else "_" for c in project_name)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d%H%M%S")
     zip_filename = f"{safe_name}_{timestamp}.zip"
     # RFC 5987: 支持 non-ASCII 文件名
     from urllib.parse import quote as _urlquote
@@ -384,4 +385,3 @@ async def export_full_zip(
             "Content-Disposition": f"attachment; filename=\"{zip_filename}\"; filename*=UTF-8''{quoted_filename}",
         },
     )
-

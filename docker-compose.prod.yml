@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ============================================================
 # API Pilot 生产部署配置
 # 使用方式: docker compose -f docker-compose.prod.yml up -d
@@ -24,7 +22,7 @@ services:
       - ENVIRONMENT=production
     volumes:
       # SQLite 数据持久化（如使用 PostgreSQL 可移除）
-      - api_pilot_data:/app/backend/data
+      - api_pilot_data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
@@ -45,8 +43,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: ../Dockerfile.frontend
+      context: .
+      dockerfile: Dockerfile.frontend
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api}
     image: api-pilot-frontend:latest

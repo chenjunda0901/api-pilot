@@ -23,8 +23,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from datetime import datetime, UTC
+from typing import TYPE_CHECKING, Any
+from collections.abc import Awaitable, Callable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 if TYPE_CHECKING:
@@ -254,7 +255,7 @@ class SchedulerService:
             self._scheduler.reschedule_job(
                 job_id,
                 trigger=job.trigger,
-                next_run_time=datetime.now(timezone.utc),
+                next_run_time=datetime.now(UTC),
             )
         except Exception as exc:
             logger.exception("reschedule_job 失败，尝试直接执行 func: %s", exc)

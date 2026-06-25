@@ -1,4 +1,6 @@
 # Ruff 配置
+target-version = "py312"
+
 [lint]
 # E402: 模块级 import 不在文件顶部（main.py 需在 app 创建后导入 router）
 ignore = ["E402", "F841", "E501"]

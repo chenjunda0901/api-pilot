@@ -4,8 +4,8 @@
 """
 import logging
 import json
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from datetime import datetime, UTC
+from typing import Any
 from enum import Enum
 
 # 创建安全审计日志记录器
@@ -57,11 +57,11 @@ class SecurityAudit:
     @staticmethod
     def log_event(
         event_type: SecurityEventType,
-        user_id: Optional[int] = None,
-        username: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        user_id: int | None = None,
+        username: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        details: dict[str, Any] | None = None,
         success: bool = True,
         severity: str = "INFO"
     ):
@@ -79,7 +79,7 @@ class SecurityAudit:
             severity: 严重程度 (INFO, WARNING, ERROR, CRITICAL)
         """
         event_data = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "event_type": event_type.value,
             "user_id": user_id,
             "username": username,
@@ -128,7 +128,7 @@ class SecurityAudit:
         )
     
     @staticmethod
-    def log_access_denied(user_id: Optional[int], username: Optional[str], ip_address: str, resource: str, reason: str):
+    def log_access_denied(user_id: int | None, username: str | None, ip_address: str, resource: str, reason: str):
         """记录访问被拒绝"""
         SecurityAudit.log_event(
             event_type=SecurityEventType.ACCESS_DENIED,
@@ -141,7 +141,7 @@ class SecurityAudit:
         )
     
     @staticmethod
-    def log_suspicious_activity(ip_address: str, user_agent: str, details: Dict[str, Any]):
+    def log_suspicious_activity(ip_address: str, user_agent: str, details: dict[str, Any]):
         """记录可疑活动"""
         SecurityAudit.log_event(
             event_type=SecurityEventType.SUSPICIOUS_ACTIVITY,
@@ -171,7 +171,7 @@ class SecurityAudit:
         username: str,
         ip_address: str,
         resource_type: str,
-        resource_id: Optional[int] = None,
+        resource_id: int | None = None,
         operation: str = "unknown"
     ):
         """记录数据操作"""

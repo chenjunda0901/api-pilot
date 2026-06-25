@@ -1,8 +1,7 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from app.utils.json_helpers import safe_json_load
 
-from typing import Optional
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,8 +47,8 @@ class CaseService:
             raise_biz(ErrorCodes.CASE_NOT_FOUND)
         return case
 
-    async def list(self, project_id: int, api_id: Optional[int] = None,
-                   status: Optional[str] = None, case_type: Optional[str] = None,
+    async def list(self, project_id: int, api_id: int | None = None,
+                   status: str | None = None, case_type: str | None = None,
                    page: int = 1, page_size: int = 20) -> tuple:
         query = select(TestCase).where(TestCase.project_id == project_id, TestCase.deleted_at.is_(None))
         count_query = select(func.count(TestCase.id)).where(TestCase.project_id == project_id, TestCase.deleted_at.is_(None))
@@ -130,7 +129,7 @@ class CaseService:
     async def delete(self, case_id: int, project_id: int | None = None):
         """软删除用例"""
         case = await self.get(case_id, project_id)
-        case.deleted_at = datetime.now(timezone.utc)
+        case.deleted_at = datetime.now(UTC)
         await self.db.flush()
 
     async def list_deleted(self, project_id: int) -> list:
@@ -177,7 +176,7 @@ class CaseService:
         await self.db.delete(case)
         await self.db.flush()
 
-    async def batch_update(self, ids: list, priority: Optional[str] = None, tags: Optional[str] = None):
+    async def batch_update(self, ids: list, priority: str | None = None, tags: str | None = None):
         """批量更新用例属性"""
         if not ids:
             return
@@ -199,6 +198,6 @@ class CaseService:
         await self.db.execute(
             update(TestCase)
             .where(TestCase.id.in_(ids))
-            .values(deleted_at=datetime.now(timezone.utc))
+            .values(deleted_at=datetime.now(UTC))
         )
         await self.db.flush()

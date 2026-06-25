@@ -6,7 +6,7 @@
 import { ref, shallowRef } from 'vue'
 import { msgSuccess, msgError } from '@/utils/message'
 import { logger } from '@/utils/logger'
-import request from '../api/request'
+import request from '@/api/request'
 
 // 辅助函数：转换 Axios 响应头为 Record<string, string>
 function normalizeHeaders(headers: Record<string, string | string[] | number | undefined> | undefined): Record<string, string> {
@@ -375,27 +375,29 @@ export function useApiTest() {
     }
   }
 
+  /** 转义 shell 单引号字符串中的单引号：' → '\'' */
+  function shellEscape(v: string): string {
+    return v.replace(/'/g, "'\\''")
+  }
+
   /**
-   * 导出为 curl 命令
+   * 导出为 curl 命令（所有注入值均做 shell 转义）
    */
   function toCurl(request: ApiTestRequest): string {
     let cmd = `curl -X ${request.method}`
     
-    // 添加请求头
     if (request.headers) {
       Object.entries(request.headers).forEach(([key, value]) => {
         if (value) {
-          cmd += ` \\\n  -H '${key}: ${value}'`
+          cmd += ` \\\n  -H '${shellEscape(key)}: ${shellEscape(value)}'`
         }
       })
     }
     
-    // 添加请求体
     if (request.body && ['POST', 'PUT', 'PATCH'].includes(request.method)) {
-      cmd += ` \\\n  -d '${request.body.replace(/'/g, "\\'")}'`
+      cmd += ` \\\n  -d '${shellEscape(request.body)}'`
     }
     
-    // 添加 URL
     let url = request.url
     if (request.params) {
       const searchParams = new URLSearchParams()
@@ -408,7 +410,7 @@ export function useApiTest() {
       }
     }
     
-    cmd += ` \\\n  '${url}'`
+    cmd += ` \\\n  '${shellEscape(url)}'`
     
     return cmd
   }

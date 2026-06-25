@@ -20,10 +20,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def _col_exists(t, c):
     import sqlite3
+    assert t.isidentifier(), f"Invalid table name: {t}"
     db = op.get_bind().engine.url.database.replace('+aiosqlite', '')
     conn = sqlite3.connect(db)
     try:
-        return c in [x[1] for x in conn.execute(f"PRAGMA table_info({t})").fetchall()]
+        return c in [x[1] for x in conn.execute(sa.text(f"PRAGMA table_info({t})")).fetchall()]
     finally:
         conn.close()
 

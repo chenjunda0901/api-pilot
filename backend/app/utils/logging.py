@@ -12,7 +12,7 @@ import logging
 import sys
 import traceback
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 from enum import Enum
 
 import structlog
@@ -41,7 +41,7 @@ class StructuredLogger:
     def __init__(self, name: str = "api_pilot", json_format: bool = True):
         self.logger = logging.getLogger(name)
         self.json_format = json_format
-        self._context: Dict[str, Any] = {}
+        self._context: dict[str, Any] = {}
         
         # 配置根日志记录器
         if not self.logger.handlers:
@@ -79,13 +79,13 @@ class StructuredLogger:
     def warning(self, message: str, **kwargs):
         self.logger.warning(self._format_message("warning", message, **kwargs))
     
-    def error(self, message: str, exc_info: Optional[Exception] = None, **kwargs):
+    def error(self, message: str, exc_info: Exception | None = None, **kwargs):
         error_data = {"error_type": type(exc_info).__name__} if exc_info else {}
         if exc_info and kwargs.get("include_trace", False):
             error_data["traceback"] = traceback.format_exc()
         self.logger.error(self._format_message("error", message, **kwargs, **error_data))
     
-    def critical(self, message: str, exc_info: Optional[Exception] = None, **kwargs):
+    def critical(self, message: str, exc_info: Exception | None = None, **kwargs):
         error_data = {"error_type": type(exc_info).__name__} if exc_info else {}
         if exc_info:
             error_data["traceback"] = traceback.format_exc()
@@ -123,11 +123,9 @@ class RequestLogger(StructuredLogger):
         )
 
 
-
 # 全局日志实例
-_app_logger: Optional[StructuredLogger] = None
-_request_logger: Optional[RequestLogger] = None
-
+_app_logger: StructuredLogger | None = None
+_request_logger: RequestLogger | None = None
 
 
 def get_logger(name: str = "api_pilot") -> StructuredLogger:

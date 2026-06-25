@@ -413,10 +413,10 @@ function formatDuration(ms: number): string {
 }
 
 /**
- * 轮询执行状态
+ * 轮询执行状态 —— 支持通过 AbortSignal 取消
  * 适用于没有 WebSocket 的情况
  */
-export async function pollExecutionStatus(
+export function pollExecutionStatus(
   reportId: number,
   onUpdate: (status: string, progress: number) => void,
   options: {
@@ -424,13 +424,30 @@ export async function pollExecutionStatus(
     timeout?: number
     onComplete?: () => void
     onError?: (error: string) => void
+    signal?: AbortSignal
   } = {}
-) {
-  const { interval = 1000, timeout = 300000, onComplete, onError } = options
+): Promise<void> {
+  const { interval = 1000, timeout = 300000, onComplete, onError, signal } = options
   const startTime = Date.now()
-  
+
   return new Promise<void>((resolve, reject) => {
+    const cancelled = { current: false }
+
+    if (signal) {
+      if (signal.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'))
+        return
+      }
+      const onAbort = () => {
+        cancelled.current = true
+        reject(new DOMException('Aborted', 'AbortError'))
+      }
+      signal.addEventListener('abort', onAbort, { once: true })
+    }
+
     const poll = async () => {
+      if (cancelled.current) return
+
       try {
         const response = await request.get(`/reports/${reportId}`)
         const data = response.data
@@ -438,29 +455,29 @@ export async function pollExecutionStatus(
         if (data) {
           const { status, progress: p } = data
           onUpdate(status, p || 0)
-          
+
           if (status === 'completed' || status === 'failed') {
             onComplete?.()
             resolve()
             return
           }
         }
-        
-        // 超时检查
+
         if (Date.now() - startTime > timeout) {
           onError?.('执行超时')
           reject(new Error('Execution timeout'))
           return
         }
-        
-        // 继续轮询
-        setTimeout(poll, interval)
+
+        if (!cancelled.current) {
+          setTimeout(poll, interval)
+        }
       } catch (error) {
         onError?.(String(error))
         reject(error)
       }
     }
-    
+
     void poll()
   })
 }

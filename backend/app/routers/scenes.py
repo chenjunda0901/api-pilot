@@ -1,37 +1,77 @@
-from typing import Optional
-from fastapi import APIRouter, Depends
+import json
+import logging
+
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
-from fastapi import Query
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import raise_biz, ErrorCodes
 from app.database import get_db
 from app.middleware.auth import get_current_user, get_optional_user
-from app.models.user import User
+from app.models.api_definition import ApiDefinition
+from app.models.api_test_plan import ApiTestPlanStep
 from app.models.project import Project
-from app.models.test_report import TestReport
 from app.models.report_step import ReportStep
+from app.models.scene_dataset import SceneDataset
 from app.models.scene_step import SceneStep
+from app.models.test_case import TestCase
+from app.models.test_report import TestReport
+from app.models.test_scene import TestScene
+from app.models.user import User
 from app.schemas.scene import (
-    SceneCreate,
-    SceneUpdate,
     BatchCopyStepsRequest,
     BatchStepIdsRequest,
     BatchToggleStepsRequest,
+    SceneCreate,
+    SceneUpdate,
 )
-from app.services.scene_service import SceneService
-from app.services.permission_service import check_read_access, check_write_access, check_seed_mark_access
 from app.services.executor.assertion_engine import jsonpath_get
-from app.utils.response import success
+from app.services.permission_service import check_read_access, check_write_access, check_seed_mark_access
+from app.services.scene_service import SceneService
 from app.utils.json_helpers import safe_json_load
+from app.utils.response import success
 
 router = APIRouter(prefix="/projects/{project_id}/scenes", tags=["Test Scenes"])
+
+
+def _create_scene_step_data(step_data, scene_id: int, sort_order: int) -> dict:
+    node_type = step_data.node_type or step_data.step_type or "request"
+    label = step_data.label or step_data.name or f"Step {sort_order}"
+    assertions = step_data.assertions
+    if assertions is not None and not isinstance(assertions, str):
+        assertions = json.dumps(assertions, ensure_ascii=False)
+    return {
+        "scene_id": scene_id,
+        "sort_order": sort_order,
+        "node_id": step_data.node_id,
+        "node_type": node_type,
+        "label": label,
+        "api_id": step_data.api_id,
+        "test_case_id": step_data.test_case_id,
+        "enabled": 1 if step_data.enabled else 0,
+        "timeout": step_data.timeout,
+        "retry_count": step_data.retry_count,
+        "request_body": step_data.request_body,
+        "headers": step_data.headers,
+        "query_params": step_data.query_params,
+        "assertions": assertions,
+        "extract_vars": step_data.extract_vars,
+        "condition_expression": step_data.condition_expression,
+        "loop_count": step_data.loop_count,
+        "loop_variable": step_data.loop_variable,
+        "wait_duration": step_data.wait_duration,
+        "wait_mode": step_data.wait_mode or "fixed",
+        "wait_min": step_data.wait_min,
+        "wait_max": step_data.wait_max,
+        "parallel_group": step_data.parallel_group,
+    }
 
 
 @router.get("", summary="场景列表", description="获取项目下的测试场景列表")
 async def list_scenes(
     project_id: int,
-    keyword: Optional[str] = Query(None),
+    keyword: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     current_user: User | None = Depends(get_optional_user),
@@ -97,9 +137,6 @@ async def delete_scene(
     db: AsyncSession = Depends(get_db),
 ):
     # 检查是否有测试计划引用了该场景
-    from app.models.api_test_plan import ApiTestPlanStep
-    from sqlalchemy import func
-
     ref_count = (
         await db.scalar(
             select(func.count(ApiTestPlanStep.id)).where(
@@ -110,8 +147,6 @@ async def delete_scene(
         or 0
     )
     if ref_count > 0:
-        from app.core.exceptions import raise_biz, ErrorCodes
-
         raise_biz(ErrorCodes.CONFLICT, f"该场景被 {ref_count} 个测试计划引用，无法删除")
 
     s = SceneService(db)
@@ -171,25 +206,17 @@ async def mark_scene_as_seed(
     db: AsyncSession = Depends(get_db),
 ):
     if current_user.role != "admin":
-        from app.core.exceptions import raise_biz, ErrorCodes
-
         raise_biz(ErrorCodes.PROJECT_FORBIDDEN, "仅管理员可标记种子数据")
-    from sqlalchemy import select
-    from app.models.test_scene import TestScene
-    from app.models.project import Project
 
     result = await db.execute(
         select(TestScene).where(TestScene.id == scene_id, TestScene.project_id == project_id).limit(1)
     )
     scene = result.scalar_one_or_none()
     if not scene:
-        from app.core.exceptions import raise_biz, ErrorCodes
-
         raise_biz(ErrorCodes.NOT_FOUND, "场景不存在")
     # 种子标记仅对全局种子项目（global_demo=1）有效
     project = await db.get(Project, scene.project_id)
     if not project or project.global_demo != 1:
-        from app.core.exceptions import raise_biz, ErrorCodes
         raise_biz(ErrorCodes.PARAM_ERROR, "种子标记仅对全局种子项目生效")
     scene.is_seed = 1 if scene.is_seed == 0 else 0
     await db.flush()
@@ -225,7 +252,7 @@ async def update_schedule(
     scene_id: int,
     cron: str = Query(...),
     enabled: bool = Query(...),
-    env_id: Optional[int] = Query(None),
+    env_id: int | None = Query(None),
     current_user: User = Depends(get_current_user),
     _project: Project = Depends(check_write_access),
     db: AsyncSession = Depends(get_db),
@@ -264,8 +291,6 @@ async def get_step_last_extracted(
     db: AsyncSession = Depends(get_db),
 ):
     """获取指定步骤最近一次执行时提取的变量值（用于变量选择器预览）"""
-    from app.core.exceptions import raise_biz, ErrorCodes
-
     # 校验步骤存在
     step = await db.get(SceneStep, step_id)
     if not step or step.scene_id != scene_id:
@@ -332,9 +357,6 @@ async def batch_copy_steps(
     _project: Project = Depends(check_write_access),
 ):
     """批量复制步骤到指定场景"""
-    from app.services.scene_service import SceneService
-    from app.models.test_scene import TestScene
-
     # Validate target scene exists and belongs to project
     scene_result = await db.execute(
         select(TestScene).where(
@@ -345,8 +367,6 @@ async def batch_copy_steps(
     )
     target_scene = scene_result.scalar_one_or_none()
     if not target_scene:
-        from app.core.exceptions import raise_biz, ErrorCodes
-
         raise_biz(ErrorCodes.SCENE_NOT_FOUND, f"目标场景 {scene_id} 不存在或无权访问")
 
     async with db.begin():
@@ -371,8 +391,6 @@ async def batch_delete_steps(
     _project: Project = Depends(check_write_access),
 ):
     """批量删除场景步骤"""
-    from app.services.scene_service import SceneService
-
     async with db.begin():
         service = SceneService(db)
         result = await service.batch_delete_steps(
@@ -395,8 +413,6 @@ async def batch_toggle_steps(
     _project: Project = Depends(check_write_access),
 ):
     """批量启用/禁用场景步骤"""
-    from app.services.scene_service import SceneService
-
     service = SceneService(db)
     result = await service.batch_toggle_steps(
         scene_id, req.step_ids, req.enabled, current_user.id, project_id
@@ -408,29 +424,29 @@ class SceneImportStepData(BaseModel):
     """场景导入中单条步骤的数据（字段与 SceneStep 模型对齐）"""
     node_id: str = Field(default="", max_length=50, description="节点 ID")
     node_type: str = Field(default="request", max_length=50, description="步骤类型")
-    step_type: Optional[str] = Field(default=None, description="步骤类型（兼容字段，优先使用 node_type）")
+    step_type: str | None = Field(default=None, description="步骤类型（兼容字段，优先使用 node_type）")
     label: str = Field(default="", max_length=200, description="步骤名称/标签")
-    name: Optional[str] = Field(default=None, description="步骤名称（兼容字段，回退到 label）")
-    api_id: Optional[int] = Field(default=None, description="关联接口 ID")
-    test_case_id: Optional[int] = Field(default=None, description="关联用例 ID")
+    name: str | None = Field(default=None, description="步骤名称（兼容字段，回退到 label）")
+    api_id: int | None = Field(default=None, description="关联接口 ID")
+    test_case_id: int | None = Field(default=None, description="关联用例 ID")
     sort_order: int = Field(default=0, description="排序")
     enabled: bool = Field(default=True, description="是否启用")
     timeout: int = Field(default=30000, description="超时(ms)")
     retry_count: int = Field(default=0, description="重试次数")
-    request_body: Optional[str] = Field(default=None, description="请求体")
-    headers: Optional[str] = Field(default=None, description="请求头(JSON)")
-    query_params: Optional[str] = Field(default=None, description="查询参数(JSON)")
-    assertions: Optional[str] = Field(default=None, description="断言列表(JSON)")
-    extract_vars: Optional[str] = Field(default=None, description="变量提取规则(JSON)")
-    condition_expression: Optional[str] = Field(default=None, description="条件表达式")
-    loop_count: Optional[int] = Field(default=None, description="循环次数")
-    loop_variable: Optional[str] = Field(default=None, description="循环变量")
-    wait_duration: Optional[int] = Field(default=None, description="等待时长(ms)")
-    wait_mode: Optional[str] = Field(default="fixed", description="等待模式")
-    wait_min: Optional[int] = Field(default=None, description="最小等待(ms)")
-    wait_max: Optional[int] = Field(default=None, description="最大等待(ms)")
+    request_body: str | None = Field(default=None, description="请求体")
+    headers: str | None = Field(default=None, description="请求头(JSON)")
+    query_params: str | None = Field(default=None, description="查询参数(JSON)")
+    assertions: str | None = Field(default=None, description="断言列表(JSON)")
+    extract_vars: str | None = Field(default=None, description="变量提取规则(JSON)")
+    condition_expression: str | None = Field(default=None, description="条件表达式")
+    loop_count: int | None = Field(default=None, description="循环次数")
+    loop_variable: str | None = Field(default=None, description="循环变量")
+    wait_duration: int | None = Field(default=None, description="等待时长(ms)")
+    wait_mode: str | None = Field(default="fixed", description="等待模式")
+    wait_min: int | None = Field(default=None, description="最小等待(ms)")
+    wait_max: int | None = Field(default=None, description="最大等待(ms)")
     parallel_group: int = Field(default=0, description="并行组")
-    config: Optional[dict] = Field(default=None, description="步骤配置（兼容字段，优先使用具体字段）")
+    config: dict | None = Field(default=None, description="步骤配置（兼容字段，优先使用具体字段）")
 
 
 class SceneImportData(BaseModel):
@@ -443,7 +459,7 @@ class SceneImportData(BaseModel):
 class SceneImportRequest(BaseModel):
     data: SceneImportData
     overwrite: bool = False
-    target_scene_id: Optional[int] = Field(default=None, description="覆盖导入时的目标场景 ID")
+    target_scene_id: int | None = Field(default=None, description="覆盖导入时的目标场景 ID")
 
 
 @router.post("/{scene_id}/export", summary="Export scene")
@@ -454,12 +470,8 @@ async def export_scene(
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
-    from app.services.scene_service import SceneService
-
     s = SceneService(db)
     scene = await s.get(scene_id)
-    from sqlalchemy import select
-    from app.models.scene_step import SceneStep
 
     steps_result = await db.execute(
         select(SceneStep)
@@ -528,16 +540,6 @@ async def import_scene(
     _project: Project = Depends(check_write_access),
     db: AsyncSession = Depends(get_db),
 ):
-    import json
-    import logging
-    from app.services.scene_service import SceneService
-    from app.models.test_scene import TestScene
-    from app.models.scene_step import SceneStep
-    from app.models.api_definition import ApiDefinition
-    from app.models.test_case import TestCase
-    from app.schemas.scene import SceneCreate
-    from app.core.exceptions import raise_biz, ErrorCodes
-
     _logger = logging.getLogger("api_pilot.routers.scenes")
 
     s = SceneService(db)
@@ -585,95 +587,30 @@ async def import_scene(
         # 使用嵌套事务保护：删除旧步骤 + 插入新步骤，若插入失败则回滚保留旧步骤
         async with db.begin_nested():
             # 删除旧步骤，稍后用导入数据重建
-            from sqlalchemy import delete
             await db.execute(
                 delete(SceneStep).where(SceneStep.scene_id == scene.id)
             )
             for i, step_data in enumerate(data.steps):
-                # 校验 api_id / test_case_id 是否存在于当前项目，不存在则跳过该步骤
                 if step_data.api_id is not None and step_data.api_id not in valid_api_ids:
                     _logger.warning("导入跳过步骤 %d: api_id=%d 在项目 %d 中不存在", i + 1, step_data.api_id, project_id)
                     continue
                 if step_data.test_case_id is not None and step_data.test_case_id not in valid_case_ids:
                     _logger.warning("导入跳过步骤 %d: test_case_id=%d 在项目 %d 中不存在", i + 1, step_data.test_case_id, project_id)
                     continue
-                # 兼容字段：step_type 回退到 node_type，name 回退到 label
-                node_type = step_data.node_type or step_data.step_type or "request"
-                label = step_data.label or step_data.name or f"Step {i + 1}"
-                # assertions 可能是 list（旧格式）或 str（JSON 字符串），统一转为字符串
-                assertions = step_data.assertions
-                if assertions is not None and not isinstance(assertions, str):
-                    assertions = json.dumps(assertions, ensure_ascii=False)
-                step = SceneStep(
-                    scene_id=scene.id,
-                    sort_order=i + 1,
-                    node_id=step_data.node_id,
-                    node_type=node_type,
-                    label=label,
-                    api_id=step_data.api_id,
-                    test_case_id=step_data.test_case_id,
-                    enabled=1 if step_data.enabled else 0,
-                    timeout=step_data.timeout,
-                    retry_count=step_data.retry_count,
-                    request_body=step_data.request_body,
-                    headers=step_data.headers,
-                    query_params=step_data.query_params,
-                    assertions=assertions,
-                    extract_vars=step_data.extract_vars,
-                    condition_expression=step_data.condition_expression,
-                    loop_count=step_data.loop_count,
-                    loop_variable=step_data.loop_variable,
-                    wait_duration=step_data.wait_duration,
-                    wait_mode=step_data.wait_mode or "fixed",
-                    wait_min=step_data.wait_min,
-                    wait_max=step_data.wait_max,
-                    parallel_group=step_data.parallel_group,
-                )
+                step = SceneStep(**_create_scene_step_data(step_data, scene.id, i + 1))
                 db.add(step)
     else:
         # 创建新场景
         scene_req = SceneCreate(name=data.name, description=data.description)
         scene = await s.create(project_id, scene_req)
         for i, step_data in enumerate(data.steps):
-            # 校验 api_id / test_case_id 是否存在于当前项目，不存在则跳过该步骤
             if step_data.api_id is not None and step_data.api_id not in valid_api_ids:
                 _logger.warning("导入跳过步骤 %d: api_id=%d 在项目 %d 中不存在", i + 1, step_data.api_id, project_id)
                 continue
             if step_data.test_case_id is not None and step_data.test_case_id not in valid_case_ids:
                 _logger.warning("导入跳过步骤 %d: test_case_id=%d 在项目 %d 中不存在", i + 1, step_data.test_case_id, project_id)
                 continue
-            # 兼容字段：step_type 回退到 node_type，name 回退到 label
-            node_type = step_data.node_type or step_data.step_type or "request"
-            label = step_data.label or step_data.name or f"Step {i + 1}"
-            # assertions 可能是 list（旧格式）或 str（JSON 字符串），统一转为字符串
-            assertions = step_data.assertions
-            if assertions is not None and not isinstance(assertions, str):
-                assertions = json.dumps(assertions, ensure_ascii=False)
-            step = SceneStep(
-                scene_id=scene.id,
-                sort_order=i + 1,
-                node_id=step_data.node_id,
-                node_type=node_type,
-                label=label,
-                api_id=step_data.api_id,
-                test_case_id=step_data.test_case_id,
-                enabled=1 if step_data.enabled else 0,
-                timeout=step_data.timeout,
-                retry_count=step_data.retry_count,
-                request_body=step_data.request_body,
-                headers=step_data.headers,
-                query_params=step_data.query_params,
-                assertions=assertions,
-                extract_vars=step_data.extract_vars,
-                condition_expression=step_data.condition_expression,
-                loop_count=step_data.loop_count,
-                loop_variable=step_data.loop_variable,
-                wait_duration=step_data.wait_duration,
-                wait_mode=step_data.wait_mode or "fixed",
-                wait_min=step_data.wait_min,
-                wait_max=step_data.wait_max,
-                parallel_group=step_data.parallel_group,
-            )
+            step = SceneStep(**_create_scene_step_data(step_data, scene.id, i + 1))
             db.add(step)
     await db.flush()
     return success(
@@ -706,9 +643,6 @@ async def list_datasets(
     _project: Project = Depends(check_read_access),
     db: AsyncSession = Depends(get_db),
 ):
-    from app.models.scene_dataset import SceneDataset
-    from sqlalchemy import func
-
     base_query = select(SceneDataset).where(SceneDataset.scene_id == scene_id)
     total = await db.scalar(
         select(func.count(SceneDataset.id)).where(SceneDataset.scene_id == scene_id)
@@ -719,7 +653,6 @@ async def list_datasets(
 
     result = await db.execute(base_query.order_by(SceneDataset.id))
     datasets = result.scalars().all()
-    import json
 
     items = [
         {
@@ -746,9 +679,6 @@ async def create_dataset(
     _project: Project = Depends(check_write_access),
     db: AsyncSession = Depends(get_db),
 ):
-    import json
-    from app.models.scene_dataset import SceneDataset
-
     ds = SceneDataset(
         scene_id=scene_id,
         name=req.name,
@@ -770,13 +700,8 @@ async def update_dataset(
     _project: Project = Depends(check_write_access),
     db: AsyncSession = Depends(get_db),
 ):
-    import json
-    from app.models.scene_dataset import SceneDataset
-
     ds = await db.get(SceneDataset, dataset_id)
     if not ds or ds.scene_id != scene_id:
-        from app.core.exceptions import raise_biz, ErrorCodes
-
         raise_biz(ErrorCodes.NOT_FOUND, "数据集不存在")
     if req.name is not None:
         ds.name = req.name
@@ -797,12 +722,8 @@ async def delete_dataset(
     _project: Project = Depends(check_write_access),
     db: AsyncSession = Depends(get_db),
 ):
-    from app.models.scene_dataset import SceneDataset
-
     ds = await db.get(SceneDataset, dataset_id)
     if not ds or ds.scene_id != scene_id:
-        from app.core.exceptions import raise_biz, ErrorCodes
-
         raise_biz(ErrorCodes.NOT_FOUND, "数据集不存在")
     await db.delete(ds)
     await db.flush()

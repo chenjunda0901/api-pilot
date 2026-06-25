@@ -9,7 +9,6 @@
 
 import json
 import logging
-from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 from app.services.format_parsers import HTTP_METHODS, _body_type
@@ -17,7 +16,7 @@ from app.services.format_parsers import HTTP_METHODS, _body_type
 logger = logging.getLogger("import.har")
 
 
-def _parse_har_headers(headers_list: list) -> List[Dict]:
+def _parse_har_headers(headers_list: list) -> list[dict]:
     """解析 HAR headers 数组，去重同名 header（保留第一个）。"""
     result = []
     seen_keys = set()
@@ -41,7 +40,7 @@ def _parse_har_headers(headers_list: list) -> List[Dict]:
     return result
 
 
-def _parse_har_query_string(qs_list: list) -> List[Dict]:
+def _parse_har_query_string(qs_list: list) -> list[dict]:
     """解析 HAR queryString 数组。"""
     result = []
     for q in qs_list:
@@ -55,7 +54,7 @@ def _parse_har_query_string(qs_list: list) -> List[Dict]:
     return result
 
 
-def _parse_har_post_data(post_data: Optional[dict]) -> Dict:
+def _parse_har_post_data(post_data: dict | None) -> dict:
     """解析 HAR postData 字段。"""
     if not post_data or not isinstance(post_data, dict):
         return {"type": "none", "content": ""}
@@ -87,7 +86,7 @@ def _parse_har_post_data(post_data: Optional[dict]) -> Dict:
     }
 
 
-def _extract_response_info(response: Optional[dict]) -> Dict:
+def _extract_response_info(response: dict | None) -> dict:
     """从 HAR response 中提取信息，用于生成测试用例的断言。"""
     if not response or not isinstance(response, dict):
         return {}
@@ -106,7 +105,7 @@ def _extract_response_info(response: Optional[dict]) -> Dict:
 
 def _generate_test_case_from_entry(
     entry: dict, api_name: str, idx: int
-) -> Optional[Dict]:
+) -> dict | None:
     """从 HAR entry 的 request/response 对生成测试用例。"""
     req = entry.get("request", {})
     resp = entry.get("response", {})
@@ -183,7 +182,7 @@ def _generate_test_case_from_entry(
 # =============================================================================
 
 
-def parse_har(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str], List[Dict]]:
+def parse_har(data: dict) -> tuple[list[dict], list[dict], str | None, list[dict]]:
     """解析 HAR 格式，返回 (categories, apis, project_name, test_cases)。
 
     增强特性:
@@ -208,9 +207,9 @@ def parse_har(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str], List[D
     test_cases = []
 
     # 按 host 分组
-    host_categories: Dict[str, str] = {}  # host → cat_ref
+    host_categories: dict[str, str] = {}  # host → cat_ref
     # 去重：method+path → api index
-    seen_apis: Dict[str, int] = {}
+    seen_apis: dict[str, int] = {}
 
     for i, entry in enumerate(entries):
         req = entry.get("request", {})

@@ -10,7 +10,7 @@ Swagger 2.0 与 OpenAPI 3.0 的关键差异：
 
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from app.services.format_parsers import (
     HTTP_METHODS,
@@ -78,7 +78,7 @@ def _resolve_refs_deep(obj: Any, spec: dict, depth: int = 0, max_depth: int = 15
 
 def _extract_swagger_parameters(
     operation: dict, path_params: list, spec: dict
-) -> Tuple[List[Dict], List[Dict], List[Dict], Optional[Dict]]:
+) -> tuple[list[dict], list[dict], list[dict], dict | None]:
     """提取 Swagger 2.0 参数。
 
     Swagger 2.0 的 body 参数在 parameters 数组中（in: body），
@@ -87,7 +87,7 @@ def _extract_swagger_parameters(
     Returns:
         (query_params, headers, path_params_out, body_param)
     """
-    merged: Dict[str, dict] = {}
+    merged: dict[str, dict] = {}
     for p in path_params + operation.get("parameters", []):
         p = _resolve_refs_deep(p, spec) if isinstance(p, dict) and "$ref" in p else p
         if not isinstance(p, dict):
@@ -151,8 +151,8 @@ def _extract_swagger_parameters(
 
 
 def _build_body_from_swagger(
-    body_param: Optional[Dict], operation: dict, spec: dict
-) -> Dict:
+    body_param: dict | None, operation: dict, spec: dict
+) -> dict:
     """从 Swagger 2.0 body 参数和 consumes 构建 body。"""
     if not body_param:
         return {"type": "none", "content": ""}
@@ -185,8 +185,8 @@ def _build_body_from_swagger(
 
 
 def _extract_swagger_responses(
-    responses: Optional[dict], spec: dict
-) -> Tuple[Optional[Dict], List[Dict]]:
+    responses: dict | None, spec: dict
+) -> tuple[dict | None, list[dict]]:
     """提取 Swagger 2.0 响应。
 
     Swagger 2.0 的响应 schema 在 response.schema 中，
@@ -239,7 +239,7 @@ def _extract_swagger_responses(
 # =============================================================================
 
 
-def parse_swagger2(spec: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def parse_swagger2(spec: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 Swagger 2.0 规范，返回 (categories, apis, project_name)。
 
     增强特性:
@@ -267,7 +267,7 @@ def parse_swagger2(spec: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
 
     categories = []
     apis = []
-    cat_ref_cache: Dict[str, str] = {}
+    cat_ref_cache: dict[str, str] = {}
     cat_idx = 0
 
     def get_cat_ref(tag_name: str) -> str:

@@ -18,7 +18,7 @@ import json
 import logging
 import re
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from urllib.parse import urlparse
 
 logger = logging.getLogger("import.format_parsers")
@@ -262,7 +262,7 @@ def _body_type(content_type: str) -> str:
     return _CONTENT_TYPE_MAP.get(content_type, "raw")
 
 
-def _generate_default_from_schema(schema: Optional[Dict]) -> Any:
+def _generate_default_from_schema(schema: dict | None) -> Any:
     """根据 JSON Schema 递归生成默认值。"""
     if not schema:
         return ""
@@ -283,7 +283,7 @@ def _generate_default_from_schema(schema: Optional[Dict]) -> Any:
     return ""
 
 
-def _extract_body(request_body: Optional[Dict]) -> Dict:
+def _extract_body(request_body: dict | None) -> dict:
     """从请求体定义中提取 body 内容。
 
     优先级: examples[0].value > example > data > jsonSchema生成 > 空
@@ -342,7 +342,7 @@ def _extract_body(request_body: Optional[Dict]) -> Dict:
 _VAR_PATTERN = re.compile(r'\{\{(.+?)\}\}')
 
 
-def extract_variable_references(text: str) -> List[str]:
+def extract_variable_references(text: str) -> list[str]:
     """提取文本中所有 {{var}} 引用。"""
     return _VAR_PATTERN.findall(text)
 
@@ -352,7 +352,7 @@ def extract_variable_references(text: str) -> List[str]:
 # =============================================================================
 
 
-def _parse_apifox_servers(servers: List[Dict]) -> List[Dict]:
+def _parse_apifox_servers(servers: list[dict]) -> list[dict]:
     result = []
     for s in servers:
         if s.get("id") == "default":
@@ -368,7 +368,7 @@ def _parse_apifox_servers(servers: List[Dict]) -> List[Dict]:
     return result
 
 
-def _parse_apifox_environments(env_list: List[Dict], servers: List[Dict]) -> List[Dict]:
+def _parse_apifox_environments(env_list: list[dict], servers: list[dict]) -> list[dict]:
     result = []
     for env in env_list:
         services = []
@@ -410,7 +410,7 @@ def _parse_apifox_environments(env_list: List[Dict], servers: List[Dict]) -> Lis
     return result
 
 
-def _parse_apifox_global_vars(gv_list: List[Dict]) -> List[Dict]:
+def _parse_apifox_global_vars(gv_list: list[dict]) -> list[dict]:
     """解析 Apifox 全局变量（外层是数组，内层才是 variables）。"""
     variables = []
     for gv_group in gv_list:
@@ -423,7 +423,7 @@ def _parse_apifox_global_vars(gv_list: List[Dict]) -> List[Dict]:
     return variables
 
 
-def _parse_apifox_common_params(cp: Optional[Dict]) -> Dict:
+def _parse_apifox_common_params(cp: dict | None) -> dict:
     """解析公共参数（Header/Query/Body）。"""
     result = {"headers": [], "query": [], "body": []}
     if not cp:
@@ -445,7 +445,7 @@ def _parse_apifox_common_params(cp: Optional[Dict]) -> Dict:
     return result
 
 
-def _parse_apifox_scripts(data: Dict) -> Tuple[str, str]:
+def _parse_apifox_scripts(data: dict) -> tuple[str, str]:
     """解析前置/后置脚本。"""
     pre = ""
     post = ""
@@ -458,7 +458,7 @@ def _parse_apifox_scripts(data: Dict) -> Tuple[str, str]:
     return pre, post
 
 
-def _parse_apifox_api(node: Dict, display_name: str, apifox_id: Any) -> Optional[Dict]:
+def _parse_apifox_api(node: dict, display_name: str, apifox_id: Any) -> dict | None:
     """完整解析单个 Apifox 接口，返回全字段 dict。
 
     增强: 对 parameters 字段做类型保护 (可能为 dict / list / None)，
@@ -632,7 +632,7 @@ def _parse_apifox_api(node: Dict, display_name: str, apifox_id: Any) -> Optional
         return None
 
 
-def _parse_apifox_request_collection(req_col: Optional[Dict]) -> List[Dict]:
+def _parse_apifox_request_collection(req_col: dict | None) -> list[dict]:
     """解析 Apifox requestCollection（HTTP 请求集）。
     
     requestCollection 中的 items 是直接的 HTTP 请求（非 API 定义），
@@ -711,7 +711,7 @@ def _parse_apifox_request_collection(req_col: Optional[Dict]) -> List[Dict]:
     return apis
 
 
-def _parse_apifox_testcase_apis(tc_col: Optional[Dict], imported_ids: Optional[set] = None) -> List[Dict]:
+def _parse_apifox_testcase_apis(tc_col: dict | None, imported_ids: set | None = None) -> list[dict]:
     """解析 Apifox apiTestCaseCollection（测试用例集），提取关联的 API 接口信息。
     
     从测试用例中提取关联的 API 接口信息。
@@ -798,9 +798,9 @@ def _parse_apifox_testcase_apis(tc_col: Optional[Dict], imported_ids: Optional[s
 
 
 def _walk_apifox_collection(
-    node: Dict, parent_id: Any, depth: int,
-    categories: List, apis: List,
-    test_cases: Optional[List] = None,
+    node: dict, parent_id: Any, depth: int,
+    categories: list, apis: list,
+    test_cases: list | None = None,
 ) -> None:
     """递归遍历 apiCollection 节点树。
 
@@ -897,7 +897,7 @@ def _walk_apifox_collection(
 # =============================================================================
 
 
-def _parse_postman_collection(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_postman_collection(data: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 Postman Collection v2.x。
 
     返回: (categories, apis, project_name)
@@ -994,7 +994,7 @@ def _parse_postman_collection(data: dict) -> Tuple[List[Dict], List[Dict], Optio
 # =============================================================================
 
 
-def _parse_openapi_spec(spec: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_openapi_spec(spec: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 OpenAPI/Swagger 规范。
 
     返回: (categories, apis, project_name)
@@ -1158,7 +1158,7 @@ def _parse_openapi_spec(spec: dict) -> Tuple[List[Dict], List[Dict], Optional[st
 # =============================================================================
 
 
-def _parse_apifox_test_cases(data: dict) -> List[Dict]:
+def _parse_apifox_test_cases(data: dict) -> list[dict]:
     """解析 Apifox 文件中的测试用例。
 
     Apifox 测试用例结构:
@@ -1183,7 +1183,7 @@ def _parse_apifox_test_cases(data: dict) -> List[Dict]:
     return test_cases
 
 
-def _walk_apifox_testcases(items: List[Dict], result: List[Dict], parent_name: str = "") -> None:
+def _walk_apifox_testcases(items: list[dict], result: list[dict], parent_name: str = "") -> None:
     """递归遍历 Apifox 测试用例树。
 
     支持三种格式:
@@ -1309,7 +1309,7 @@ def _walk_apifox_testcases(items: List[Dict], result: List[Dict], parent_name: s
 # =============================================================================
 
 
-def _parse_yapi(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_yapi(data: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 YAPI 导出的 JSON 格式。
 
     YAPI 典型结构:
@@ -1372,7 +1372,7 @@ def _parse_yapi(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
     return categories, apis, project_name
 
 
-def _parse_yapi_item(item: dict, category_ref: Optional[str]) -> Optional[Dict]:
+def _parse_yapi_item(item: dict, category_ref: str | None) -> dict | None:
     """解析 YAPI 单个接口项"""
     if not isinstance(item, dict):
         return None
@@ -1445,7 +1445,7 @@ def _parse_yapi_item(item: dict, category_ref: Optional[str]) -> Optional[Dict]:
 # =============================================================================
 
 
-def _parse_eolink(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_eolink(data: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 Eolink 导出的 JSON 格式。
 
     Eolink 典型结构:
@@ -1490,7 +1490,7 @@ def _parse_eolink(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
     return categories, apis, project_name
 
 
-def _parse_eolink_item(item: dict, category_ref: Optional[str]) -> Optional[Dict]:
+def _parse_eolink_item(item: dict, category_ref: str | None) -> dict | None:
     """解析 Eolink 单个接口项"""
     if not isinstance(item, dict):
         return None
@@ -1557,7 +1557,7 @@ def _parse_eolink_item(item: dict, category_ref: Optional[str]) -> Optional[Dict
 # =============================================================================
 
 
-def _parse_apipost(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_apipost(data: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 Apipost 导出的 JSON 格式。
 
     Apipost 典型结构:
@@ -1592,7 +1592,7 @@ def _parse_apipost(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
     return categories, apis, project_name
 
 
-def _parse_apipost_item(item: dict, category_ref: Optional[str]) -> Optional[Dict]:
+def _parse_apipost_item(item: dict, category_ref: str | None) -> dict | None:
     """解析 Apipost 单个接口项"""
     if not isinstance(item, dict):
         return None
@@ -1660,7 +1660,7 @@ def _parse_apipost_item(item: dict, category_ref: Optional[str]) -> Optional[Dic
 # =============================================================================
 
 
-def _parse_bruno(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_bruno(data: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 Bruno 导出的 JSON 格式。
 
     Bruno 典型结构:
@@ -1686,7 +1686,7 @@ def _parse_bruno(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
     return categories, apis, project_name
 
 
-def _parse_bruno_item(item: dict) -> Optional[Dict]:
+def _parse_bruno_item(item: dict) -> dict | None:
     """解析 Bruno 单个请求项"""
     if not isinstance(item, dict):
         return None
@@ -1753,7 +1753,7 @@ def _parse_bruno_item(item: dict) -> Optional[Dict]:
 # =============================================================================
 
 
-def _parse_har(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_har(data: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析 HAR (HTTP Archive) 格式。
 
     HAR 是浏览器 DevTools 导出的标准格式，结构:
@@ -1797,7 +1797,6 @@ def _parse_har(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
             parsed = None
         path = parsed.path if parsed else "/"
         host = parsed.hostname if parsed else "unknown"
-        scheme = parsed.scheme if parsed else "https"
 
         # Query params
         params = []
@@ -1841,7 +1840,6 @@ def _parse_har(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
                     "content": text,
                 }
 
-        category_name = f"{scheme}://{host}"
         cat_ref = f"cat_{host}" if host else None
 
         api = {
@@ -1892,7 +1890,7 @@ def _parse_har(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
 # =============================================================================
 
 
-def _parse_curl(text: str) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_curl(text: str) -> tuple[list[dict], list[dict], str | None]:
     """解析 cURL 命令字符串为 API 定义。
 
     支持:
@@ -2046,7 +2044,7 @@ def _parse_curl(text: str) -> Tuple[List[Dict], List[Dict], Optional[str]]:
 # =============================================================================
 
 
-def _parse_general_json(data: dict) -> Tuple[List[Dict], List[Dict], Optional[str]]:
+def _parse_general_json(data: dict) -> tuple[list[dict], list[dict], str | None]:
     """解析通用 JSON 格式。
 
     支持的格式:
@@ -2079,7 +2077,7 @@ def _parse_general_json(data: dict) -> Tuple[List[Dict], List[Dict], Optional[st
     return categories, apis, project_name
 
 
-def _parse_general_json_item(item: dict) -> Optional[Dict]:
+def _parse_general_json_item(item: dict) -> dict | None:
     """解析通用 JSON 单个接口项"""
     if not isinstance(item, dict):
         return None
@@ -2168,5 +2166,3 @@ def _parse_general_json_item(item: dict) -> Optional[Dict]:
         "status": "developing",
         "settings": {},
     }
-
-

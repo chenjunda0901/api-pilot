@@ -1,6 +1,5 @@
 """出站 Webhook Pydantic 模型。"""
 
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 
@@ -10,7 +9,7 @@ class WebhookBase(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=200)
     url: str = Field(..., min_length=1, max_length=500)
-    secret: Optional[str] = Field(default=None, max_length=255, description="HMAC 签名密钥")
+    secret: str | None = Field(default=None, max_length=255, description="HMAC 签名密钥")
     channel: str = Field(default="custom", description="渠道: feishu / dingtalk / wechat / slack / email / custom")
     events: list[str] = Field(default_factory=list, description="订阅事件列表，如 test_plan.failed")
     template: str = Field(default="", description="Jinja2 模板（可选）")
@@ -32,13 +31,13 @@ class WebhookCreate(WebhookBase):
 class WebhookUpdate(BaseModel):
     """更新 Webhook 请求。"""
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    url: Optional[str] = Field(default=None, min_length=1, max_length=500)
-    secret: Optional[str] = Field(default=None, max_length=255)
-    channel: Optional[str] = None
-    events: Optional[list[str]] = None
-    template: Optional[str] = None
-    enabled: Optional[bool] = None
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    url: str | None = Field(default=None, min_length=1, max_length=500)
+    secret: str | None = Field(default=None, max_length=255)
+    channel: str | None = None
+    events: list[str] | None = None
+    template: str | None = None
+    enabled: bool | None = None
 
 
 class WebhookOut(WebhookBase):
@@ -46,9 +45,9 @@ class WebhookOut(WebhookBase):
 
     id: int
     project_id: int
-    secret_masked: Optional[str] = Field(default=None, description="脱敏后的 secret")
-    created_by: Optional[int] = None
-    created_at: Optional[datetime] = None
+    secret_masked: str | None = Field(default=None, description="脱敏后的 secret")
+    created_by: int | None = None
+    created_at: datetime | None = None
 
 
 class WebhookTestRequest(BaseModel):
@@ -67,6 +66,6 @@ class WebhookDeliveryOut(BaseModel):
     event: str
     status: str
     retry_count: int
-    sent_at: Optional[datetime] = None
-    error_message: Optional[str] = None
-    created_at: Optional[datetime] = None
+    sent_at: datetime | None = None
+    error_message: str | None = None
+    created_at: datetime | None = None

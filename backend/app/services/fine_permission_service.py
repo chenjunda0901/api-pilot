@@ -2,9 +2,9 @@
 
 提供资源级操作权限的检查和管理。
 """
+
 import json
 import logging
-from typing import Dict
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,7 +25,7 @@ class FineGrainedPermissionService:
     """
 
     # 默认权限配置（基于角色的权限模板）
-    ROLE_PERMISSIONS: Dict[str, Dict[str, bool]] = {
+    ROLE_PERMISSIONS: dict[str, dict[str, bool]] = {
         "viewer": {
             "can_view": True,
             "can_export": False,
@@ -69,7 +69,7 @@ class FineGrainedPermissionService:
     }
 
     # 资源类型到权限的映射
-    RESOURCE_PERMISSIONS: Dict[str, str] = {
+    RESOURCE_PERMISSIONS: dict[str, str] = {
         # 接口管理
         "api": "can_delete",  # 删除接口
         "api_export": "can_export",  # 导出接口
@@ -94,7 +94,9 @@ class FineGrainedPermissionService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_member_permissions(self, project_id: int, user_id: int) -> Dict[str, bool]:
+    async def get_member_permissions(
+        self, project_id: int, user_id: int
+    ) -> dict[str, bool]:
         """获取用户在项目中的权限
 
         Args:
@@ -119,12 +121,25 @@ class FineGrainedPermissionService:
         # 基于角色获取默认权限
         permissions = self.ROLE_PERMISSIONS.get(member.role, {}).copy()
 
-        # 合并自定义权限（如果存在）
+        # 合并自定义权限（如果存在），严格校验只允许更新已知权限 key
         if member.permissions:
             try:
                 custom_perms = json.loads(member.permissions)
                 if isinstance(custom_perms, dict):
-                    permissions.update(custom_perms)
+                    allowed_keys = set(
+                        self.ROLE_PERMISSIONS.get(member.role, {}).keys()
+                    )
+                    filtered = {
+                        k: v
+                        for k, v in custom_perms.items()
+                        if k in allowed_keys and isinstance(v, bool)
+                    }
+                    permissions.update(filtered)
+                    if set(custom_perms.keys()) - set(filtered.keys()):
+                        logger.warning(
+                            "过滤了 %d 个无效自定义权限（不在模板中或非布尔值）",
+                            len(set(custom_perms.keys()) - set(filtered.keys())),
+                        )
             except (json.JSONDecodeError, TypeError) as e:
                 logger.warning("解析自定义权限失败: %s: %s", type(e).__name__, e)
 
@@ -148,6 +163,7 @@ class FineGrainedPermissionService:
         """
         # 超级管理员拥有所有权限
         from app.models.user import User
+
         user_result = await self.db.execute(select(User).where(User.id == user_id))
         user = user_result.scalar_one_or_none()
         if user and user.role == "admin":
@@ -155,7 +171,10 @@ class FineGrainedPermissionService:
 
         # 项目创建者拥有所有权限
         from app.models.project import Project
-        project_result = await self.db.execute(select(Project).where(Project.id == project_id))
+
+        project_result = await self.db.execute(
+            select(Project).where(Project.id == project_id)
+        )
         project = project_result.scalar_one_or_none()
         if project and project.created_by == user_id:
             return True
@@ -224,11 +243,13 @@ class FineGrainedPermissionService:
         Raises:
             BizError: 无权限时抛出
         """
-        has_perm = await self.check_resource_permission(project_id, user_id, resource_type)
+        has_perm = await self.check_resource_permission(
+            project_id, user_id, resource_type
+        )
         if not has_perm:
             raise_biz(ErrorCodes.PROJECT_FORBIDDEN, f"无 {resource_type} 操作权限")
 
-    def get_permission_template(self, role: str) -> Dict[str, bool]:
+    def get_permission_template(self, role: str) -> dict[str, bool]:
         """获取角色的权限模板
 
         Args:
@@ -239,7 +260,7 @@ class FineGrainedPermissionService:
         """
         return self.ROLE_PERMISSIONS.get(role, {}).copy()
 
-    def get_all_permissions(self) -> Dict[str, Dict[str, bool]]:
+    def get_all_permissions(self) -> dict[str, dict[str, bool]]:
         """获取所有角色的权限配置
 
         Returns:

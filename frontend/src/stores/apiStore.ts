@@ -2,8 +2,11 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
 import { getCategoryTree } from "@/api/categories"
-import { listApis, listApiCases } from "@/api/apis"
+import { listApis, listApiCases, type ApiListItem } from "@/api/apis"
+import { type CategoryNode } from "@/types/api"
 import { logger } from "@/utils/logger"
+
+export type { CategoryNode } from "@/types/api"
 
 const CACHE_TTL = 30_000 // 缓存有效期 30 秒
 const EXPANDED_STORAGE_KEY = "api_pilot_expanded_categories"
@@ -34,27 +37,12 @@ function saveExpandedCategories(projectId: number | null, ids: number[]) {
   }
 }
 
-export interface CategoryNode {
-  id: number
-  name: string
-  parent_id: number | null
-  sort_order: number
-  api_count: number
-  children: CategoryNode[]
-}
-
-export interface ApiItem {
-  id: number
-  name: string
-  method: string
-  path: string
-  category_id: number | null
+export interface ApiItem extends ApiListItem {
   description: string
   headers: unknown[]
   params: unknown[]
   body: unknown
   auth_type: string
-  case_count?: number
 }
 
 export interface CaseItem {

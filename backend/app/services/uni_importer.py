@@ -22,7 +22,7 @@ import json
 import logging
 import time
 import yaml
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 from sqlalchemy import select
@@ -137,8 +137,8 @@ class UniImporter:
             "created_test_cases": 0, "updated_test_cases": 0, "skipped_test_cases": 0,
             "errors": [],
         }
-        self._api_id_map: Dict[str, int] = {}  # apifox_id → db_id
-        self._structured_errors: List[Dict] = []  # 结构化错误列表
+        self._api_id_map: dict[str, int] = {}  # apifox_id → db_id
+        self._structured_errors: list[dict] = []  # 结构化错误列表
 
     # ====================================
     #  预览
@@ -379,8 +379,8 @@ class UniImporter:
         return categories, apis, project_name, environments, global_vars, global_headers, test_cases
 
     async def _mark_exists(self, project_id: int,
-                           categories: List[Dict], apis: List[Dict],
-                           environments: List[Dict]) -> None:
+                           categories: list[dict], apis: list[dict],
+                           environments: list[dict]) -> None:
         """查库标记各条目是否已存在。
         
         增强检测策略：
@@ -487,10 +487,10 @@ class UniImporter:
             )
             env["exists"] = result.scalar_one_or_none() is not None
 
-    def _build_preview_tree(self, categories: List[Dict], apis: List[Dict]) -> List[Dict]:
+    def _build_preview_tree(self, categories: list[dict], apis: list[dict]) -> list[dict]:
         """构建嵌套预览树。"""
         tree = []
-        cat_map: Dict[str, Dict] = {}
+        cat_map: dict[str, dict] = {}
         for cat in categories:
             node = {"name": cat["name"], "apifox_id": cat["apifox_id"], "exists": cat.get("exists", False), "children": []}
             cat_map[f"cat_{cat['apifox_id']}"] = node
@@ -522,7 +522,7 @@ class UniImporter:
     #  导入执行
     # ====================================
 
-    async def execute(self, project_id: int, content: str, options: Optional[Dict] = None) -> dict:
+    async def execute(self, project_id: int, content: str, options: dict | None = None) -> dict:
         """执行导入（全事务保护）。"""
         options = options or {}
         opts = {
@@ -614,7 +614,7 @@ class UniImporter:
             result["structured_errors"] = self._structured_errors
         return result
 
-    async def _import_global_vars(self, project_id: int, variables: List[Dict]):
+    async def _import_global_vars(self, project_id: int, variables: list[dict]):
         result = await self.db.execute(select(Project).where(Project.id == project_id))
         project = result.scalar_one_or_none()
         if not project:
@@ -628,7 +628,7 @@ class UniImporter:
                 existing_keys.add(v["key"])
         project.global_variables = json.dumps(existing_vars, ensure_ascii=False)
 
-    async def _import_global_headers(self, project_id: int, gh: Dict):
+    async def _import_global_headers(self, project_id: int, gh: dict):
         result = await self.db.execute(select(Project).where(Project.id == project_id))
         project = result.scalar_one_or_none()
         if not project:
@@ -644,7 +644,7 @@ class UniImporter:
         existing_params["headers"] = existing_headers
         project.global_params = json.dumps(existing_params, ensure_ascii=False)
 
-    async def _import_environments(self, project_id: int, environments: List[Dict]):
+    async def _import_environments(self, project_id: int, environments: list[dict]):
         for env in environments:
             result = await self.db.execute(
                 select(Environment).where(
@@ -689,13 +689,13 @@ class UniImporter:
                 self._stats["created_environments"] += 1
 
     async def _import_categories_and_apis(
-        self, project_id: int, categories: List[Dict], apis: List[Dict], opts: Dict
-    ) -> Dict[str, int]:
+        self, project_id: int, categories: list[dict], apis: list[dict], opts: dict
+    ) -> dict[str, int]:
         """导入接口目录和接口，返回 cat_ref → db_id 映射。"""
         conflict_strategy = opts.get("conflict_strategy", "update")
         target_cat_id = opts.get("target_category_id")
 
-        cat_id_map: Dict[str, int] = {}
+        cat_id_map: dict[str, int] = {}
 
         # 使用增强的存在检测结果
         for cat in categories:
@@ -724,7 +724,7 @@ class UniImporter:
 
             # 使用增强的存在检测结果 - 优先使用 existing_id
             existing_id = api.get("existing_id")
-            match_type = api.get("match_type", "new")
+            api.get("match_type", "new")
 
             if existing_id:
                 # 找到已存在的 API
@@ -762,7 +762,7 @@ class UniImporter:
 
         return cat_id_map
 
-    def _update_existing_api(self, existing: ApiDefinition, api: Dict):
+    def _update_existing_api(self, existing: ApiDefinition, api: dict):
         existing.name = api["name"]
         existing.headers = json.dumps(api["headers"], ensure_ascii=False)
         existing.params = json.dumps(api["params"], ensure_ascii=False)
@@ -778,7 +778,7 @@ class UniImporter:
         existing.settings = json.dumps(api.get("settings", {}), ensure_ascii=False)
         existing.category_id = existing.category_id
 
-    async def _create_api(self, project_id: int, api: Dict, cat_id: int):
+    async def _create_api(self, project_id: int, api: dict, cat_id: int):
         try:
             new_api = ApiDefinition(
                 project_id=project_id,
@@ -814,7 +814,7 @@ class UniImporter:
             logger.warning(f"创建接口失败 [{api.get('method')} {api.get('path')}]: {e}")
             return None
 
-    async def _import_test_cases(self, project_id: int, test_cases: List[Dict], cat_id_map: Dict[str, int]):
+    async def _import_test_cases(self, project_id: int, test_cases: list[dict], cat_id_map: dict[str, int]):
         """导入测试用例。需要先匹配 api_id。"""
         for tc in test_cases:
             try:

@@ -1,7 +1,6 @@
 """订阅路由。"""
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
@@ -50,7 +49,7 @@ def _to_dict(s: Subscription) -> dict:
 
 @router.get("", summary="当前用户的订阅列表")
 async def list_subscriptions(
-    resource_type: Optional[str] = Query(None),
+    resource_type: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),

@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -8,24 +7,24 @@ class StepCreate(BaseModel):
     label: str = Field(default="")
     position_x: float = Field(default=0)
     position_y: float = Field(default=0)
-    api_id: Optional[int] = None
-    test_case_id: Optional[int] = None
+    api_id: int | None = None
+    test_case_id: int | None = None
     sort_order: int = Field(default=0)
     enabled: bool = Field(default=True)
     timeout: int = Field(default=30000)
     retry_count: int = Field(default=0)
-    request_body: Optional[str] = None
-    headers: Optional[str] = None
-    query_params: Optional[str] = None
-    assertions: Optional[str] = None
-    extract_vars: Optional[str] = None
-    condition_expression: Optional[str] = None
-    loop_count: Optional[int] = None
-    loop_variable: Optional[str] = None
-    wait_duration: Optional[int] = None
-    wait_mode: Optional[str] = None
-    wait_min: Optional[int] = None
-    wait_max: Optional[int] = None
+    request_body: str | None = None
+    headers: str | None = None
+    query_params: str | None = None
+    assertions: str | None = None
+    extract_vars: str | None = None
+    condition_expression: str | None = None
+    loop_count: int | None = None
+    loop_variable: str | None = None
+    wait_duration: int | None = None
+    wait_mode: str | None = None
+    wait_min: int | None = None
+    wait_max: int | None = None
     parallel_group: int = Field(
         default=0, description="并行组ID：相同组号的步骤并发执行，0=顺序执行"
     )
@@ -37,21 +36,21 @@ class StepUpdate(BaseModel):
     label: str = Field(default="")
     position_x: float = Field(default=0)
     position_y: float = Field(default=0)
-    api_id: Optional[int] = None
-    test_case_id: Optional[int] = None
+    api_id: int | None = None
+    test_case_id: int | None = None
     sort_order: int = Field(default=0)
     enabled: bool = Field(default=True)
     timeout: int = Field(default=30000)
     retry_count: int = Field(default=0)
-    request_body: Optional[str] = None
-    headers: Optional[str] = None
-    query_params: Optional[str] = None
-    assertions: Optional[str] = None
-    extract_vars: Optional[str] = None
-    condition_expression: Optional[str] = None
-    loop_count: Optional[int] = None
-    loop_variable: Optional[str] = None
-    wait_duration: Optional[int] = None
-    wait_mode: Optional[str] = None
-    wait_min: Optional[int] = None
-    wait_max: Optional[int] = None
+    request_body: str | None = None
+    headers: str | None = None
+    query_params: str | None = None
+    assertions: str | None = None
+    extract_vars: str | None = None
+    condition_expression: str | None = None
+    loop_count: int | None = None
+    loop_variable: str | None = None
+    wait_duration: int | None = None
+    wait_mode: str | None = None
+    wait_min: int | None = None
+    wait_max: int | None = None

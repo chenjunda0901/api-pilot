@@ -2,8 +2,7 @@ import logging
 import random
 import re
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import datetime, timedelta, UTC
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -39,18 +38,18 @@ def is_white_list(path: str) -> bool:
 
 
 def create_access_token(user_id: int) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {"sub": str(user_id), "exp": expire, "type": "access", "jti": uuid.uuid4().hex}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 
 def create_refresh_token(user_id: int) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     payload = {"sub": str(user_id), "exp": expire, "type": "refresh", "jti": uuid.uuid4().hex}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 
-def decode_token(token: str) -> Optional[dict]:
+def decode_token(token: str) -> dict | None:
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
     except JWTError as exc:
@@ -59,7 +58,7 @@ def decode_token(token: str) -> Optional[dict]:
 
 
 async def get_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
     if credentials is None:
@@ -81,16 +80,18 @@ async def get_current_user(
     # 概率触发过期 token 清理（约每 100 次验证触发一次）
     if random.random() < 0.01:
         try:
-            await cleanup_expired_tokens(db)
+            from app.database import async_session_factory
+            async with async_session_factory() as cleanup_session:
+                await cleanup_expired_tokens(cleanup_session)
         except Exception:
             pass  # 清理失败不影响认证
     return user
 
 
 async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
-) -> Optional[User]:
+) -> User | None:
     """与 get_current_user 类似，但未提供令牌时返回 None 而不是 401"""
     if credentials is None:
         return None
@@ -134,7 +135,7 @@ async def cleanup_expired_tokens(db: AsyncSession) -> None:
     JWT token 过期后其黑名单记录不再有实际意义，保留 7 天后清理。
     """
     from sqlalchemy import delete as sa_delete
-    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+    cutoff = datetime.now(UTC) - timedelta(days=7)
     try:
         await db.execute(sa_delete(RevokedToken).where(RevokedToken.revoked_at < cutoff))
         await db.commit()

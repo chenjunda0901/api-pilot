@@ -1,7 +1,6 @@
 """断言库路由。"""
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
@@ -47,8 +46,8 @@ def _to_dict(a: ApiAssertion) -> dict:
 
 @router.get("", summary="断言列表")
 async def list_assertions(
-    owner_type: Optional[str] = Query(None, description="api / case"),
-    owner_id: Optional[int] = Query(None, ge=1),
+    owner_type: str | None = Query(None, description="api / case"),
+    owner_id: int | None = Query(None, ge=1),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     current_user: User | None = Depends(get_optional_user),

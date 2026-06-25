@@ -1,4 +1,3 @@
-from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,8 +21,8 @@ class TagCreate(BaseModel):
 
 
 class TagUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=50)
-    color: Optional[str] = Field(None, max_length=20)
+    name: str | None = Field(None, min_length=1, max_length=50)
+    color: str | None = Field(None, max_length=20)
 
 
 class TagApisRequest(BaseModel):

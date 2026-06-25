@@ -142,27 +142,29 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApiStore } from '../stores/apiStore'
-import { useTabsStore } from '../stores/tabsStore'
-import { useEnvStore } from '../stores/envStore'
+import { useApiStore } from '@/stores/apiStore'
+import { useTabsStore } from '@/stores/tabsStore'
+import { useEnvStore } from '@/stores/envStore'
 import { Plus, Download, FolderOpen, FolderPlus, Trash2, FolderInput, Folder, Check, X, ChevronRight } from 'lucide-vue-next'
-import { useEventBus } from '../composables/useEventBus'
-import { useVirtualScroll } from '../composables/useVirtualScroll'
-import { EVENTS } from '../constants/events'
-import { useRequireLogin } from '../composables/useRequireLogin'
-import { MSG } from '../constants/messages'
-import { msgSuccess, msgError } from '../utils/message'
+import { useEventBus } from '@/composables/useEventBus'
+import { useVirtualScroll } from '@/composables/useVirtualScroll'
+import { EVENTS } from '@/constants/events'
+import { useRequireLogin } from '@/composables/useRequireLogin'
+import { useI18n } from 'vue-i18n'
+import { MSG } from '@/constants/messages'
+import { msgSuccess, msgError } from '@/utils/message'
 import { logger, isSilentAuthError } from '@/utils/logger'
 import { ElMessage } from 'element-plus'
-import type { ApiCategory, ApiDefinition } from '../types'
+import type { ApiCategory, ApiDefinition } from '@/types'
 
-import request from '../api/request'
+import request from '@/api/request'
 import CategoryNode from './CategoryNode.vue'
 import ApiNode from './ApiNode.vue'
 import EmptyState from './EmptyState.vue'
 import ImportWizard from './ImportWizard.vue'
 
 const { requireLogin } = useRequireLogin()
+const { t } = useI18n()
 const props = defineProps<{ projectId: number }>()
 const apiStore = useApiStore()
 const keyword = ref('')
@@ -206,19 +208,19 @@ async function batchDelete() {
   try {
     const { ElMessageBox } = await import('element-plus')
     await ElMessageBox.confirm(
-      `确定删除选中的 ${ids.length} 个接口？删除后可在回收站恢复。`,
-      '批量删除确认',
+      t('apis.sidebarBatchDeleteConfirm', { count: ids.length }),
+      t('apis.sidebarBatchDeleteTitle'),
       { type: 'warning', confirmButtonText: '确认删除', cancelButtonText: '取消' }
     )
     const loadingMsg = ElMessage({
-      message: `正在删除 ${ids.length} 个接口...`,
+      message: t('apis.sidebarBatchDeleteCount', { count: ids.length }),
       type: 'info',
       duration: 0,
     })
     try {
       await Promise.all(ids.map(id => request.delete(`/projects/${props.projectId}/apis/${id}`)))
       loadingMsg.close()
-      msgSuccess(`已删除 ${ids.length} 个接口`)
+      msgSuccess(t('apis.sidebarBatchDeleteDone', { count: ids.length }))
       clearSelection()
       // 关闭被删除接口的标签页
       ids.forEach(id => tabsStore.removeTab(`api-${id}`))
@@ -226,7 +228,7 @@ async function batchDelete() {
       await apiStore.fetchCategories(props.projectId)
     } catch (err) {
       loadingMsg.close()
-      msgError('批量删除失败')
+      msgError(t('apis.sidebarBatchDeleteFailed'))
       logger.error('[SidebarTree] batch delete failed:', err)
     }
   } catch {

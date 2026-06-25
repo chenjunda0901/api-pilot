@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -40,8 +39,8 @@ def _to_dict(n: Notification) -> dict:
 async def list_notifications_v2(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    read: Optional[bool] = Query(None, description="true=已读 false=未读"),
-    type: Optional[str] = Query(None, description="按类型过滤"),
+    read: bool | None = Query(None, description="true=已读 false=未读"),
+    type: str | None = Query(None, description="按类型过滤"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

@@ -26,10 +26,7 @@ export const useTabsStore = defineStore("tabs", () => {
   const activeTab = ref(initialTabs.some(t => t.key === loadPersisted<string>(STORAGE_KEYS.ACTIVE, "")) ? loadPersisted<string>(STORAGE_KEYS.ACTIVE, "") : "")
   const dirtyTabs = ref<Set<string>>(new Set())
 
-  /** 目录内待创建的临时接口占位 { categoryId -> { tempId, name, method } } */
-  const pendingNewApis = ref<Record<string, { tempId: string; name: string; method: string }>>({})
-
-  watch(pendingNewApis, () => { /* 触发响应式更新 */ }, { deep: true })
+  /* pendingNewApis 已迁移至 usePendingApiStore，此处不再维护重复状态 */
 
   watch(activeTab, (val) => {
     try { localStorage.setItem(STORAGE_KEYS.ACTIVE, val) } catch { /* localStorage unavailable */ }
@@ -55,11 +52,10 @@ export const useTabsStore = defineStore("tabs", () => {
     persistTabs()
   }
 
-  /** 关闭标签时同步清理目录内占位接口 */
+  /** 关闭标签时同步清理目录内占位接口（委托 pendingApiStore 管理） */
   function cleanupPendingApi(tab: TabItem) {
     if (tab.key === "api-new" && tab.categoryId) {
-      const { removePendingNewApi } = usePendingApiStore()
-      removePendingNewApi(tab.categoryId)
+      usePendingApiStore().removePendingNewApi(tab.categoryId)
     }
   }
 
@@ -157,35 +153,10 @@ export const useTabsStore = defineStore("tabs", () => {
     try { return localStorage.getItem(STORAGE_KEYS.CLEARED) === '1' } catch { return false }
   }
 
-  /** 在指定目录下添加待创建接口占位 */
-  function addPendingNewApi(categoryId: number | string, name = '新接口', method = 'GET') {
-    const key = String(categoryId)
-    const entry = { tempId: `pending-${Date.now()}`, name, method }
-    pendingNewApis.value = { ...pendingNewApis.value, [key]: entry }
-  }
-
-  /** 更新待创建接口的名称（同步标签页编辑） */
-  function updatePendingNewApiName(categoryId: number | string, name: string) {
-    const key = String(categoryId)
-    const existing = pendingNewApis.value[key]
-    if (existing) {
-      pendingNewApis.value = { ...pendingNewApis.value, [key]: { ...existing, name } }
-    }
-  }
-
-  /** 移除待创建接口占位（保存后或取消时） */
-  function removePendingNewApi(categoryId: number | string) {
-    const key = String(categoryId)
-    const next = { ...pendingNewApis.value }
-    delete next[key]
-    pendingNewApis.value = next
-  }
-
   function resetState() {
     tabs.value = []
     activeTab.value = ""
     dirtyTabs.value = new Set()
-    pendingNewApis.value = {}
     try {
       localStorage.removeItem(STORAGE_KEYS.TABS)
       localStorage.removeItem(STORAGE_KEYS.ACTIVE)
@@ -209,10 +180,6 @@ export const useTabsStore = defineStore("tabs", () => {
     isDirty,
     isCleared,
     updateTabLabel,
-    pendingNewApis,
-    addPendingNewApi,
-    updatePendingNewApiName,
-    removePendingNewApi,
     resetState,
   }
 })

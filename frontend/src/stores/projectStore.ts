@@ -3,12 +3,12 @@ import { ref, computed } from "vue"
 import { listProjects, createProject as createProjectApi, getProject, forkSeedProject } from "@/api/projects"
 import { logger } from "@/utils/logger"
 import { msgError, msgInfo, msgSuccess } from "@/utils/message"
-import type { Project, ApiResponse } from "../types"
-import { STORAGE_KEYS } from "../constants/events"
+import type { Project, ApiResponse } from "@/types"
+import { STORAGE_KEYS } from "@/constants/events"
 import { useApiStore } from "./apiStore"
 import { useEnvStore } from "./envStore"
 import { useTabsStore } from "./tabsStore"
-import { useReentrancyGuard } from "../composables/useReentrancyGuard"
+import { useReentrancyGuard } from "@/composables/useReentrancyGuard"
 import { useUserStore } from "./userStore"
 
 export const useProjectStore = defineStore("project", () => {
@@ -20,7 +20,7 @@ export const useProjectStore = defineStore("project", () => {
 
   /** 当前选中的项目对象（与 currentProjectId 联动） */
   const currentProject = computed<Project | null>(() => {
-    if (currentProjectId.value == null) return null
+    if (currentProjectId.value === null) return null
     return projects.value.find((p) => p.id === currentProjectId.value) ?? null
   })
 

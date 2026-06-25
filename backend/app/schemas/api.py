@@ -1,4 +1,4 @@
-from typing import Optional, Literal
+from typing import Literal
 from datetime import datetime
 import re
 from pydantic import BaseModel, Field, field_validator
@@ -11,7 +11,7 @@ class ApiCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     method: str = Field(default="GET")
     path: str = Field(default="/", max_length=2000)
-    category_id: Optional[int] = None
+    category_id: int | None = None
     description: str = Field(default="")
     description_md: str = Field(default="")
     headers: list = []
@@ -23,8 +23,8 @@ class ApiCreate(BaseModel):
     cookies: list = []
     auth: dict = {"type": "none"}
     settings: dict = {"follow_redirects": True, "verify_ssl": True, "timeout": 30}
-    response_examples: Optional[list] = None
-    response_schema: Optional[str] = None
+    response_examples: list | None = None
+    response_schema: str | None = None
     extract_vars: list = []
     is_starred: bool = Field(default=False, description="是否收藏")
     sort_order: int = Field(default=0, description="排序权重")
@@ -33,7 +33,7 @@ class ApiCreate(BaseModel):
         default="draft", description="API 状态: draft/published/deprecated"
     )
     version: str = Field(default="v1.0", description="版本号")
-    created_by: Optional[int] = Field(None, description="创建者用户 ID")
+    created_by: int | None = Field(None, description="创建者用户 ID")
 
     @field_validator("name")
     @classmethod
@@ -67,7 +67,7 @@ class ApiUpdate(BaseModel):
     name: str = Field(default="", max_length=200)
     method: str = Field(default="")
     path: str = Field(default="", max_length=2000)
-    category_id: Optional[int] = None
+    category_id: int | None = None
     description: str = Field(default="")
     description_md: str = Field(default="")
     headers: list = []
@@ -80,17 +80,17 @@ class ApiUpdate(BaseModel):
     auth: dict = {"type": "none"}
     settings: dict = {"follow_redirects": True, "verify_ssl": True, "timeout": 30}
     extract_vars: list = []
-    response_examples: Optional[list] = None
-    response_schema: Optional[str] = None
-    is_starred: Optional[bool] = Field(default=None, description="是否收藏")
-    sort_order: Optional[int] = Field(default=None, description="排序权重")
+    response_examples: list | None = None
+    response_schema: str | None = None
+    is_starred: bool | None = Field(default=None, description="是否收藏")
+    sort_order: int | None = Field(default=None, description="排序权重")
     tags: list[str] = Field(default=[], description="标签名称列表")
     status: ApiStatus = Field(
         default="draft", description="API 状态: draft/published/deprecated"
     )
     version: str = Field(default="v1.0", description="版本号")
-    created_by: Optional[int] = Field(None, description="创建者用户 ID")
-    updated_at: Optional[datetime] = Field(
+    created_by: int | None = Field(None, description="创建者用户 ID")
+    updated_at: datetime | None = Field(
         None, description="最后更新时间戳（乐观锁版本号）"
     )
 
@@ -124,17 +124,17 @@ class ApiUpdate(BaseModel):
 
 
 class ApiMove(BaseModel):
-    category_id: Optional[int] = None
+    category_id: int | None = None
 
 
 class BatchMoveRequest(BaseModel):
     api_ids: list[int] = Field(..., min_length=1, max_length=200)
-    target_category_id: Optional[int] = None
+    target_category_id: int | None = None
 
 
 class BatchCopyRequest(BaseModel):
     api_ids: list[int] = Field(..., min_length=1, max_length=200)
-    target_category_id: Optional[int] = None
+    target_category_id: int | None = None
 
 
 class ExtractVarRule(BaseModel):

@@ -1,7 +1,6 @@
 """API 文档发布模型 — 支持分享链接、密码保护、过期时间"""
 
 from datetime import datetime
-from typing import Optional
 from sqlalchemy import String, Text, Integer, DateTime, Boolean, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
@@ -28,13 +27,13 @@ class ApiDocument(Base):
         String(64), unique=True, nullable=False, index=True
     )
     # 密码保护（可选）
-    password_hash: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     # 过期时间（可选）
-    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     # 包含的接口目录(JSON)，为空表示全部接口
     include_categories: Mapped[str] = mapped_column(Text, default="[]")
     # 包含的环境 ID（可选，用于文档中的变量替换）
-    env_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    env_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # 是否启用
     is_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     # 浏览次数

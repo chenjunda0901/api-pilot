@@ -1,4 +1,4 @@
-from typing import Optional, Literal
+from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.schemas.step import StepCreate
@@ -11,8 +11,8 @@ OnError = Literal["stop", "continue"]
 class SceneCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     description: str = Field(default="")
-    category_id: Optional[int] = None
-    env_id: Optional[int] = None
+    category_id: int | None = None
+    env_id: int | None = None
     loop_count: int = Field(default=1, ge=1)
     thread_count: int = Field(default=1, ge=1, le=20)
     delay: int = Field(default=0)
@@ -22,7 +22,7 @@ class SceneCreate(BaseModel):
     retry_count: int = Field(default=0)
     global_cookie: int = Field(default=0)
     save_cookie_to_global: int = Field(default=0)
-    var_persist_target: Optional[str] = Field(default="environment")
+    var_persist_target: str | None = Field(default="environment")
     steps: list[StepCreate] = []
     edges: list[EdgeCreate] = []
 
@@ -30,8 +30,8 @@ class SceneCreate(BaseModel):
 class SceneUpdate(BaseModel):
     name: str = Field(default="", max_length=200)
     description: str = Field(default="")
-    category_id: Optional[int] = None
-    env_id: Optional[int] = None
+    category_id: int | None = None
+    env_id: int | None = None
     loop_count: int = Field(default=1, ge=1)
     thread_count: int = Field(default=1, ge=1, le=20)
     delay: int = Field(default=0)
@@ -41,7 +41,7 @@ class SceneUpdate(BaseModel):
     retry_count: int = Field(default=0)
     global_cookie: int = Field(default=0)
     save_cookie_to_global: int = Field(default=0)
-    var_persist_target: Optional[str] = Field(default="environment")
+    var_persist_target: str | None = Field(default="environment")
     steps: list[StepCreate] = []
     edges: list[EdgeCreate] = []
 

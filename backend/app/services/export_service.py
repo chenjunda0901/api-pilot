@@ -329,7 +329,7 @@ class ExportService:
 
         # 构建分类映射
         cat_map = {c.id: c.name for c in categories}
-        cat_ids = {c.id for c in categories}
+        {c.id for c in categories}
 
         # 路径参数正则
         path_param_re = re.compile(r'\{(\w+)\}')
