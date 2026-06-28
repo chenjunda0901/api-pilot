@@ -3,7 +3,22 @@
     <LoadingBar />
     <a href="#main-content" class="skip-link">跳到主要内容</a>
     <ErrorBoundary>
-      <router-view />
+      <Suspense>
+        <template #default>
+          <router-view v-slot="{ Component, route }">
+            <KeepAlive :include="keepAliveRoutes" :max="5">
+              <Transition :name="route.meta.transition || 'fade'" mode="out-in">
+                <component :is="Component" :key="route.path" />
+              </Transition>
+            </KeepAlive>
+          </router-view>
+        </template>
+        <template #fallback>
+          <div class="route-skeleton-wrapper">
+            <RouteSkeleton />
+          </div>
+        </template>
+      </Suspense>
     </ErrorBoundary>
     <CommandPalette :visible="showCommandPalette" @close="showCommandPalette = false" />
     <HotkeyHelp v-model:visible="showHotkeyHelp" />
@@ -20,6 +35,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary.vue'
 import LoadingBar from './components/LoadingBar.vue'
 import CommandPalette from './components/CommandPalette.vue'
 import HotkeyHelp from './components/common/HotkeyHelp.vue'
+import RouteSkeleton from '@/components/common/RouteSkeleton.vue'
 
 import { useGlobalShortcuts } from './composables/useShortcuts'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts'
@@ -30,6 +46,9 @@ const showCommandPalette = ref(false)
 const showHotkeyHelp = ref(false)
 const tabsStore = useTabsStore()
 const editorStore = useEditorStore()
+
+/** 高频访问路由列表（KeepAlive 缓存） */
+const keepAliveRoutes = ['Dashboard', 'Apis', 'Scenes', 'Reports', 'MockRules']
 
 const { locale: i18nLocale } = useI18n()
 const elementLocale = computed(() => {
