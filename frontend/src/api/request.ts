@@ -4,6 +4,7 @@ import router from '@/router'
 import { logger } from '@/utils/logger'
 import { globalRequestDeduplicator } from '@/composables/useRequestDeduplicator'
 import { retryWithBackoff, isRetryableError } from '@/utils/retry'
+import { globalToastManager } from '@/composables/useToastManager'
 
 const request = axios.create({
   baseURL: '/api/v1',
@@ -230,13 +231,11 @@ async function forceLogout(): Promise<void> {
     await router.push({ path: '/login', query: { redirect } })
     // 提示用户（延迟显示，避免被路由切换打断）
     setTimeout(() => {
-      void import('element-plus').then(mod =>
-        mod.ElMessage.warning({
-          message: '登录状态已失效，请重新登录',
-          showClose: true,
-          duration: 4000,
-        })
-      )
+      globalToastManager.show({
+        type: 'warning',
+        message: '登录状态已失效，请重新登录',
+        duration: 4000,
+      })
     }, 100)
   } catch (e) {
     logger.error('[request] forceLogout failed:', e)
@@ -359,7 +358,7 @@ request.interceptors.response.use(
 	    // 网络错误（无法连接服务器）— 先检查更具体的错误
     if (err.message?.includes('Network Error') || err.message?.includes('ERR_')) {
       const msg = i18n.global.t('request.cannotConnect')
-      void import('element-plus').then(mod => mod.ElMessage.error({ message: msg, showClose: true, duration: 5000 }))
+      globalToastManager.show({ type: 'error', message: msg, duration: 5000 })
       return Promise.reject(err)
     }
 
@@ -368,14 +367,14 @@ request.interceptors.response.use(
       const msg = err.code === 'ECONNABORTED' || err.message?.includes('timeout')
         ? i18n.global.t('request.timeout')
         : i18n.global.t('request.networkError')
-      void import('element-plus').then(mod => mod.ElMessage.error({ message: msg, showClose: true }))
+      globalToastManager.show({ type: 'error', message: msg })
       return Promise.reject(err)
     }
 
     if (url === '/auth/login' || url === '/auth/register') {
       // 仅 429 由拦截器提示（视图层无法区分），其余错误交由视图 catch 块处理，避免双重提示
       if (status === 429) {
-        void import('element-plus').then(mod => mod.ElMessage.error(i18n.global.t('request.tooFrequent')))
+        globalToastManager.show({ type: 'error', message: i18n.global.t('request.tooFrequent'), duration: 3000 })
       }
       return Promise.reject(err)
     }
@@ -401,7 +400,7 @@ request.interceptors.response.use(
       // 既无 access_token 也无 refresh_token：未登录状态
       if (!hasAccessToken && !hasRefreshToken) {
         if (isWriteRequest(method)) {
-          void import('element-plus').then(mod => mod.ElMessage.warning('请先登录'))
+          globalToastManager.show({ type: 'warning', message: '请先登录' })
           void router.push({ path: '/login', query: { redirect: window.location.pathname + window.location.search } })
           return new Promise<never>(() => {})
         }
@@ -440,7 +439,7 @@ request.interceptors.response.use(
     // 429 请求过于频繁
     if (status === 429) {
       const msg = data?.message || i18n.global.t('request.operationFrequent')
-      void import('element-plus').then(mod => mod.ElMessage.warning(msg))
+      globalToastManager.show({ type: 'warning', message: msg })
       return Promise.reject(err)
     }
 
@@ -453,13 +452,7 @@ request.interceptors.response.use(
     if (status === 403) {
       if (!err?.config?._silent403) {
         const msg = data?.message || i18n.global.t('request.projectForbidden')
-        void import('element-plus').then(mod => {
-          mod.ElMessage.warning({
-            message: msg,
-            showClose: true,
-            duration: 4000,
-          })
-        })
+        globalToastManager.show({ type: 'warning', message: msg, duration: 4000 })
       }
       return Promise.reject(err)
     }
@@ -467,7 +460,7 @@ request.interceptors.response.use(
     // 409 数据冲突（乐观锁）— 提示用户数据已被修改
     if (status === 409) {
       const msg = data?.message || i18n.global.t('request.dataConflict')
-      void import('element-plus').then(mod => mod.ElMessage.warning({ message: msg, showClose: true, duration: 5000 }))
+      globalToastManager.show({ type: 'warning', message: msg, duration: 5000 })
       return Promise.reject(err)
     }
 
@@ -489,14 +482,14 @@ request.interceptors.response.use(
       const errorMsg = data?.message || i18n.global.t('request.paramError')
       const detail = data?.detail || ''
       const fullMsg = detail ? `${errorMsg}: ${detail}` : errorMsg
-      void import('element-plus').then(mod => mod.ElMessage.error(fullMsg))
+      globalToastManager.show({ type: 'error', message: fullMsg })
       return Promise.reject(err)
     }
 
     // 500+ 服务器错误
     if (status && status >= 500) {
       const msg = data?.message || i18n.global.t('request.serverBusy')
-      void import('element-plus').then(mod => mod.ElMessage.error(msg))
+      globalToastManager.show({ type: 'error', message: msg })
       return Promise.reject(err)
     }
 
@@ -504,9 +497,9 @@ request.interceptors.response.use(
     const msg = data?.message || err.message || i18n.global.t('request.operationFailed')
     // 避免显示英文或 technical 错误消息
     if (msg.length > 100 || !/[\u4e00-\u9fff]/.test(msg)) {
-      void import('element-plus').then(mod => mod.ElMessage.error(i18n.global.t('request.operationFailed')))
+      globalToastManager.show({ type: 'error', message: i18n.global.t('request.operationFailed') })
     } else {
-      void import('element-plus').then(mod => mod.ElMessage.error(msg))
+      globalToastManager.show({ type: 'error', message: msg })
     }
     return Promise.reject(err)
   },

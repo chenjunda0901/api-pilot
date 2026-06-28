@@ -90,4 +90,9 @@ app.config.warnHandler = (msg, _instance, _trace) => {
 
 app.use(pinia)
 app.use(router)
+
+// 全局指令
+import { vRipple } from "./directives/ripple"
+app.directive('ripple', vRipple)
+
 app.mount("#app")

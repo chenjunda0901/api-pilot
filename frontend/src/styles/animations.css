@@ -107,6 +107,12 @@
   100% { background-position: -200% 0; }
 }
 
+/* Shimmer 通用别名 — 与 global.css 一致，推荐新代码使用此名 */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* 轻柔浮动 — 图标/装饰元素的悬浮感（±3px） */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
@@ -730,3 +736,60 @@
 .stagger-delay-10 { animation-delay: 300ms; }
 .stagger-delay-11 { animation-delay: 330ms; }
 .stagger-delay-12 { animation-delay: 360ms; }
+
+/* ── Ripple 波纹动画 ───────────────────────────────────────────────────── */
+@keyframes ripple-animation {
+  to {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ── 列表项进入/离开动画 ────────────────────────────────────────────────── */
+.list-enter-active {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.list-leave-active {
+  transition: all 0.2s ease-in;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: scale(0.8) translateY(-10px);
+}
+
+/* 列表移动动画（拖拽排序） */
+.list-move {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── 数据变化高亮 ────────────────────────────────────────────────────────── */
+@keyframes data-change-flash {
+  0%   { background-color: var(--el-color-warning-light-7, #fdf6ec); }
+  100% { background-color: transparent; }
+}
+.data-changed {
+  animation: data-change-flash 1s ease-out;
+}
+
+/* ── 保存指示器 ──────────────────────────────────────────────────────────── */
+.save-indicator {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  background: var(--el-color-success-light-8, #f0f9eb);
+  color: var(--el-color-success, #67c23a);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2000;
+}
+.save-indicator.visible {
+  opacity: 1;
+}
