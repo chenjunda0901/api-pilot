@@ -15,20 +15,29 @@ button, a, [role="button"], .clickable {
 }
 
 /* ============================================================
-   Card 卡片系统
+   Card 卡片系统 — 指向 .card-standard（global.css）
+   .card 为旧别名，新代码请使用 .card-standard
    ============================================================ */
 .card {
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: var(--space-5);
-  transition: box-shadow var(--transition-base), border-color var(--transition-base), transform var(--duration-slow) var(--ease-spring);
+  padding: var(--space-card);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-smooth),
+    background-color var(--duration-fast) var(--ease-smooth);
 }
 .card:hover {
+  border-color: var(--color-primary-alpha-20);
   box-shadow: var(--shadow-card-hover);
-  border-color: var(--border-subtle);
-  transform: none;
+  transform: translateY(-2px);
+}
+.card:active {
+  transform: translateY(0) scale(0.995);
+  transition: transform var(--duration-instant) var(--ease-soft);
 }
 .card-header {
   display: flex;
@@ -443,7 +452,7 @@ html.dark .badge-cyan    { background: var(--cyan-bg); color: var(--cyan); }
 .desktop-only { display: flex; }
 .mobile-only  { display: none; }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .desktop-only { display: none !important; }
   .mobile-only  { display: flex; }
 }

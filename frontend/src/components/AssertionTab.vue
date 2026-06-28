@@ -2,7 +2,7 @@
   <div class="assertion-tab">
     <div class="assertion-header">
       <span class="assertion-title">{{ $t('assertion.title', { count: rows.length }) }}</span>
-      <el-button size="small" text @click="addAssertion">+ {{ $t('assertion.add') }}</el-button>
+      <el-button size="small" text @click="addAssertion()">+ {{ $t('assertion.add') }}</el-button>
     </div>
 
     <!-- 匹配模式切换 -->

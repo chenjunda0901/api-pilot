@@ -15,7 +15,7 @@
       </span>
       <span class="status-divider" v-if="runningInfo"></span>
       <button class="status-btn" @click="$emit('openRecycle')" title="回收站">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <Trash2 :size="12" />
         <span>回收站</span>
       </button>
     </div>
@@ -23,6 +23,8 @@
 </template>
 
 <script setup lang="ts">
+import { Trash2 } from 'lucide-vue-next'
+
 defineProps<{
   runningInfo?: string
   currentEnv?: string
@@ -89,6 +91,15 @@ defineEmits<{
   background: var(--surface-hover);
   color: var(--text-primary);
 }
+.status-btn:active {
+  transform: scale(0.97);
+  transition: transform var(--duration-instant) var(--ease-soft);
+}
+.status-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
 
 /* ── 状态点 — 精致微光 ── */
 .status-dot {
@@ -149,6 +160,9 @@ html.dark .status-btn { color: var(--text-muted); }
 html.dark .status-btn:hover {
   background: var(--surface-hover);
   color: var(--text-primary);
+}
+html.dark .status-btn:focus-visible {
+  outline-color: var(--primary-400);
 }
 html.dark .status-env { color: var(--primary-400); }
 html.dark .status-running-label { color: var(--warning); }

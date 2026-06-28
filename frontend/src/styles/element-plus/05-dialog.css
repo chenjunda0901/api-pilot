@@ -3,62 +3,6 @@
    Split from element-plus-override.css
    ========================================== */
 /* ================================================================
-   九、消息提示组件覆盖 — 毛玻璃通知
-   使用 backdrop-filter 毛玻璃效果 + 多层阴影
-   各类型使用对应语义边框色
-   ================================================================ */
-.el-message {
-  border-radius: var(--radius-lg) !important;
-  padding: var(--space-3) var(--space-5);
-  backdrop-filter: blur(var(--space-3)) saturate(1.2);
-  -webkit-backdrop-filter: blur(var(--space-3)) saturate(1.2);
-  box-shadow: var(--shadow-card), var(--shadow-xs) !important;
-  border-width: 1px;
-  /* 弹簧滑入：右上角方向 */
-  animation: msg-spring-in 240ms var(--ease-bounce-soft) both;
-}
-.el-message.is-leaving {
-  animation: msg-spring-out 200ms var(--ease-soft) forwards;
-}
-@keyframes msg-spring-in {
-  0%   { opacity: 0; transform: translate(20px, -8px) scale(0.92); }
-  60%  { opacity: 1; transform: translate(-2px, 1px) scale(1.02); }
-  100% { opacity: 1; transform: translate(0, 0) scale(1); }
-}
-@keyframes msg-spring-out {
-  from { opacity: 1; transform: translate(0, 0) scale(1); }
-  to   { opacity: 0; transform: translate(20px, -4px) scale(0.96); }
-}
-.el-message--success {
-  background: var(--surface-card-alpha-82);
-  border-color: var(--success-border);
-}
-.el-message--error {
-  background: var(--surface-card-alpha-82);
-  border-color: var(--error-border);
-}
-.el-message--warning {
-  background: var(--surface-card-alpha-82);
-  border-color: var(--warning-border);
-}
-.el-message--info {
-  background: var(--surface-card-alpha-82);
-  border-color: var(--border-subtle);
-}
-
-/* 暗色消息：使用暗色表面 + 更弱模糊 */
-html.dark .el-message {
-  background: var(--surface-overlay);
-  backdrop-filter: blur(var(--space-2));
-  -webkit-backdrop-filter: blur(var(--space-2));
-  box-shadow: var(--shadow-pop) !important;
-}
-html.dark .el-message--success { border-color: var(--success-border); }
-html.dark .el-message--error { border-color: var(--error-border); }
-html.dark .el-message--warning { border-color: var(--warning-border); }
-html.dark .el-message--info { border-color: var(--border-subtle); }
-
-/* ================================================================
    对话框组件覆盖 — 统一 Linear 风格
    圆角 radius-dialog (14px) | 阴影 shadow-pop | 标题栏带分割线
    入场动画：fadeInBlur（模糊淡入 + 微缩放）
@@ -136,6 +80,10 @@ html.dark .el-dialog__header {
 @keyframes dialog-spring-out {
   0%   { opacity: 1; transform: scale(1) translateY(0); }
   100% { opacity: 0; transform: scale(0.96) translateY(6px); }
+}
+
+.el-dialog.is-leaving {
+  animation: dialog-spring-out var(--duration-fast) var(--ease-in) both;
 }
 
 /* Drawer 侧滑：右进右出，顶进顶出，底进底出 */

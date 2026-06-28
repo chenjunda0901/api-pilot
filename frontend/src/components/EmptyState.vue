@@ -199,19 +199,29 @@ defineProps<Props>()
 }
 
 .empty-icon-wrapper::before {
-  display: none;
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--color-primary-alpha-10) 0%, transparent 70%);
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  animation: empty-glow 4s ease-in-out infinite;
+  z-index: -1;
 }
 
-.empty-icon-wrapper:hover {
-  animation-play-state: paused;
-  transform: scale(1.08) translateY(-4px);
-  box-shadow:
-    0 16px 48px var(--color-primary-alpha-16),
-    inset 0 1px 0 var(--color-white-alpha-50);
+@keyframes empty-glow {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
 }
 
 .empty-icon-wrapper:hover::before {
-  display: none;
+  animation-play-state: paused;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .empty-icon {

@@ -141,6 +141,7 @@ update.json
 .trae/
 .playwright-mcp/
 .lucifer/
+.superpowers/
 
 # HAR recording files
 *.har

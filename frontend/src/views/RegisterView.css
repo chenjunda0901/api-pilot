@@ -569,9 +569,9 @@
 /* ===== 暗色模式 ===== */
 html.dark .register-page {
   background:
-    radial-gradient(ellipse at 20% 25%, var(--color-primary-alpha-05) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 75%, var(--color-primary-alpha-04) 0%, transparent 55%),
-    linear-gradient(160deg, var(--surface-bg) 0%, var(--color-primary-alpha-03) 50%, var(--surface-bg) 100%);
+    radial-gradient(ellipse at 20% 25%, var(--color-primary-alpha-07) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 75%, var(--color-primary-alpha-05) 0%, transparent 55%),
+    linear-gradient(160deg, var(--surface-bg) 0%, var(--color-primary-alpha-04) 50%, var(--surface-bg) 100%);
 }
 
 html.dark .register-card {

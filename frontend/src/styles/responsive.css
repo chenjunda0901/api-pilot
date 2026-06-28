@@ -996,21 +996,21 @@
   .el-dialog { width: 90vw !important; max-width: 600px; }
 }
 
-/* 抽屉化侧边栏：<= 768 */
-@media (max-width: 768px) {
-  .app-sidebar { position: fixed; transform: translateX(-100%); transition: transform 0.2s ease; z-index: 1000; }
+/* 抽屉化侧边栏：<= 767px */
+@media (max-width: 767px) {
+  .app-sidebar { position: fixed; transform: translateX(-100%); transition: transform var(--duration-base) var(--ease-smooth); z-index: 1000; }
   .app-sidebar.is-open { transform: translateX(0); }
-  .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
+  .sidebar-backdrop { display: none; position: fixed; inset: 0; background: var(--color-sidebar-overlay, rgba(0,0,0,0.4)); z-index: 999; }
   .sidebar-backdrop.is-open { display: block; }
 }
 
-/* Dialog 高度限制：避免溢出 */
-@media (max-width: 768px) {
+/* Dialog 高度限制：避免溢出 — 对齐 767px 断点 */
+@media (max-width: 767px) {
   .el-dialog { max-height: 90vh; margin: 5vh auto !important; }
   .el-dialog__body { max-height: calc(90vh - 120px); overflow-y: auto; }
 }
 
 /* 表格横向滚动 */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .data-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }

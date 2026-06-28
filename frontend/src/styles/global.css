@@ -1322,3 +1322,38 @@ html.dark [role="button"]:focus-visible {
     transform: none !important;
   }
 }
+
+/* ============================================================
+   二十一、轻触设备微交互优化
+   hover 效果在触屏设备上改为 active 触发
+   ============================================================ */
+@media (hover: none) and (pointer: coarse) {
+  .card-standard:active,
+  .el-card:active {
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-card-hover) !important;
+  }
+  .el-button:hover { transform: none !important; }
+  .el-button:active { transform: scale(0.97) !important; }
+  .el-table__body tr:active > td.el-table__cell {
+    background: var(--surface-hover) !important;
+  }
+  .report-item:active,
+  .stat-card:active {
+    background: var(--surface-hover);
+  }
+  .quick-action-item:active {
+    transform: translateY(-1px) !important;
+    border-color: var(--primary-400) !important;
+    box-shadow: var(--shadow-sm) !important;
+  }
+  .report-rerun-btn,
+  .tab-close,
+  .hover-visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  .el-button--primary::before {
+    display: none !important;
+  }
+}

@@ -35,6 +35,7 @@ html.dark .el-notification {
   border: 1px solid var(--border-subtle);
   min-width: 300px;
   max-width: 500px;
+  border-left-width: 3px !important;
 }
 
 .el-message__content {

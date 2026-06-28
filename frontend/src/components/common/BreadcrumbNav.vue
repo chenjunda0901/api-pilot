@@ -7,7 +7,9 @@
         class="breadcrumb-item"
         :aria-current="index === items.length - 1 ? 'page' : undefined"
       >
-        <span v-if="index > 0" class="breadcrumb-sep" aria-hidden="true">/</span>
+        <span v-if="index > 0" class="breadcrumb-sep" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
         <router-link
           v-if="item.to && index < items.length - 1"
           :to="item.to"
@@ -64,12 +66,17 @@ defineProps<{
 }
 
 .breadcrumb-sep {
+  display: inline-flex;
+  align-items: center;
   color: var(--text-disabled);
-  margin: 0 var(--space-2);
+  margin: 0 var(--space-1-5);
   user-select: none;
-  font-weight: var(--weight-regular);
-  font-size: var(--text-xs);
-  opacity: 0.6;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+.breadcrumb-sep svg {
+  width: 12px;
+  height: 12px;
 }
 
 .breadcrumb-link {
@@ -78,10 +85,27 @@ defineProps<{
   transition: color var(--duration-fast) var(--ease-smooth);
   font-weight: var(--weight-medium);
   position: relative;
+  padding-bottom: 1px;
 }
 
 .breadcrumb-link:hover {
   color: var(--primary-600);
+}
+
+.breadcrumb-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+.breadcrumb-link:hover::after {
+  transform: scaleX(1);
 }
 
 .breadcrumb-link:active {
@@ -116,5 +140,9 @@ defineProps<{
 
 :global(html.dark) .breadcrumb-current {
   color: var(--text-primary);
+}
+:global(html.dark) .breadcrumb-sep {
+  color: var(--text-disabled);
+  opacity: 0.35;
 }
 </style>

@@ -66,6 +66,7 @@
 
   /* ---- 危险色 ---- */
   --el-color-danger: var(--color-error-500);
+  --el-color-error: var(--color-error-500);
   --el-color-danger-light-3: var(--color-error-300);
   --el-color-danger-light-5: var(--color-error-200);
   --el-color-danger-light-7: var(--color-error-100);
@@ -212,6 +213,7 @@ html.dark {
   --el-color-warning-dark-2: var(--color-warning-600);
 
   --el-color-danger: var(--color-error-500);
+  --el-color-error: var(--color-error-500);
   --el-color-danger-light-3: var(--color-error-300);
   --el-color-danger-light-5: var(--color-error-200);
   --el-color-danger-light-7: var(--color-error-100);

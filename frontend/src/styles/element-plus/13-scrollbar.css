@@ -2,8 +2,77 @@
    Module: Scrollbar
    Split from element-plus-override.css
    ========================================== */
+
 /* ================================================================
-   二二、弹出框组件覆盖
+   滚动条组件覆盖 — 圆润胶囊状，与品牌色协调
+   支持亮色/暗色双模式，hover/active 逐级加深
+   ================================================================ */
+
+/* Element Plus 自定义滚动条 */
+.el-scrollbar__thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-fast) var(--ease-smooth),
+              width var(--duration-fast) var(--ease-smooth),
+              height var(--duration-fast) var(--ease-smooth);
+}
+.el-scrollbar__thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+.el-scrollbar__thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+.el-scrollbar__bar.is-vertical .el-scrollbar__thumb {
+  width: 6px;
+}
+.el-scrollbar__bar.is-horizontal .el-scrollbar__thumb {
+  height: 6px;
+}
+.el-scrollbar__bar {
+  opacity: 1;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+
+/* 全局 WebKit 滚动条美化 — 统一风格 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox 滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* 滚动容器渐隐效果 */
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+}
+
+/* ================================================================
+   弹出框组件覆盖
    大圆角 + pop 阴影 + 默认边框
    ================================================================ */
 .el-popover.el-popper {
@@ -32,7 +101,7 @@ html.dark .el-popover.el-popper[name="健康检查"] {
 }
 
 /* ================================================================
-   二三、骨架屏组件覆盖 — 主色渐变 shimmer 效果
+   骨架屏组件覆盖 — 主色渐变 shimmer 效果
    与 global.css 和 animations.css 保持一致
    使用 surface-hover + 主色 alpha 做渐变 + shimmer 动画
    ================================================================ */

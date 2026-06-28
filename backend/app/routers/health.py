@@ -15,6 +15,13 @@ logger = logging.getLogger("api_pilot.routers.health")
 router = APIRouter(tags=["Health"])
 
 
+@router.head("/api/v1/ping", summary="心跳检测", include_in_schema=False)
+@router.get("/api/v1/ping", summary="心跳检测", include_in_schema=False)
+async def ping():
+    """前端连接保活检测。返回空 200 即可。"""
+    return ""
+
+
 @router.get("/health", summary="综合健康检查")
 async def health():
     """返回服务整体健康状态（含各依赖）。"""

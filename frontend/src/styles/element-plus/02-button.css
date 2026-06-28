@@ -383,9 +383,12 @@ html.dark .el-button.is-link:hover {
 
 /* 加载中按钮：防止点击抖动，图标平滑旋转 */
 .el-button.is-loading {
-  opacity: 0.7;
+  opacity: 0.8;
   pointer-events: none;
   cursor: default;
+  /* 加载态显示纯色底，避免渐变闪烁 */
+  background: var(--primary-500);
+  border-color: var(--primary-500);
 }
 .el-button.is-loading .el-icon-loading {
   animation: btn-spin 0.9s linear infinite;
@@ -397,8 +400,13 @@ html.dark .el-button.is-link:hover {
 
 /* 禁用态（非 text/link）：柔和灰显 */
 .el-button.is-disabled {
-  filter: saturate(0.3) brightness(1.05);
-  opacity: 0.55;
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+  color: var(--text-disabled);
+  filter: none;
+  pointer-events: none;
 }
 
 /* 禁用态文字/链接按钮 */

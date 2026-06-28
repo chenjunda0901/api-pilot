@@ -186,7 +186,7 @@
   --slate-900:        #0f172a;
 
   /* ---- 语义色彩映射 v20 — 更柔和的文字层次 ---- */
-  --text-primary:     #1e293b;             /* 正文 ~14:1 对比度 — 深邃柔和 */
+  --text-primary:     #1a2332;             /* 正文 ~14:1 对比度 — 深邃柔和（暖3%提升可读性）*/
   --text-secondary:   #475569;             /* 辅助文字 ~7:1 */
   --text-muted:       var(--slate-500);    /* 占位符/提示 4.7:1 */
   --text-disabled:    var(--slate-400);    /* 禁用态 */
@@ -202,7 +202,7 @@
   --border-focus:     var(--primary-500);
 
   /* ---- 表面层次（Surface Elevation）v20 — 云雾感，呼吸更自然 ---- */
-  --surface-bg:       #f5f5f8;             /* 页面底色 — 温润暖灰，与白色卡片形成清晰层次 */
+  --surface-bg:       #f4f5f8;             /* 页面底色 — 温润暖灰，降低 2% 冷感，与白色卡片形成清晰层次 */
   --surface-card:     #ffffff;             /* 卡片表面 — 纯白，干净利落 */
   --surface-nested:   #f1f5f9;             /* 嵌套区域 */
   --surface-muted:    #f8fafc;             /* 弱化背景（表头/striped） */

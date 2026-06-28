@@ -17,6 +17,17 @@
   box-shadow: var(--shadow-card-hover);
   transform: var(--lift-card-hover);
 }
+.el-card:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-card),
+    0 0 0 2px var(--primary-500),
+    0 0 0 4px var(--color-primary-alpha-20);
+  transform: var(--lift-card-hover);
+}
+.el-card.is-clickable:active {
+  transform: translateY(0) scale(0.99);
+  transition: transform var(--duration-instant) var(--ease-soft);
+}
 .el-card__header {
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
@@ -35,6 +46,13 @@ html.dark .el-card {
 html.dark .el-card:hover {
   background: var(--surface-card);
   box-shadow: var(--shadow-card-hover);
+  transform: var(--lift-card-hover);
+}
+html.dark .el-card:focus-visible {
+  box-shadow: var(--shadow-card-hover),
+    0 0 0 2px var(--primary-400),
+    0 0 0 4px var(--color-primary-alpha-30);
+  transform: var(--lift-card-hover);
 }
 html.dark .el-card__header {
   border-bottom-color: var(--border-subtle);

@@ -522,6 +522,16 @@ async function reloadEnvData() {
   background: color-mix(in srgb, var(--primary-500) 6%, var(--surface-hover) 94%);
   box-shadow: inset 0 1px 0 var(--color-white-alpha-18);
 }
+.scroll-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+.tab-close:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
 .scroll-btn.left {
   border-right: 1px solid var(--border-subtle);
 }
@@ -567,6 +577,11 @@ async function reloadEnvData() {
 .tab-item:hover {
   color: var(--text-secondary);
   background: var(--surface-hover);
+}
+.tab-item:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
 }
 
 .tab-item.active {
@@ -708,147 +723,6 @@ async function reloadEnvData() {
   border-bottom-color: var(--primary-500);
 }
 
-.env-switcher {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-  padding-right: 6px;
-  height: 100%;
-}
-
-.env-refresh-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 100%;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition:
-    color var(--duration-fast) var(--ease-smooth),
-    background var(--duration-fast) var(--ease-smooth);
-}
-.env-refresh-btn:hover {
-  color: var(--primary-500);
-  background: var(--surface-selected);
-}
-
-.env-trigger {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 var(--space-2-5);
-  border: none;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
-  height: 100%;
-}
-.env-trigger:hover {
-  background: var(--surface-selected);
-  color: var(--text-primary);
-}
-.env-name {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.env-trigger svg {
-  color: var(--text-muted);
-  transition: color var(--duration-fast) var(--ease-smooth);
-}
-.env-trigger:hover svg {
-  color: var(--primary-500);
-}
-
-.env-dropdown-menu {
-  background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-float), 0 0 0 1px var(--border-subtle);
-  min-width: 180px;
-  padding: var(--sp-2);
-  animation: env-menu-in 0.15s var(--ease-out-expo);
-  max-height: 260px;
-  overflow-y: auto;
-}
-@keyframes env-menu-in {
-  from {
-    opacity: 0;
-    transform: translateY(-1px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.env-list-scroll {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.env-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-2) var(--space-2-5);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
-}
-.env-item:hover {
-  background: var(--color-primary-alpha-06);
-  color: var(--text-primary);
-  border-radius: var(--radius-sm);
-}
-.env-item.active {
-  background: var(--color-primary-alpha-08);
-  color: var(--primary-700);
-  font-weight: var(--weight-semibold);
-}
-.env-item.active::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--primary-500);
-  flex-shrink: 0;
-  box-shadow: 0 0 0 2px var(--color-primary-alpha-15);
-}
-.env-manage {
-  color: var(--text-muted);
-  justify-content: center;
-  margin-top: 2px;
-  font-size: var(--text-xs);
-}
-.env-manage:hover {
-  color: var(--text-primary);
-  background: var(--surface-hover);
-}
-
-.env-divider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: var(--space-1-5) var(--space-1);
-}
-
 html.dark .tabs-bar {
   background: var(--surface-nested);
   border-color: var(--border-subtle);
@@ -870,6 +744,45 @@ html.dark .scroll-btn {
 html.dark .scroll-btn:hover {
   background: color-mix(in srgb, var(--surface-hover) 92%, var(--primary-500) 8%);
   color: var(--text-primary);
+}
+html.dark .tab-close {
+  color: var(--text-disabled);
+}
+html.dark .tab-close:hover {
+  color: var(--error-400);
+  background: var(--color-error-alpha-12);
+}
+html.dark .tab-item:focus-visible {
+  outline-color: var(--primary-400);
+}
+html.dark .scroll-btn:focus-visible {
+  outline-color: var(--primary-400);
+}
+html.dark .tab-close:focus-visible {
+  outline-color: var(--primary-400);
+}
+html.dark .tab-label-input {
+  color: var(--text-primary);
+  background: transparent;
+  border-bottom-color: var(--primary-400);
+}
+html.dark .tab-label-input:focus {
+  border-bottom-color: var(--primary-300);
+}
+html.dark .tab-context-menu {
+  background: var(--surface-overlay);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-pop);
+}
+html.dark .tab-context-item:hover {
+  background: var(--surface-hover);
+}
+html.dark .tab-dirty-dot {
+  background: var(--warning-400);
+  box-shadow: 0 0 0 2px var(--color-warning-alpha-15);
+}
+html.dark .tab-item.active .tab-label {
+  color: var(--primary-400);
 }
 
 /* ===== 移动端 (< 768px)：Tab 栏从顶部切换到底部 ===== */

@@ -419,6 +419,11 @@ function toggleCollapse() {
 .collapse-btn:active {
   transform: scale(0.95);
 }
+.collapse-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
 .collapse-text {
   opacity: 0.85;
 }
@@ -526,6 +531,9 @@ html.dark .collapse-btn {
 html.dark .collapse-btn:hover {
   background: var(--surface-hover);
   color: var(--text-secondary);
+}
+html.dark .collapse-btn:focus-visible {
+  outline-color: var(--primary-400);
 }
 html.dark .nav::-webkit-scrollbar-thumb {
   background: var(--color-neutral-alpha-14);

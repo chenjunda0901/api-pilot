@@ -10,6 +10,10 @@
 .el-dropdown-menu {
   animation: fadeIn var(--duration-instant) var(--ease-smooth);
 }
+.el-select-dropdown__item {
+  transition: background-color var(--duration-fast) var(--ease-smooth),
+              color var(--duration-fast) var(--ease-smooth);
+}
 .el-dropdown-menu {
   border-radius: var(--radius-lg);
   padding: var(--space-1-5);

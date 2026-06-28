@@ -130,3 +130,45 @@ html.dark .el-table__body tr.current-row > td.el-table__cell {
 .el-table__expand-icon:hover { color: var(--primary-500); }
 .el-table__expand-icon--expanded { transform: rotate(90deg); }
 html.dark .el-table__expand-icon:hover { color: var(--primary-400); }
+
+/* 固定列阴影覆盖 */
+.el-table__fixed::before,
+.el-table__fixed-right::before {
+  display: none;
+}
+.el-table__fixed {
+  box-shadow: 2px 0 8px var(--color-neutral-alpha-06);
+}
+.el-table__fixed-right {
+  box-shadow: -2px 0 8px var(--color-neutral-alpha-06);
+}
+html.dark .el-table__fixed {
+  box-shadow: 2px 0 8px var(--color-black-alpha-17);
+}
+html.dark .el-table__fixed-right {
+  box-shadow: -2px 0 8px var(--color-black-alpha-17);
+}
+
+/* 展开行背景 */
+.el-table__expanded-cell {
+  background: var(--surface-nested);
+  padding: var(--space-4) var(--space-5);
+}
+html.dark .el-table__expanded-cell {
+  background: var(--surface-muted);
+}
+
+/* 空状态表格 */
+.el-table__empty-block {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+.el-table__empty-text {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.5;
+}

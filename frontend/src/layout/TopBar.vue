@@ -479,26 +479,6 @@ async function handleProjectCommand(cmd: string) {
   box-shadow: 0 16px 40px var(--color-neutral-alpha-12);
 }
 
-.pd-search {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-2-5);
-  margin-bottom: var(--space-2);
-  border-radius: var(--radius-lg);
-  background: var(--surface-nested);
-  border: 1px solid var(--border-subtle);
-}
-
-.pd-search-input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  font: inherit;
-  color: var(--text-primary);
-}
-
 .pd-section-label {
   padding: var(--space-2) var(--space-2) 6px;
   font-size: var(--text-xs);
@@ -588,7 +568,7 @@ async function handleProjectCommand(cmd: string) {
   align-items: center;
   gap: var(--space-1-5);
   padding: 0 var(--space-3);
-  height: 38px;
+  height: var(--height-input);
   background: linear-gradient(180deg, var(--color-white-alpha-96), var(--color-white-alpha-98));
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
@@ -609,6 +589,11 @@ async function handleProjectCommand(cmd: string) {
   border-color: var(--primary-200);
   box-shadow: 0 0 0 1px var(--color-primary-alpha-06), var(--shadow-xs);
   transform: translateY(-1px);
+}
+.project-dropdown-trigger:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
 }
 .project-vis-badge {
   display: inline-flex;
@@ -669,7 +654,7 @@ async function handleProjectCommand(cmd: string) {
   justify-content: center;
   gap: var(--space-2);
   padding: 0 var(--space-4);
-  height: 38px;
+  height: var(--height-input);
   min-width: 240px;
   background: transparent;
   border: 1px solid transparent;
@@ -687,6 +672,11 @@ async function handleProjectCommand(cmd: string) {
   color: var(--text-primary);
   box-shadow: 0 6px 18px var(--color-neutral-alpha-04);
   transform: translateY(-1px);
+}
+.search-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
 }
 .search-btn kbd {
   font-family: var(--font-sans);
@@ -734,6 +724,11 @@ async function handleProjectCommand(cmd: string) {
 .topbar-action-btn:active {
   transform: scale(0.95);
 }
+.topbar-action-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
 .topbar-action-btn.active {
   background: var(--color-primary-alpha-08);
   color: var(--primary-600);
@@ -742,7 +737,7 @@ async function handleProjectCommand(cmd: string) {
 
 /* ── 用户名按钮 ── */
 .avatar-btn {
-  height: 32px;
+  height: var(--height-input);
   border-radius: var(--radius-md);
   border: none;
   color: var(--text-secondary);
@@ -757,6 +752,11 @@ async function handleProjectCommand(cmd: string) {
 .avatar-btn:hover {
   color: var(--text-primary);
   background: var(--surface-hover);
+}
+.avatar-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
 }
 
 /* 用户名文字 */
@@ -792,6 +792,11 @@ async function handleProjectCommand(cmd: string) {
   box-shadow: 0 10px 22px var(--color-primary-alpha-20);
   transform: translateY(-1px);
 }
+.login-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
 .login-btn:active {
   transform: translateY(0) scale(0.98);
 }
@@ -802,7 +807,7 @@ async function handleProjectCommand(cmd: string) {
   display: flex;
   align-items: center;
   gap: var(--space-1-5);
-  height: 32px;
+  height: var(--height-input);
   padding: 0 10px;
   background: var(--surface-hover);
   border: 1px solid var(--border-default);
@@ -825,6 +830,11 @@ async function handleProjectCommand(cmd: string) {
   border-color: var(--primary-200);
   transform: translateY(-1px);
   box-shadow: 0 0 0 1px var(--color-primary-alpha-06), var(--shadow-xs);
+}
+.env-btn:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
 }
 .env-btn-name {
   overflow: hidden;
@@ -1013,6 +1023,9 @@ html.dark .project-dropdown-trigger:hover {
   background: var(--surface-hover);
   border-color: var(--border-default);
 }
+html.dark .project-dropdown-trigger:focus-visible {
+  outline-color: var(--primary-400);
+}
 html.dark .project-vis-badge.is-public {
   background: var(--success-bg);
   color: var(--success);
@@ -1047,6 +1060,9 @@ html.dark .topbar-action-btn:hover {
   border-color: var(--border-default);
   color: var(--text-primary);
 }
+html.dark .topbar-action-btn:focus-visible {
+  outline-color: var(--primary-400);
+}
 html.dark .topbar-action-btn.active {
   background: var(--color-primary-alpha-15);
   color: var(--primary-400);
@@ -1059,6 +1075,9 @@ html.dark .login-btn {
 html.dark .login-btn:hover {
   background: var(--primary-600);
 }
+html.dark .login-btn:focus-visible {
+  outline-color: var(--primary-400);
+}
 html.dark .env-btn {
   background: var(--surface-hover);
   border-color: var(--border-default);
@@ -1068,6 +1087,9 @@ html.dark .env-btn:hover {
   background: var(--color-primary-alpha-08);
   border-color: var(--color-primary-alpha-20);
   color: var(--text-primary);
+}
+html.dark .env-btn:focus-visible {
+  outline-color: var(--primary-400);
 }
 html.dark .user-dropdown-header { background: var(--surface-nested); border-color: transparent; }
 html.dark .user-dropdown-avatar {
