@@ -2,6 +2,8 @@ import axios from 'axios'
 import i18n from '@/i18n'
 import router from '@/router'
 import { logger } from '@/utils/logger'
+import { globalRequestDeduplicator } from '@/composables/useRequestDeduplicator'
+import { retryWithBackoff, isRetryableError } from '@/utils/retry'
 
 const request = axios.create({
   baseURL: '/api/v1',
@@ -253,12 +255,14 @@ interface AxiosErrorResponse {
       detail?: string;
     };
   };
-  config?: {
-    url?: string;
-    method?: string;
-    headers?: Record<string, unknown>;
-    _retryCount?: number;
-  };
+	  config?: {
+	    url?: string;
+	    method?: string;
+	    headers?: Record<string, unknown>;
+	    _retryCount?: number;
+	    _skipDeduplication?: boolean;
+	    _dedupCacheKey?: string;
+	  };
   message?: string;
   code?: string;
 }
@@ -283,6 +287,16 @@ request.interceptors.request.use((config) => {
   // 非阻塞调用，不阻塞当前请求
   if (isTokenExpiringSoon()) {
     proactiveRefresh().catch((err) => { logger.error('[request] proactive refresh failed:', err) })
+  }
+  // 请求去重 cacheKey 注入（仅幂等请求）
+  const method = (config.method || 'get').toLowerCase()
+  if (['get', 'head', 'options'].includes(method) && !config._skipDeduplication) {
+    const dedupKey = globalRequestDeduplicator.makeCacheKey(
+      method.toUpperCase(),
+      config.url || '',
+      config.params as Record<string, unknown>
+    )
+    config._dedupCacheKey = dedupKey
   }
   return config
 })
@@ -311,21 +325,38 @@ request.interceptors.response.use(
     }
     throw fakeAxiosError
   },
-  async (error: unknown) => {
-    const err: AxiosErrorResponse = isAxiosErrorLike(error) ? error : {}
-    const status = err.response?.status
-    const data = err.response?.data
-    const url = err.config?.url || ''
-    const method = err.config?.method || ''
+	  async (error: unknown) => {
+	    const err: AxiosErrorResponse = isAxiosErrorLike(error) ? error : {}
+	    const status = err.response?.status
+	    const data = err.response?.data
+	    const url = err.config?.url || ''
+	    const method = err.config?.method || ''
 
-    // 请求被取消（AbortController signal）— 静默拒绝，不显示错误提示
-    // 调用方通过 config.signal: new AbortController().signal 传入，
-    // 路由切换/Tab 关闭时调用 controller.abort() 即可取消已发出的请求
-    if (err.code === 'ERR_CANCELED' || err.message?.includes('canceled')) {
-      return Promise.reject(err)
-    }
+	    // 请求被取消（AbortController signal）— 静默拒绝，不显示错误提示
+	    // 调用方通过 config.signal: new AbortController().signal 传入，
+	    // 路由切换/Tab 关闭时调用 controller.abort() 即可取消已发出的请求
+	    if (err.code === 'ERR_CANCELED' || err.message?.includes('canceled')) {
+	      return Promise.reject(err)
+	    }
 
-    // 网络错误（无法连接服务器）— 先检查更具体的错误
+	    // ── 自动重试 ──────────────────────────────────────────────────────
+	    // 幂等请求（GET/HEAD/OPTIONS）遇到可重试错误时自动重试（最多 3 次）
+	    // 非幂等请求仅网络错误重试
+	    const httpMethod = (method || '').toLowerCase()
+	    const isIdempotent = ['get', 'head', 'options'].includes(httpMethod)
+	    const retryCount = (err.config?._retryCount as number) || 0
+	    if (retryCount < 3 && ((isIdempotent && isRetryableError(err)) || isRetryableError(err))) {
+	      const config = err.config
+	      if (config) {
+	        config._retryCount = retryCount + 1
+	        return retryWithBackoff(
+	          () => request(config),
+	          { maxRetries: 3 - retryCount, baseDelay: 1000, retryOn: isRetryableError }
+	        )
+	      }
+	    }
+
+	    // 网络错误（无法连接服务器）— 先检查更具体的错误
     if (err.message?.includes('Network Error') || err.message?.includes('ERR_')) {
       const msg = i18n.global.t('request.cannotConnect')
       void import('element-plus').then(mod => mod.ElMessage.error({ message: msg, showClose: true, duration: 5000 }))
