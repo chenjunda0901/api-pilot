@@ -10,6 +10,7 @@ import { useEnvStore } from "./envStore"
 import { useTabsStore } from "./tabsStore"
 import { useReentrancyGuard } from "@/composables/useReentrancyGuard"
 import { useUserStore } from "./userStore"
+import { globalSWRCache } from "@/composables/useSWR"
 
 export const useProjectStore = defineStore("project", () => {
   const projects = ref<Project[]>([])
@@ -35,34 +36,28 @@ export const useProjectStore = defineStore("project", () => {
   })
 
   async function fetchProjects(page?: number, page_size?: number) {
+    const swrKey = `projects:${page || 1}:${page_size || 50}`
+    const cached = globalSWRCache.getCache<Project[]>(swrKey)
+    if (cached) {
+      projects.value = cached
+      restoreCurrentProject()
+      return
+    }
     loading.value = true
     try {
-      const params: { page?: number; page_size?: number } = {}
-      if (page !== undefined) params.page = page
-      if (page_size !== undefined) params.page_size = page_size
-      const res = (await listProjects(params)) as unknown as ApiResponse<{ items: Project[]; total: number; page: number; page_size: number }>
-      const data = res.data
-      projects.value = data?.items || []
+      const data = await globalSWRCache.get(swrKey, async () => {
+        const params: { page?: number; page_size?: number } = {}
+        if (page !== undefined) params.page = page
+        if (page_size !== undefined) params.page_size = page_size
+        const res = (await listProjects(params)) as unknown as ApiResponse<{ items: Project[]; total: number; page: number; page_size: number }>
+        return (res.data as any)?.items || []
+      }, { ttl: 120000 })
+
+      projects.value = data as Project[]
+      restoreCurrentProject()
 
       const userStore = useUserStore()
       const isLoggedIn = !!userStore.user
-
-      // 自动恢复上次使用的项目
-      if (!currentProjectId.value && projects.value.length > 0) {
-        const lastId = localStorage.getItem(STORAGE_KEYS.LAST_PROJECT_ID)
-        if (lastId && projects.value.some((p) => p.id === Number(lastId))) {
-          currentProjectId.value = Number(lastId)
-          try { localStorage.setItem(STORAGE_KEYS.LAST_PROJECT_ID, String(currentProjectId.value)) } catch {}
-        } else {
-          // 优先选择有场景内容的私有项目（global_demo !== 1），跳过公共演示项目
-          const privateProjects = projects.value.filter((p: Project) => p.global_demo !== 1)
-          const withScenes = privateProjects.find((p: Project) => (p.scene_count ?? 0) > 0)
-          currentProjectId.value = withScenes?.id ?? privateProjects[0]?.id ?? projects.value[0]?.id ?? null
-          try { localStorage.setItem(STORAGE_KEYS.LAST_PROJECT_ID, String(currentProjectId.value)) } catch {}
-        }
-      }
-
-      // 新用户自动 Fork：已登录但无任何私有项目时，自动从种子模板创建私有副本
       if (isLoggedIn && !hasPrivateProject.value && !autoForking.value) {
         void autoForkSeed()
       }
@@ -72,6 +67,22 @@ export const useProjectStore = defineStore("project", () => {
       projects.value = []
     } finally {
       loading.value = false
+    }
+  }
+
+  /** 从 localStorage 恢复上次使用的项目 */
+  function restoreCurrentProject() {
+    if (!currentProjectId.value && projects.value.length > 0) {
+      const lastId = localStorage.getItem(STORAGE_KEYS.LAST_PROJECT_ID)
+      if (lastId && projects.value.some((p) => p.id === Number(lastId))) {
+        currentProjectId.value = Number(lastId)
+        try { localStorage.setItem(STORAGE_KEYS.LAST_PROJECT_ID, String(currentProjectId.value)) } catch {}
+      } else {
+        const privateProjects = projects.value.filter((p: Project) => p.global_demo !== 1)
+        const withScenes = privateProjects.find((p: Project) => (p.scene_count ?? 0) > 0)
+        currentProjectId.value = withScenes?.id ?? privateProjects[0]?.id ?? projects.value[0]?.id ?? null
+        try { localStorage.setItem(STORAGE_KEYS.LAST_PROJECT_ID, String(currentProjectId.value)) } catch {}
+      }
     }
   }
 

@@ -17,6 +17,8 @@ import "./styles/dark-mode.css"
 import { initTheme } from "./utils/theme"
 // 注册 ECharts 亮/暗主题（必须在使用 echarts.init 之前导入）
 import "./utils/echartsTheme"
+// 初始化全局网络检测器
+import { initGlobalNetworkDetector } from "./composables/useNetworkDetector"
 
 // Monaco Editor Web Worker 配置（必须在 monaco-editor 动态导入之前设置）
 // 使用 Vite 的 ?worker 导入语法，Vite 会自动打包为独立 chunk 并正确处理 MIME 类型
@@ -34,6 +36,9 @@ import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 
 // Initialize theme before mounting app
 initTheme()
+
+// 初始化全局网络检测器
+initGlobalNetworkDetector()
 
 const app = createApp(App)
 

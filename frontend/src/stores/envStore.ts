@@ -4,6 +4,7 @@ import { ref, computed } from "vue"
 import { listEnvironments, upsertEnvironmentVariable } from "@/api/environments"
 import { getGlobalConfig } from "@/api/projects"
 import { logger } from "@/utils/logger"
+import { globalSWRCache } from "@/composables/useSWR"
 
 export interface ServiceItem {
   name: string
@@ -148,64 +149,76 @@ export const useEnvStore = defineStore("env", () => {
   })
 
   async function fetchEnvs(projectId: number) {
+    const swrKey = `envs:${projectId}`
+    const cached = globalSWRCache.getCache(swrKey)
+    if (cached) {
+      environments.value = cached as Environment[]
+      restorePersistedEnv()
+      return
+    }
     try {
-      const res = await listEnvironments(projectId)
-      // 后端返回 JSON 字符串，需要解析
-      const rawEnvs = res.data || []
-      environments.value = rawEnvs.map((e: Record<string, unknown>) => {
-        function safeParse(val: unknown, fallback: unknown[] = []) {
-          if (typeof val === 'string') {
-            try {
-              return JSON.parse(val || '[]', (key, value) => {
-                // 拒绝 __proto__ 键防止原型链污染
-                if (key === '__proto__') return undefined
-                return value
-              })
-            } catch { return fallback }
+      const data = await globalSWRCache.get(swrKey, async () => {
+        const res = await listEnvironments(projectId)
+        // 后端返回 JSON 字符串，需要解析
+        const rawEnvs = res.data || []
+        return rawEnvs.map((e: Record<string, unknown>) => {
+          function safeParse(val: unknown, fallback: unknown[] = []) {
+            if (typeof val === 'string') {
+              try {
+                return JSON.parse(val || '[]', (key, value) => {
+                  if (key === '__proto__') return undefined
+                  return value
+                })
+              } catch { return fallback }
+            }
+            return val || fallback
           }
-          return val || fallback
-        }
-        return {
-          id: e.id,
-          name: e.name,
-          base_url: (e.base_url as string) || "",
-          services: safeParse(e.services),
-          variables: safeParse(e.variables),
-          headers: safeParse(e.headers),
-        }
-      }) as Environment[]
-      // 如果持久化的环境 ID 还在列表中，保留它；否则切到第一个环境
-      const stillExists =
-        currentEnvId.value && environments.value.some((e) => e.id === currentEnvId.value)
-      if (!stillExists) {
-        if (environments.value.length > 0) {
-          currentEnvId.value = environments.value[0]?.id ?? null
-          updateBaseUrl()
-          savePersisted(currentEnvId.value, currentServiceUrl.value)
-        } else {
-          currentEnvId.value = null
-        }
-      } else {
-        // 持久化的环境还在，恢复它的 URL（如果有缓存的服务 URL 则恢复）
-        updateBaseUrl(true)
-        // 如果之前保存的 serviceUrl 在当前环境的服务列表中，保留它
-        const svcs = currentEnv.value?.services || []
-        if (currentServiceUrl.value && !svcs.some((s) => s.url === currentServiceUrl.value)) {
-          switchService(svcs.find((s) => s.is_base)?.url || svcs[0]?.url || "")
-        }
-      }
+          return {
+            id: e.id,
+            name: e.name,
+            base_url: (e.base_url as string) || "",
+            services: safeParse(e.services),
+            variables: safeParse(e.variables),
+            headers: safeParse(e.headers),
+          }
+        }) as Environment[]
+      }, { ttl: 60000 })
+      environments.value = data as Environment[]
+      restorePersistedEnv()
     } catch (err) {
       logger.error('[envStore] fetchEnvs failed:', err)
       environments.value = []
     }
   }
 
+  /** 恢复持久化的环境选择状态 */
+  function restorePersistedEnv() {
+    const persisted = loadPersisted()
+    const stillExists =
+      persisted.envId && environments.value.some((e) => e.id === persisted.envId)
+    if (stillExists) {
+      currentEnvId.value = persisted.envId
+      currentServiceUrl.value = persisted.svcUrl
+      updateBaseUrl(true)
+    } else if (environments.value.length > 0) {
+      currentEnvId.value = environments.value[0]?.id ?? null
+      updateBaseUrl()
+      savePersisted(currentEnvId.value, currentServiceUrl.value)
+    } else {
+      currentEnvId.value = null
+    }
+  }
+
   async function fetchGlobalConfig(projectId: number, force = false) {
-    // 缓存有效期 30s，同一项目内避免重复请求
+    const swrKey = `globalConfig:${projectId}`
+    // 缓存有效期 30s
     if (!force && Date.now() - _globalConfigFetchedAt.value < 30_000) return
     try {
-      const res = await getGlobalConfig(projectId)
-      const config = res.data || {}
+      const data = await globalSWRCache.get(swrKey, async () => {
+        const res = await getGlobalConfig(projectId)
+        return res.data || {}
+      }, { ttl: 30000 })
+      const config = data as any
       const _safeReviver = (key: string, value: unknown) => key === '__proto__' ? undefined : value
       const rawVars = typeof config.global_variables === 'string'
         ? JSON.parse(config.global_variables || '[]', _safeReviver)

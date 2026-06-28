@@ -5,6 +5,7 @@ import { getCategoryTree } from "@/api/categories"
 import { listApis, listApiCases, type ApiListItem } from "@/api/apis"
 import { type CategoryNode } from "@/types/api"
 import { logger } from "@/utils/logger"
+import { globalSWRCache } from "@/composables/useSWR"
 
 export type { CategoryNode } from "@/types/api"
 
@@ -97,16 +98,23 @@ export const useApiStore = defineStore("api", () => {
 
   async function fetchCategories(projectId: number) {
     ensureProject(projectId)
-    if (isCacheFresh(categoriesCachedAt.value[projectId]) && categories.value.length > 0) {
+    const swrKey = `categories:${projectId}`
+    const cached = globalSWRCache.getCache<ReturnType<typeof getCategoryTree>['data']>(swrKey)
+    if (cached) {
+      const payload = cached
+      categories.value = Array.isArray(payload) ? payload : (payload as any)?.tree || []
+      firstApi.value = (payload as any)?.first_api || null
       return
     }
     loadingCategories.value = true
     try {
-      const res = await getCategoryTree(projectId)
-      const payload = res.data
-      categories.value = Array.isArray(payload) ? payload : payload?.tree || []
-      firstApi.value = payload?.first_api || null
-      categoriesCachedAt.value[projectId] = Date.now()
+      const data = await globalSWRCache.get(swrKey, async () => {
+        const res = await getCategoryTree(projectId)
+        return res.data
+      }, { ttl: 120000 })
+      const payload = data
+      categories.value = Array.isArray(payload) ? payload : (payload as any)?.tree || []
+      firstApi.value = (payload as any)?.first_api || null
     } catch (error) {
       logger.warn('[apiStore] fetchCategories failed:', error)
       categories.value = []
@@ -118,15 +126,19 @@ export const useApiStore = defineStore("api", () => {
 
   async function fetchApis(projectId: number, categoryId: number) {
     ensureProject(projectId)
-    const cacheKey = `${projectId}_${categoryId}`
-    if (isCacheFresh(apisCachedAt.value[cacheKey])) {
-      return // 缓存未过期
+    const swrKey = `apis:${projectId}_${categoryId}`
+    const cached = globalSWRCache.getCache(swrKey)
+    if (cached) {
+      apisByCategory.value[categoryId] = cached as ApiItem[]
+      return
     }
     loadingApis.value = true
     try {
-      const res = await listApis(projectId, { category_id: categoryId, page_size: 100 })
-      apisByCategory.value[categoryId] = res.data.items || []
-      apisCachedAt.value[cacheKey] = Date.now()
+      const data = await globalSWRCache.get(swrKey, async () => {
+        const res = await listApis(projectId, { category_id: categoryId, page_size: 100 })
+        return (res.data as any)?.items || []
+      }, { ttl: 120000 })
+      apisByCategory.value[categoryId] = data as ApiItem[]
     } catch (err) {
       logger.error('[apiStore] fetchApis failed:', err)
       apisByCategory.value[categoryId] = []
@@ -137,15 +149,19 @@ export const useApiStore = defineStore("api", () => {
 
   async function fetchCases(projectId: number, apiId: number) {
     ensureProject(projectId)
-    const cacheKey = `${projectId}_${apiId}`
-    if (isCacheFresh(casesCachedAt.value[cacheKey])) {
-      return // 缓存未过期
+    const swrKey = `cases:${projectId}_${apiId}`
+    const cached = globalSWRCache.getCache(swrKey)
+    if (cached) {
+      casesByApi.value[apiId] = cached as CaseItem[]
+      return
     }
     loadingCases.value = true
     try {
-      const res = await listApiCases(projectId, apiId, { page_size: 9999 })
-      casesByApi.value[apiId] = res.data.items || []
-      casesCachedAt.value[cacheKey] = Date.now()
+      const data = await globalSWRCache.get(swrKey, async () => {
+        const res = await listApiCases(projectId, apiId, { page_size: 9999 })
+        return (res.data as any)?.items || []
+      }, { ttl: 120000 })
+      casesByApi.value[apiId] = data as CaseItem[]
     } catch (err) {
       logger.error('[apiStore] fetchCases failed:', err)
       casesByApi.value[apiId] = []
@@ -212,6 +228,8 @@ export const useApiStore = defineStore("api", () => {
       delete apisByCategory.value[categoryId]
       if (currentProjectId.value !== null) {
         apisCachedAt.value[`${currentProjectId.value}_${categoryId}`] = 0
+        const swrKey = `apis:${currentProjectId.value}_${categoryId}`
+        // SWR 会在下次请求时自动刷新
       }
     } else {
       // 未指定目录时，失效所有 API 缓存但保留分类树缓存
@@ -231,6 +249,7 @@ export const useApiStore = defineStore("api", () => {
 
   function invalidateApiCache(apiId: number) {
     if (currentProjectId.value !== null) {
+      const swrKey = `cases:${currentProjectId.value}_${apiId}`
       casesCachedAt.value[`${currentProjectId.value}_${apiId}`] = 0
     }
   }
