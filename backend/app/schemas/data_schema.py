@@ -9,7 +9,7 @@ class DataSchemaBase(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=200)
     description: str = Field(default="")
-    schema_json: str = Field(..., min_length=2, description="JSON Schema 字符串")
+    schema_content: str = Field(..., min_length=2, description="JSON Schema 字符串")
 
 
 class DataSchemaCreate(DataSchemaBase):
@@ -21,7 +21,7 @@ class DataSchemaUpdate(BaseModel):
 
     name: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = None
-    schema_json: str | None = Field(default=None, min_length=2)
+    schema_content: str | None = Field(default=None, min_length=2)
 
 
 class DataSchemaOut(DataSchemaBase):

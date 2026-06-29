@@ -50,7 +50,7 @@ async def create_data_schema(
         project_id=project_id,
         name=req.name,
         description=req.description,
-        schema_json=req.schema_json,
+        schema_json=req.schema_content,
         created_by=current_user.id,
     )
     db.add(schema)
@@ -80,8 +80,8 @@ async def update_data_schema(
         schema.name = req.name
     if req.description is not None:
         schema.description = req.description
-    if req.schema_json is not None:
-        schema.schema_json = req.schema_json
+    if req.schema_content is not None:
+        schema.schema_json = req.schema_content
     await db.flush()
     await db.refresh(schema)
     return success(DataSchemaOut.model_validate(schema, from_attributes=True).model_dump())

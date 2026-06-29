@@ -31,7 +31,7 @@ def _check_ip(ip_str: str) -> None:
             raise ValueError("private/loopback IPv6 addresses are not allowed")
 
 
-def validate_request_url(url: str) -> str:
+async def validate_request_url(url: str) -> str:
     """Validate and normalize a request URL. Supports both IP and domain hostnames."""
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https"):
